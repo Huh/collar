@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<collarKey>
+	<collar ID="123456">
+		<comIDList>
+			<comID comType="Iridium">3004456789456</comID>
+		</comIDList>
+		<key>SomeLongKey456ASDF789QEWR456ASDF123ASDF456ADSFASDFASDF456456456</key>
+		<collarType>300</collarType>
+	</collar>
+</collarKey>
