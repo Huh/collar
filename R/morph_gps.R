@@ -39,7 +39,7 @@ cllr_morph_gps <- function(
       class(try(class(x), silent = T)) == "try-error"
     }
 
-    on_failure(is_unquo) <- function(call, env) {
+    assertthat::on_failure(is_unquo) <- function(call, env) {
       paste0("Column ", deparse(call$x), " must be unquoted. If special characters or spaces exist use back ticks (`A B`).")
     }
 
@@ -53,16 +53,15 @@ cllr_morph_gps <- function(
     #   assertthat::assert_that(is_unquo(extra))
     # }
 
-    idc <- enquo(id_col)
-    print(idc)
     dtc <- enquo(dt_col)
     lonc <- enquo(lon_col)
     latc <- enquo(lat_col)
 
     out <- x %>%
-       dplyr::select(!!idc, !!dtc, !!lonc, !!latc) %>%
+       cllr_add_id(id_col) %>%
+       dplyr::select(id, !!dtc, !!lonc, !!latc) %>%
        dplyr::transmute(
-         id = as.character(!!idc),
+         id = as.character(id),
          dt = as.character(!!dtc),
          lon = as.numeric(!!lonc),
          lat = as.numeric(!!latc)
@@ -73,17 +72,17 @@ cllr_morph_gps <- function(
     if(!is.null(extras)){
 
       to_add <- x %>%
-        select(!!!extras)
+        dplyr::select(!!!extras)
 
-      out <- bind_cols(out, to_add)
+      out <- dplyr::bind_cols(out, to_add)
     }
 
     #  Add meta information
     if(!is.null(meta)){
-      out <- as_tibble(c(out, meta))
+      out <- tibble::as_tibble(c(out, meta))
     }
 
     out %>%
-      rename_all(tolower)
+      dplyr::rename_all(tolower)
 
   }
