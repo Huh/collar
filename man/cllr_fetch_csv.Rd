@@ -4,16 +4,13 @@
 \alias{cllr_fetch_csv}
 \title{Read collar data stored in CSV file(s)}
 \usage{
-cllr_fetch_csv(file_path, skip = 0, aux_cols = character(), ...)
+cllr_fetch_csv(file_path, skip = 0, ...)
 }
 \arguments{
 \item{file_path}{The full path to one or more csv files to read}
 
 \item{skip}{Scalar integer, the number of rows to skip at the top of the
 file, see details}
-
-\item{aux_cols}{A character vector defining other columns to keep besides
-collar_id, date_time, x, y, see details}
 
 \item{...}{Other parameters to pass to readr::read_csv}
 }
