@@ -13,6 +13,10 @@ cllr_morph_gps(x = NULL, id_col = NULL, dt_col = NULL,
 
 \item{id_col}{Unquoted name of the ID column that signals the unique identifier for this collar}
 
+\item{dt_col}{something}
+
+\item{dt_format}{else}
+
 \item{lon_col}{Unquoted name of the column containing Longitude location information.  See Details.}
 
 \item{lat_col}{Unquoted name of the column containing Latitude location information.  See Details.}
@@ -21,9 +25,15 @@ cllr_morph_gps(x = NULL, id_col = NULL, dt_col = NULL,
 
 \item{extra}{Unquoted column names of those columns beyond id, datetime, lon and lat that you wish to retain in the data set.}
 }
+\value{
+inherits from data.frame tbl_df
+}
 \description{
 Standardize GPS data to collar format
 }
 \details{
 stuff
+}
+\examples{
+2+2
 }

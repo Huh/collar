@@ -2,8 +2,8 @@
 #'
 #' @param x data.frame of GPS data with at least columns ID, Latitude, Longitude and Date-Time
 #' @param id_col Unquoted name of the ID column that signals the unique identifier for this collar
-#' @param dt_col
-#' @param dt_format
+#' @param dt_col something
+#' @param dt_format else
 #' @param lon_col Unquoted name of the column containing Longitude location information.  See Details.
 #' @param lat_col Unquoted name of the column containing Latitude location information.  See Details.
 #' @param meta Key-value pairs supplied as a named list specifying new columns and values to be added to data.  See Details.
@@ -11,10 +11,11 @@
 #'
 #' @details stuff
 #'
-#' @return
+#' @return inherits from data.frame tbl_df
 #' @export
 #'
 #' @examples
+#' 2+2
 cllr_morph_gps <- function(
                            x = NULL,
                            id_col = NULL,

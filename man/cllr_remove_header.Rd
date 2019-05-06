@@ -9,13 +9,16 @@ cllr_remove_header(x, lat_col, rm_header)
 \arguments{
 \item{x}{A dataframe containing collar data}
 
-\item{rm_header}{Logical passed from morph_gps function}
+\item{lat_col}{The name of the latitude column in the data frame}
 
-\item{latc}{The name of the latitude column in the data frame}
+\item{rm_header}{Logical passed from morph_gps function}
 }
 \value{
 
 }
 \description{
 A function to find and remove data headers form collar data based on the latitude column
+}
+\examples{
+\dontrun{#No examples, fix this}
 }
