@@ -7,9 +7,10 @@
 #' @export
 #'
 #' @example  Create a scatterplot with style!
-#'           ggplot2::ggplot(iris,aes(Sepal.Width,Sepal.Length,
+#'           ggplot2::ggplot(iris,
+#'           ggplot2::aes(Sepal.Width,Sepal.Length,
 #'           color=Species))+
-#'           geom_point(size=5)+
+#'           ggplot2::geom_point(size=5)+
 #'           style_theme()
 
 style_theme <- function(){

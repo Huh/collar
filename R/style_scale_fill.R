@@ -11,8 +11,8 @@
 #'            true or false, respectively
 #'
 #' @details There are four color schemes to choose from:
-#'          1) "main" = simple colors, DUCK HUNT; "NULL" value
-#'          2) "duckhunt" = palette from DUCKHUNT
+#'          1) "main" = simple colors, duckhunt; "NULL" value
+#'          2) "duckhunt" = palette from duckhunt
 #'          3) "cblind" = color blind palette
 #'          4) "gray" = gray scale if you're boring
 #'          If discrete = F, will pick gradient between discrete colors
@@ -21,8 +21,9 @@
 #' @export
 #'
 #' @example Create a bar graph with continuous color palette, duckhunt
-#'           ggplot2::ggplot(mpg,aes(manufacturer,fill=manufacturer))+
-#'           geom_bar()+
+#'           ggplot2::ggplot(mpg,
+#'           ggplot2::aes(manufacturer,fill=manufacturer))+
+#'           ggplot2::geom_bar()+
 #'           theme(axis.text.x=element_text(angle=45,hjust=1))+
 #'           style_scale_fill(palette="duckhunt",guide="none")
 

@@ -11,8 +11,8 @@
 #'            true or false, respectively
 #'
 #' @details There are four color schemes to choose from:
-#'          1) "main" = simple colors, DUCK HUNT; "NULL" value
-#'          2) "duckhunt" = palette from DUCKHUNT
+#'          1) "main" = simple colors, duckhunt; "NULL" value
+#'          2) "duckhunt" = palette from duckhunt
 #'          3) "cblind" = color blind palette
 #'          4) "gray" = gray scale if you're boring
 #'          If discrete = F, will pick gradient between discrete colors
@@ -21,9 +21,10 @@
 #' @export
 #'
 #' @example Create a scatterplot
-#'           ggplot2::ggplot(iris,aes(Sepal.Width,Sepal.Length,
+#'           ggplot2::ggplot(iris,
+#'           ggplot2::aes(Sepal.Width,Sepal.Length,
 #'           color=Species))+
-#'           geom_point(size=5)+
+#'           ggplot2::geom_point(size=5)+
 #'           style_scale_color()
 
 style_scale_color <- function(palette = "main", discrete = T,
