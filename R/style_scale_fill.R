@@ -18,6 +18,13 @@
 #'          If discrete = F, will pick gradient between discrete colors
 #'
 #' @return An object of class "ggproto", for use in ggplot2::ggplot
+#' @export
+#'
+#' @example Create a bar graph with continuous color palette, duckhunt
+#'           ggplot2::ggplot(mpg,aes(manufacturer,fill=manufacturer))+
+#'           geom_bar()+
+#'           theme(axis.text.x=element_text(angle=45,hjust=1))+
+#'           style_scale_fill(palette="duckhunt",guide="none")
 
 style_scale_fill <- function(palette = "main", discrete = T,
 reverse = F, ...){
@@ -29,54 +36,6 @@ reverse = F, ...){
   } else {
     ggplot2::scale_fill_gradientn(colors = pal(256), ...)
   }
-}
-
-#################################
-
-#' Access Palettes
-#'
-#' @description Access any of the color palettes available
-#'
-#' @param palette Character name of palette in cllr_palettes
-#' @param reverse Boolean; Should the colors be reversed?
-#'
-
-
-cllr_pal <- function(palette = "main", reverse=F, ...){
-  pal <- cllr_palettes[[palette]]
-
-  if (reverse) pal <- rev(pal)
-
-  colorRampPalette(pal, ...)
-}
-
-#################################
-
-#' Create palettes
-#'
-#' @description The palettes we've decided to create, can be moved.
-
-# create palettes
-cllr_palettes <- list(
-  `main` = cllr_colors("azure","green","sunset"),
-  `duckhunt` = cllr_colors("azure","green","brown","dark blue","sunset"),
-  `cblind` = cllr_colors("magenta","cerulean",
-                         "malachite","lemon glacier","imp blue"),
-  `gray` = cllr_colors("light gray","black")
-)
-
-#################################
-
-#' Grab any combination of colors for our palettes
-#'
-#' @param ... colors ya want
-
-cllr_colors <- function(...){
-  cols <- c(...)
-  if (is.null(cols))
-    return(colors)
-
-  colors[cols]
 }
 
 #################################
@@ -104,3 +63,53 @@ colors <- c(
   `black` = "#171800",
   `light gray` = "#CFD2DC"
 )
+
+#################################
+
+#' Grab any combination of colors for our palettes
+#'
+#' @param ... colors ya want
+
+cllr_colors <- function(...){
+  cols <- c(...)
+  if (is.null(cols))
+    return(colors)
+
+  colors[cols]
+}
+
+#################################
+
+#' Create palettes
+#'
+#' @description The palettes we've decided to create, can be moved.
+
+# create palettes
+cllr_palettes <- list(
+  `main` = cllr_colors("azure","green","sunset"),
+  `duckhunt` = cllr_colors("azure","green","brown","dark blue","sunset"),
+  `cblind` = cllr_colors("magenta","cerulean",
+                         "malachite","lemon glacier","imp blue"),
+  `gray` = cllr_colors("light gray","black")
+)
+
+#################################
+
+#' Access Palettes
+#'
+#' @description Access any of the color palettes available
+#'
+#' @param palette Character name of palette in cllr_palettes
+#' @param reverse Boolean; Should the colors be reversed?
+#'
+
+
+cllr_pal <- function(palette = "main", reverse=F, ...){
+  pal <- cllr_palettes[[palette]]
+
+  if (reverse) pal <- rev(pal)
+
+  colorRampPalette(pal, ...)
+}
+
+#################################
