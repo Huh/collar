@@ -16,6 +16,4 @@ test_that("Rename ID column", {
   expect_error(
     cllr_rename_id(df, "name")
   )
-
-
 })
