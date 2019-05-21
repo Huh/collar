@@ -16,11 +16,10 @@
 #'   fetch_ats(usr = "my_username", pwd = "secret_code")
 #' }
 fetch_ats <- function(bttn_nm = NULL,
-                       usr = NULL,
-                       pwd = NULL,
-                       base_url = "atsidaq.net"){
-
-  if(is.null(bttn_nm)){
+                      usr = NULL,
+                      pwd = NULL,
+                      base_url = "atsidaq.net") {
+  if (is.null(bttn_nm)) {
     warning("Button name NULL, downloading all data")
   }
   stopifnot(!is.null(usr))
@@ -36,8 +35,8 @@ fetch_ats <- function(bttn_nm = NULL,
   #  Fill in username and password
   filled_form <- rvest::set_values(
     pgform,
-    'txt_username' = usr,
-    'txt_password' = pwd
+    "txt_username" = usr,
+    "txt_password" = pwd
   )
 
   # "click" login button
@@ -46,7 +45,7 @@ fetch_ats <- function(bttn_nm = NULL,
     rvest::html_form(.)
 
   # Which button to download data from?
-  if(is.null(bttn_nm)){
+  if (is.null(bttn_nm)) {
     bttn_nm <- "ctl00$ContentPlaceHolder1$DownloadAll3"
   }
 

@@ -18,6 +18,8 @@ RoxygenNote: 6.1.0
 Imports:
     assertthat,
     dplyr,
+    ggplot2,
+    grDevices,
     httr,
     jsonlite,
     magrittr,
@@ -29,4 +31,7 @@ Imports:
     tibble,
     xml2
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

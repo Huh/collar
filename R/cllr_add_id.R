@@ -16,7 +16,7 @@
 #' # Add unique identifiers
 #' df <- data.frame(val = 1:3)
 #' cllr_add_id(df, "1A")
-cllr_add_id <- function(x, id_vals){
+cllr_add_id <- function(x, id_vals) {
   assertthat::assert_that(inherits(x, "data.frame"))
   assertthat::assert_that(inherits(id_vals, "character"))
 

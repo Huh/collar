@@ -16,7 +16,6 @@ test_that("Check file exists", {
     fetch_csv(file.path(tmp_dir, "mycsv.csv")),
     "data.frame"
   )
-
 })
 
 test_that("Fail to read multiple csv files", {
@@ -33,5 +32,4 @@ test_that("Fail to read multiple csv files", {
   expect_error(
     fetch_csv(fls)
   )
-
 })

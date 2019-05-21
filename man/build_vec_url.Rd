@@ -7,11 +7,12 @@
 \usage{
 build_vec_url(base_url = NULL, collar_id = NULL, collar_key = NULL,
   type = c("gps", "act", "mit", "mor", "prx", "SEP", "TRAP"),
-  after_data_id = NULL, start_date = NULL)
+  after_data_id = NULL, start_date = NULL, which_date = NULL)
 
 build_vec_urls(base_url = NULL, collar_id = NULL, collar_key = NULL,
   type = c("gps", "act", "mit", "mor", "prx", "SEP", "TRAP"),
-  after_data_id = NULL, start_date = NULL)
+  after_data_id = NULL, start_date = NULL, which_date = c("scts",
+  "acquisition"))
 }
 \arguments{
 \item{base_url}{NULL or the url to build from, the default NULL should
@@ -34,6 +35,9 @@ DD-MM-YYYYTHH:MM:SS (the T is required, for example 01-01-2018T00:00:00).
 Supplying this parameter will cause the API to only return data collected
 after the supplied date.  Must be equal in length to collar_id and
 collar_key.  Only one of start_date and after_data_id may be supplied.}
+
+\item{which_date}{either scts or acquisition, indicates date column to use
+for subsetting}
 }
 \value{
 Formatted url(s) as a character string

@@ -32,6 +32,4 @@ test_that("Add ID column and values", {
   expect_error(
     cllr_add_id(df, NULL)
   )
-
 })
-

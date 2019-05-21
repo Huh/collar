@@ -9,16 +9,18 @@ cllr_remove_header(x, lat_col, rm_header)
 \arguments{
 \item{x}{A dataframe containing collar data}
 
-\item{lat_col}{The name of the latitude column in the data frame}
+\item{lat_col}{The unqouted name of the latitude or any other column in the data frame}
 
-\item{rm_header}{Logical passed from morph_gps function}
+\item{rm_header}{Logical indicating whether to remove header completely}
 }
 \value{
-
+tibble
 }
 \description{
 A function to find and remove data headers form collar data based on the latitude column
 }
 \examples{
-\dontrun{#No examples, fix this}
+ugly_file <- read.csv(system.file("extdata", "telonics.csv", package = "collar"))
+# Use backticks for column names with spaces
+collar::cllr_remove_header(ugly_file, `GPS Latitude`, rm_header = TRUE)
 }
