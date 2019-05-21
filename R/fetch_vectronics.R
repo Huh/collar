@@ -32,10 +32,11 @@
 #' }
 
 fetch_vectronics <- function(key_dir = key_dir,
-                               base_url = NULL,
-                               after_data_id = NULL,
-                               type = "gps",
-                               start_date = NULL) {
+                             base_url = NULL,
+                             after_data_id = NULL,
+                             type = "gps",
+                             start_date = NULL,
+                             which_date = NULL) {
   ids <- get_id_from_key(key_dir)
 
   keys <- get_keys(key_dir)
@@ -46,7 +47,8 @@ fetch_vectronics <- function(key_dir = key_dir,
     collar_key = keys,
     type = type,
     after_data_id = after_data_id,
-    start_date = start_date
+    start_date = start_date,
+    which_date = which_date
   )
 
   call_vec_api(urls)
@@ -201,6 +203,8 @@ get_keys <- function(key_dir) {
 #' Supplying this parameter will cause the API to only return data collected
 #' after the supplied date.  Must be equal in length to collar_id and
 #' collar_key.  Only one of start_date and after_data_id may be supplied.
+#' @param which_date either scts or acquisition, indicates date column to use
+#' for subsetting
 #'
 #' @details The functions build_vec_url and build_vec_urls differ only
 #' in that build_vec_url builds a single url from a collection of length 1
@@ -246,7 +250,8 @@ build_vec_url <- function(base_url = NULL,
                             "gps", "act", "mit", "mor", "prx", "SEP", "TRAP"
                           ),
                           after_data_id = NULL,
-                          start_date = NULL) {
+                          start_date = NULL,
+                          which_date = NULL) {
   one_null <- function(x, y) {
     is.null(x) | is.null(y)
   }
@@ -256,9 +261,16 @@ build_vec_url <- function(base_url = NULL,
   }
 
   assertthat::assert_that(one_null(after_data_id, start_date))
+
   assertthat::assert_that(
     type %in% c("gps", "act", "mit", "mor", "prx", "SEP", "TRAP")
   )
+
+  if(!is.null(start_date)){
+    assertthat::assert_that(
+      which_date %in% c("scts", "acquisition")
+    )
+  }
 
   if (is.null(base_url)) {
     base_url <- "https://wombat.vectronic-wildlife.com:9443"
@@ -281,7 +293,11 @@ build_vec_url <- function(base_url = NULL,
   }
 
   if (!is.null(start_date)) {
-    url <- paste0(url, "&after=", start_date)
+    url <- switch(
+      which_date,
+      "scts" = paste0(url, "&afterScts=", start_date),
+      "acquisition" = paste0(url, "&afterAcquisition=", start_date)
+    )
   }
 
   url
@@ -297,7 +313,8 @@ build_vec_urls <- function(base_url = NULL,
                              "SEP", "TRAP"
                            ),
                            after_data_id = NULL,
-                           start_date = NULL) {
+                           start_date = NULL,
+                           which_date = c("scts", "acquisition")) {
   purrr::map2_chr(
     collar_id, collar_key,
     ~build_vec_url(
@@ -306,7 +323,8 @@ build_vec_urls <- function(base_url = NULL,
       .y,
       type,
       after_data_id,
-      start_date
+      start_date,
+      which_date
     )
   )
 }
@@ -369,7 +387,7 @@ call_vec_api <- function(url) {
       )
     }
   ) %>%
-    tibble::as.tibble(.)
+    tibble::as.tibble()
 
   difftime(Sys.time(), st_time, units = "mins") %>%
     as.numeric() %>%
