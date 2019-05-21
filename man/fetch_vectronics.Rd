@@ -5,7 +5,8 @@
 \title{Download data from Vectronics' web service}
 \usage{
 fetch_vectronics(key_dir = key_dir, base_url = NULL,
-  after_data_id = NULL, type = "gps", start_date = NULL)
+  after_data_id = NULL, type = "gps", start_date = NULL,
+  which_date = NULL)
 }
 \arguments{
 \item{key_dir}{path to a single directory containing, potentially many, key files}
@@ -26,6 +27,9 @@ DD-MM-YYYYTHH:MM:SS (the T is required, for example 01-01-2018T00:00:00).
 Supplying this parameter will cause the API to only return data collected
 after the supplied date.  Must be equal in length to collar_id and
 collar_key.  Only one of start_date and after_data_id may be supplied.}
+
+\item{which_date}{either scts or acquisition, indicates date column to use
+for subsetting}
 }
 \value{
 An object of class collar, which inherits from data.frame, tbl_df

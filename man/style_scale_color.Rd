@@ -32,3 +32,9 @@ There are four color schemes to choose from:
          4) "gray" = gray scale if you're boring
          If discrete = F, will pick gradient between discrete colors
 }
+\examples{
+# Create a scatterplot
+ggplot2::ggplot(iris, ggplot2::aes(Sepal.Width,Sepal.Length, color=Species)) +
+  ggplot2::geom_point(size=5) +
+  style_scale_color()
+}

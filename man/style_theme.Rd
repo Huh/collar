@@ -9,6 +9,10 @@ style_theme()
 \description{
 Create a simple ggplot theme for graphs
 }
-\details{
-We can change this later to accomodate opinions...
+\examples{
+# Create a scatterplot with style!
+ggplot2::ggplot(iris,
+  ggplot2::aes(Sepal.Width, Sepal.Length, color = Species)) +
+  ggplot2::geom_point(size = 5) +
+  style_theme()
 }

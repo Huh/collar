@@ -32,3 +32,10 @@ There are four color schemes to choose from:
          4) "gray" = gray scale if you're boring
          If discrete = F, will pick gradient between discrete colors
 }
+\examples{
+# Create a bar graph with continuous color palette, duckhunt
+ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(manufacturer, fill = manufacturer)) +
+  ggplot2::geom_bar() +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
+  style_scale_fill(palette = "duckhunt", guide = "none")
+}
