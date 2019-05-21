@@ -32,4 +32,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Josh Nowak \email{josh.nowak@speedgoat.io}
 
+Authors:
+\itemize{
+  \item Forest Hayes \email{forest.hayes@umontana.edu}
+  \item T.J. Clark \email{tjclark1873@gmail.com}
+}
+
 }
