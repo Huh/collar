@@ -1,0 +1,140 @@
+---
+title: "Downloading Data"
+author: "Josh Nowak"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Downloading Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Purpose
+
+Data collected by tags attached to animals often relay data to users via satellite modems and email. Email is a cumbersome way to receive large amounts of data. For this reason manufacturers typically create a graphical user interface (GUI), which requires the user to visit a website, click on a series of buttons and download individual files. This workflow is better than email, but onerous if more than a few collars are deployed at a time. A more ideal workflow would be for a server to wake up in the middle of the night contact another server and download data in an automated fashion. Few companies, namely Vectronics, have developed application program interfaces (i.e. API) to solve this problem and facilitate the latter more desirable workflow. This package is a workaround for those using tags from companies that do not supply an API and in the case of Vectronics we offer a simple solution to interacting with the API via R. Writing this package in R (and using S3) is important because of the prevalance of R in wildlife science.  
+
+### Roadmap
+
+When creating this package we imagined a simple interface that made it easy for users to retrieve their data, but we realize that this is only the beginning and are working to create a series of tools for the standardization of data, visualization and analysis of telemetry derived locations. For more information on where we are headed or to give us your two cents visit the GitHub repository for the project at https://github.com/Huh/collar.
+
+### Companies
+
+At the time of this writing we have tools to download data from Vectronics, ATS, and legacy csv files. We have plans to work on Telonics in the near future and note that an option exists for Lotek via the [CollarScraper](https://github.com/rgzn/CollarScraper) package.
+
+#### Vectronics
+
+The Vectronics API is [documented here](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). A basic request to API is just a URL like www.google.com except that it also specifies some parameters, which tell the receiving server to do something.  Let's take a look
+
+https://wombat.vectronic-wildlife.com:9443/v2/collar/{collarid}/{datatype}?collarkey={key}
+
+Looking at the request we see that we are going to securely pass data via the encrypted https protocol. Then we see the base url for the server and it specifies port 9443. After that v2/collar/ and we don't need to know much about this chunk as we suspect it is for internal routing. Finally we get to some information that we are required to provide, the collar id. A collar id often looks like 1000001. After passing the collar id we will need to provide the datatype we want to retrieve. Data types depend on the device type, but generally include the following:
+
+1) activity data
+2) mortality implant data
+3) mortality data
+4) proximity data
+5) position data
+6) separation data
+7) trap event data
+8) vaginal implant data
+
+The last piece of information we are required to pass is the collar key. A key is a bit of XML (eXtensible Markup Language) that allows Vectronics to identify each unique device and return the relevant data. Thankfully Vectronics provides a test key that we can all use to test the API. If you have your own keys that you want to use go for it, but for this example we provide instructions to build a test key. Let's begin by creating a key from scratch and then downloading the data for that device.
+
+The XML we will use to build our collar key is shown below:
+
+```{r eval = F, echo = T}
+<?xml version="1.0" encoding="utf-8"?>
+<collarKey>
+	<collar ID="1000001">
+		<comIDList>
+			<comID comType="Iridium">3004456789456</comID>
+		</comIDList>
+		<key>6484B8CA88E2B996421AB903D0B215AFAE285CAAE932F35F448154398398CF33AC40D37D9E37CEEA9DFCBD89353C3CCF8628A4DB4523F2324A83ADA5D091FB396DAC72773ED8CE1571D5C254FABBA0FBDEE2E1883694B8D18148168B205ED5BFA96ACEC30B7B99E045B8AE145B2A83948BAECD54CAB80A7676360B74CD1DEF7DDB50293E36B1C900EA853E19F808F745D85610F68609F233E294FA1C84700A80F1C257E062CAF4B2467E518A010A59E636091BAB905E50ED300BADF9F90440F7B85BBE14DD864BBB2F77A0A50BE5E14623D1B8FB0C2A3069207F4BFBF6CFEBC152F072D27B3CE88F844ED0197A56AF5114DE7B3BA544DB880850507FEB046684</key>
+		<collarType>300</collarType>
+	</collar>
+</collarKey>
+```
+
+
+The XML may look intimidating, but it is just a few pieces of critical information stored in a rather standardized fashion. You will likely never need to interact with it directly. Now to create a key, open a text editor (e.g. Notepad, Notepad++, RStudio) and copy the XML into a blank text document. If you use RStudio be sure to open a new text document. Now name your text file "Collar1000001_Registration.keyx" and save it. I saved mine to "C:/Temp/vec_keys/Collar1000001_Registration.keyx", for reference.
+
+We are now ready to download data from the test collar. Recall that my key is saved in "C:/Temp/vec_keys", so this is the value I want to pass to the `key_dir` argument of the `fetch_vectronics` function.
+
+Load the package
+
+```{r}
+library(collar)
+```
+
+Call the API
+```{r eval = F, warning = FALSE}
+ vec_dat <- fetch_vectronics(key_dir = "C:/Temp/vec_keys")
+```
+
+Cool, but what just happened? Let's break down the function call into its pieces. First, I told you that the API required a collar id, a collar key and a data type, but in our call we only supplied a key directory. The collar package extracted the collar id from the collar key, then it extracted the long alphanumeric key from the key file and finally it guessed that you wanted GPS location data because no value was supplied. Using these pieces of information the fetch_* function builds a URL and calls the API. The function can handle many keys at once or a single key if desired. The function returns a [tibble](https://tibble.tidyverse.org/), which prints nicely to the screen and does not coerce or recycle values in an unreasonable way.
+
+##### Data ID Limits
+
+More advanced calls to the API can be made to only download subsets of the data. For example, we could assume the 600th value of idPosition came from the last download we performed. Imagine that last time we downloaded data this was the last value we received, we can pass this value to the `fetch_vectronics` function to limit the download to only new data not previously downloaded. *Note: Some users have reported odd behavior if positions were collected, but not transmitted it is possible that smaller/older values of idPosition were previously missed. Don't assume that you downloaded every point ever collected.*
+
+```{r eval = F, warning = F}
+new_dat <- fetch_vectronics(
+  key_dir = "C:/Temp/vec_keys",
+  after_data_id = vec_dat$idPosition[600]
+)
+```
+##### Date Limits
+
+Similarly, we can use dates to limit data downloads. The format of the date must be `YYYY-MM-DDTHH:MM:SS` and yes, the T is necessary. The scenario is the same, imagine we download data regularly, say daily, and we only want to download data with a scts date greater than some value. Below we create a date to use for downloading by subtracting 10 from the maximum observed date in the `vec_dat` created by the first download.
+
+Create the date object used to subset the download
+```{r eval = F}
+after <- format(max(as.Date(vec_dat$scts)) - 10, "%Y-%m-%dT%H:%M:%S")
+```
+
+Call the API with the start date
+```{r eval = F, warning = F}
+after_dat <- fetch_vectronics(
+  key_dir = "C:/Temp/vec_keys",
+  start_date = after,
+  which_date = "scts"
+)
+```
+The same could be accomplished with the acquisition date by changing the call to
+```{r eval = F, echo = T}
+after_dat <- fetch_vectronics(
+  key_dir = "C:/Temp/vec_keys",
+  start_date = after,
+  which_date = "acquistion"
+)
+```
+
+If you have more than one collar to download then the length of the dates passed to `start_date` must be equal to the number of keys found in the key directory.  In other words, you have to have one date for each tag.
+
+##### Data Types
+
+Users can choose to download data of different types using they type argument. The possible options are:
+
+1) `gps` - GPS location/position data
+2) `act` - Activity data
+3) `mit` - Implant mortality data
+4) `mor` - Mortality data
+5) `prx` - Proximity data
+6) `SEP` - Separation data
+7) `TRAP`- Trap event data
+
+Definitions of the data types can be found in the [API documentation](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). So far, the calls above have implicitly called the API requesting GPS data, but what if we want activity data? A simple change to the `fetch_vectronics` call accomplishes this task.
+
+```{r eval = F, warning = F}
+act_dat <- fetch_vectronics(
+  key_dir = "C:/Temp/vec_keys",
+  type = "act"
+)
+```
+
+The pattern is the same for the remaining data types.
+
+***
+
+#### ATS
+
