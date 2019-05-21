@@ -41,6 +41,5 @@ fetch_csv <- function(file_path, skip = 0, ...) {
   assertthat::assert_that(assertthat::is.readable(file_path))
 
   readr::read_csv(file_path, skip = skip, ...) %>%
-  dplyr::rename_all(tolower)
-
+    dplyr::rename_all(tolower)
 }

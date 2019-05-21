@@ -13,7 +13,7 @@
 #' # Unquoted input when renaming id column
 #' df <- data.frame(val = 1:3, animal_name = 1)
 #' cllr_rename_id(df, animal_name)
-cllr_rename_id <- function(x, id_col){
+cllr_rename_id <- function(x, id_col) {
   assertthat::assert_that(inherits(x, "data.frame"))
   is_unquo <- function(x) {
     class(try(class(x), silent = T)) == "try-error"
