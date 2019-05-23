@@ -1,6 +1,6 @@
 #' Read collar data stored in CSV file(s)
 #'
-#' @param file_path The full path to one csv file to read
+#' @param file_path The full path to one csv to read
 #' @param skip Scalar integer, the number of rows to skip at the top of the
 #' file, see details
 #' @param ... Other parameters to pass to readr::read_csv
@@ -30,10 +30,10 @@
 #' )
 #'
 #' #  Read in whole data, use it to find first row in next step
-#' r1 <- readr::read_csv(fpath)
+#' r1 <- fetch_csv(fpath)
 #'
 #' #  Read in Telonics data skipping header
-#' tlncs <- readr::read_csv(fpath, skip = which(r1[,1] == "Acquisition Time"))
+#' tlncs <- fetch_csv(fpath, skip = which(r1[,1] == "Acquisition Time"))
 #'
 fetch_csv <- function(file_path, skip = 0, ...) {
   assertthat::assert_that(length(file_path) == 1)
@@ -42,4 +42,5 @@ fetch_csv <- function(file_path, skip = 0, ...) {
 
   readr::read_csv(file_path, skip = skip, ...) %>%
     dplyr::rename_all(tolower)
+
 }
