@@ -21,6 +21,7 @@ cllr_add_id <- function(x, id_vals) {
   assertthat::assert_that(inherits(id_vals, "character"))
 
   dplyr::mutate(
+    x,
     id = as.character(id_vals)
   )
 }
