@@ -7,8 +7,8 @@
 #'
 #' @details The url where the function attempts to gain access is atsidaq.net.
 #'
-#' To download from a new button name use the developer tools in your browser and record the name of the button as described there.  For example, the download all button has CSS name 'ctl00$ContentPlaceHolder1$DownloadAll3'.
-#' @return A tibble with automatic parsing of column types
+#' To download from a new button name use the developer tools in your browser and record the name of the button as described there. For example, the download all button has name 'ctl00$ContentPlaceHolder1$DownloadAll3'. See the vignette for more details about finding button names.
+#' @return A tibble
 #' @export
 #'
 #' @examples
