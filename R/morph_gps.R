@@ -17,14 +17,14 @@
 #' @examples
 #' 2+2
 morph_gps <- function(
-  x = NULL,
-  id_col = NULL,
-  dt_col = NULL,
-  dt_format = "%Y-%m-%d %H:%M:%S",
-  lon_col = NULL,
-  lat_col = NULL,
-  meta = list(),
-  extra = character()) {
+                      x = NULL,
+                      id_col = NULL,
+                      dt_col = NULL,
+                      dt_format = "%Y-%m-%d %H:%M:%S",
+                      lon_col = NULL,
+                      lat_col = NULL,
+                      meta = list(),
+                      extra = character()) {
   #  check x
   # assertthat::assert_that(assertthat::not_empty(x))
   # assertthat::assert_that(is.data.frame(x))
