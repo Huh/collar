@@ -1,9 +1,9 @@
 #' Standardize GPS data to collar format
 #'
-#' @param x data.frame of GPS data with at least columns ID, Latitude, Longitude and Date-Time
-#' @param id_col Unquoted name of the ID column that signals the unique identifier for this collar
-#' @param dt_col something
-#' @param dt_format else
+#' @param x data.frame of GPS data with at least columns ID, Latitude, Longitude and Date-Time.
+#' @param id_col Unquoted name of the ID column that signals the unique identifier for this collar.
+#' @param dt_col Unquoted name of the date time column that represents the acquisition time.
+#' @param dt_format character string giving a date-time format as used by strptime.
 #' @param lon_col Unquoted name of the column containing Longitude location information.  See Details.
 #' @param lat_col Unquoted name of the column containing Latitude location information.  See Details.
 #' @param meta Key-value pairs supplied as a named list specifying new columns and values to be added to data.  See Details.
@@ -16,15 +16,15 @@
 #'
 #' @examples
 #' 2+2
-cllr_morph_gps <- function(
-                           x = NULL,
-                           id_col = NULL,
-                           dt_col = NULL,
-                           dt_format = "%d/%m/%Y %H:%M:%S",
-                           lon_col = NULL,
-                           lat_col = NULL,
-                           meta = list(),
-                           extra = character()) {
+morph_gps <- function(
+  x = NULL,
+  id_col = NULL,
+  dt_col = NULL,
+  dt_format = "%Y-%m-%d %H:%M:%S",
+  lon_col = NULL,
+  lat_col = NULL,
+  meta = list(),
+  extra = character()) {
   #  check x
   # assertthat::assert_that(assertthat::not_empty(x))
   # assertthat::assert_that(is.data.frame(x))
@@ -54,16 +54,15 @@ cllr_morph_gps <- function(
   #   assertthat::assert_that(is_unquo(extra))
   # }
 
+  idc <- enquo(id_col)
   dtc <- enquo(dt_col)
   lonc <- enquo(lon_col)
   latc <- enquo(lat_col)
 
   out <- x %>%
-    cllr_add_id(id_col) %>%
-    dplyr::select(id, !!dtc, !!lonc, !!latc) %>%
     dplyr::transmute(
-      id = as.character(id),
-      dt = as.character(!!dtc),
+      id = as.character(!!idc),
+      dt = as.POSIXct(!!dtc, format = dt_format),
       lon = as.numeric(!!lonc),
       lat = as.numeric(!!latc)
     )
