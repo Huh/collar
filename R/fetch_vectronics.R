@@ -28,10 +28,28 @@
 #'
 #' @examples
 #' \dontrun{
-#'   fetch_vectronics(key_dir = "./keys")
+#' key_dir <- system.file("extdata", package = "collar")
+#'
+#' # Download all data
+#' all_dat <- fetch_vectronics(key_dir, type = "gps")
+#'
+#' # Download data after some data id
+#' id_pos <- all_dat$idPosition
+#' data_id <- id_pos[which(id_pos == (max(id_pos) - 10))]
+#' new_dat <- fetch_vectronics(key_dir, type = "gps", after_data_id = data_id)
+#'
+#' (nrow(new_dat) == 10)
+#'
+#' # Download all data after some acquisition date
+#' after <- "2018-06-30T00:00:00"
+#' after_dat <- fetch_vectronics(
+#'   key_dir,
+#'   type = "gps",
+#'   start_date = after,
+#'   which_date = "acquisition"
+#' )
 #' }
-
-fetch_vectronics <- function(key_dir = key_dir,
+fetch_vectronics <- function(key_dir = NULL,
                              base_url = NULL,
                              after_data_id = NULL,
                              type = "gps",
@@ -138,7 +156,7 @@ get_id_from_key <- function(key_dir) {
 #' collar:::get_key(
 #'   system.file(
 #'     "extdata",
-#'     "Collar123456_Registration.keyx",
+#'     "Collar1000001_Registration.keyx",
 #'     package = "collar"
 #'   )
 #' )
@@ -273,12 +291,13 @@ build_vec_url <- function(base_url = NULL,
   }
 
   if (is.null(base_url)) {
-    base_url <- "https://wombat.vectronic-wildlife.com:9443"
+    base_url <- "https://wombat.vectronic-wildlife.com:9443/"
   }
 
   url <- httr::modify_url(
     base_url,
     path = list(
+      "v2",
       "collar",
       collar_id,
       type
