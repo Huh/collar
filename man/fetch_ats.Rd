@@ -17,7 +17,7 @@ fetch_ats(bttn_nm = NULL, usr = NULL, pwd = NULL,
 \item{base_url}{The URL where the function attempts to gain access. By default this is set to "atsidaq.net" which is the domain used for recent GPS collars. Use of other domains (e.g. "atsdat.net") is supported by specifying a URL value in order to support older Iridium based collars and for future compatibility.}
 }
 \value{
-A tibble with automatic parsing of column types
+A tibble
 }
 \description{
 Scrape data from ATS website
@@ -25,7 +25,7 @@ Scrape data from ATS website
 \details{
 The url where the function attempts to gain access is atsidaq.net.
 
-To download from a new button name use the developer tools in your browser and record the name of the button as described there.  For example, the download all button has CSS name 'ctl00$ContentPlaceHolder1$DownloadAll3'.
+To download from a new button name use the developer tools in your browser and record the name of the button as described there. For example, the download all button has name 'ctl00$ContentPlaceHolder1$DownloadAll3'. See the vignette for more details about finding button names.
 }
 \examples{
 \dontrun{

@@ -20,14 +20,17 @@ Imports:
     dplyr,
     ggplot2,
     grDevices,
+    htmlwidgets,
     httr,
     jsonlite,
+    leaflet,
     magrittr,
     purrr,
     RCurl,
     readr,
     rlang,
     rvest,
+    sf,
     tibble,
     xml2
 Suggests: 
