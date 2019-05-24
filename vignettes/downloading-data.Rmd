@@ -92,12 +92,12 @@ Similarly, we can use dates to limit data downloads. The format of the date must
 
 Create the date object used to subset the download
 ```{r eval = F}
-after <- format(max(as.Date(vec_dat$scts)) - 10, "%Y-%m-%dT%H:%M:%S")
+after <- format(max(as.Date(vec_dat$acquisitionTime)) - 10, "%Y-%m-%dT%H:%M:%S")
 ```
 
 Call the API with the start date
 ```{r eval = F, warning = F}
-after_dat <- fetch_vectronics(
+after_scts <- fetch_vectronics(
   key_dir = "C:/Temp/vec_keys",
   start_date = after,
   which_date = "scts"
@@ -105,10 +105,10 @@ after_dat <- fetch_vectronics(
 ```
 The same could be accomplished with the acquisition date by changing the call to
 ```{r eval = F, echo = T}
-after_dat <- fetch_vectronics(
+after_acq <- fetch_vectronics(
   key_dir = "C:/Temp/vec_keys",
   start_date = after,
-  which_date = "acquistion"
+  which_date = "acquisition"
 )
 ```
 
