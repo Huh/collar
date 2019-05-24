@@ -7,7 +7,7 @@
 fetch_csv(file_path, skip = 0, ...)
 }
 \arguments{
-\item{file_path}{The full path to one csv file to read}
+\item{file_path}{The full path to one csv to read}
 
 \item{skip}{Scalar integer, the number of rows to skip at the top of the
 file, see details}
@@ -42,9 +42,9 @@ mustWork = TRUE
 )
 
 #  Read in whole data, use it to find first row in next step
-r1 <- readr::read_csv(fpath)
+r1 <- fetch_csv(fpath)
 
 #  Read in Telonics data skipping header
-tlncs <- readr::read_csv(fpath, skip = which(r1[,1] == "Acquisition Time"))
+tlncs <- fetch_csv(fpath, skip = which(r1[,1] == "Acquisition Time"))
 
 }
