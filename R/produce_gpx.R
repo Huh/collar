@@ -1,9 +1,9 @@
 #' Save collar locations to disk as a GPX file
 #'
-#' @param id_col
-#' @param lat_col
-#' @param lon_col
-#' @param dt_col
+#' @param id_col Quouted name of the ID column that signals the individual identifier.
+#' @param lat_col Quouted name of the latitude column.
+#' @param lon_colQuouted name of the longitude column.
+#' @param dt_col Quouted name of the date/time column with class POSIXct.
 #' @param x A dataframe containing collar data with column "dt" that can be coerced into class "Date"
 #' @param dir The directory to save the GPX file output. Default is here::here().
 #' @param file_name The name of the GPX file created with this function.

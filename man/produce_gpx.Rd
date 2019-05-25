@@ -12,6 +12,12 @@ produce_gpx(x, id_col = "id", lat_col = "lat", lon_col = "lon",
 \arguments{
 \item{x}{A dataframe containing collar data with column "dt" that can be coerced into class "Date"}
 
+\item{id_col}{Quouted name of the ID column that signals the individual identifier.}
+
+\item{lat_col}{Quouted name of the latitude column.}
+
+\item{dt_col}{Quouted name of the date/time column with class POSIXct.}
+
 \item{dir}{The directory to save the GPX file output. Default is here::here().}
 
 \item{file_name}{The name of the GPX file created with this function.}
@@ -19,6 +25,8 @@ produce_gpx(x, id_col = "id", lat_col = "lat", lon_col = "lon",
 \item{crs}{The coordiante refernce system associated with the collar data in the supplied data frame.}
 
 \item{...}{Additional arguments to pass to sf::st_write()}
+
+\item{lon_colQuouted}{name of the longitude column.}
 }
 \value{
 The original data frame passed to the function.
