@@ -4,18 +4,15 @@
 \alias{produce_gpx}
 \title{Save collar locations to disk as a GPX file}
 \usage{
-produce_gpx(x, lat = "lat", lon = "lon", dir = here::here(),
+produce_gpx(x, id_col = "id", lat_col = "lat", lon_col = "lon",
+  dt_col = "dt", dir = here::here(),
   file_name = paste0("GPS Locations ", format(Sys.time(),
   "\%Y-\%m-\%d \%H\%M\%S"), ".gpx"), crs = 4326, ...)
 }
 \arguments{
-\item{x}{A dataframe containing collar data with column "date_time" that can be coerced into class "Date"}
+\item{x}{A dataframe containing collar data with column "dt" that can be coerced into class "Date"}
 
-\item{lat}{A character string that specifies the name of latitude column in the supplied dataframe.}
-
-\item{lon}{A character string that specifies the name of longitude column in the supplied dataframe.}
-
-\item{dir}{The directory to save the GPX file output. Default is the current working directory.}
+\item{dir}{The directory to save the GPX file output. Default is here::here().}
 
 \item{file_name}{The name of the GPX file created with this function.}
 

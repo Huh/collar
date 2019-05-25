@@ -25,10 +25,10 @@ produce_map <- function(x,
   assertthat::assert_that(assertthat::noNA(x$lat))
 
   if(interactive())
-    if (n > 1000)
+    if (nrow(x) > 1000)
       if (!isTRUE(
         askYesNo(
-          paste("Plotting", n, "locations can take a long time.  Do you wish to continue?"),
+          paste("Plotting", nrow(x), "locations can take a long time.  Do you wish to continue?"),
           default = F,
           prompts = getOption("askYesNo", gettext(c("Yes", "No", "Cancel")))
         )))

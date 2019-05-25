@@ -4,17 +4,17 @@
 \alias{filter_date_range}
 \title{Return location within the specified date range}
 \usage{
-filter_date_range(x, date_col = "date_time", start = "1900-01-01",
+filter_date_range(x, dt_col = "dt", start = "1900-01-01",
   end = (Sys.Date() + 1))
 }
 \arguments{
-\item{x}{A dataframe containing collar data with column "date_time" that can be coerced into class "Date"}
-
-\item{date_col}{A character vector that specifies the name of date column in the supplied dataframe.}
+\item{x}{A dataframe containing collar data with column "dt_col" that can be coerced into class "Date"}
 
 \item{start}{A character, date, or POSIXct string that can be coerced into a date.  Used to return locations after the specified date.}
 
 \item{end}{A character, date, or POSIXct string that can be coerced into a date.  Used to return locations before the specified date.}
+
+\item{date_col}{A character vector that specifies the name of date column in the supplied dataframe.}
 }
 \value{
 A dataframe with locations recorded between the start date and end date provided.
