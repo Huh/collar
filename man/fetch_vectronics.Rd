@@ -4,7 +4,7 @@
 \alias{fetch_vectronics}
 \title{Download data from Vectronics' web service}
 \usage{
-fetch_vectronics(key_dir = key_dir, base_url = NULL,
+fetch_vectronics(key_dir = NULL, base_url = NULL,
   after_data_id = NULL, type = "gps", start_date = NULL,
   which_date = NULL)
 }
@@ -56,6 +56,25 @@ This function assumes that the user stores key files for each collar deployed in
 }
 \examples{
 \dontrun{
-  fetch_vectronics(key_dir = "./keys")
+key_dir <- system.file("extdata", package = "collar")
+
+# Download all data
+all_dat <- fetch_vectronics(key_dir, type = "gps")
+
+# Download data after some data id
+id_pos <- all_dat$idPosition
+data_id <- id_pos[which(id_pos == (max(id_pos) - 10))]
+new_dat <- fetch_vectronics(key_dir, type = "gps", after_data_id = data_id)
+
+(nrow(new_dat) == 10)
+
+# Download all data after some acquisition date
+after <- "2018-06-30T00:00:00"
+after_dat <- fetch_vectronics(
+  key_dir,
+  type = "gps",
+  start_date = after,
+  which_date = "acquisition"
+)
 }
 }

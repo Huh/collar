@@ -27,7 +27,7 @@ get_keys is a wrapper for get_key where the former is retained to allow users to
 collar:::get_key(
   system.file(
     "extdata",
-    "Collar123456_Registration.keyx",
+    "Collar1000001_Registration.keyx",
     package = "collar"
   )
 )
