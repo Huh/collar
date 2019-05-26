@@ -49,7 +49,18 @@
 #' #  may be overly simplistic
 #' cllr_remove_header(r1, col_nm = "Acquisition Time")
 #'
-fetch_csv <- function(file_path, skip = 0, ...) {
+#' # Sometimes files are not comma delimited even if they are saved that way
+#' # The example vectronics.csv is actually a tab delimited file that was
+#' #  stored as a csv, to fix this we use the fetch_delim function and specify
+#' #  the delimiter as a comma and a tab
+#' vec_fl <- system.file("extdata", "vectronics.csv", package = "collar")
+#' fetch_delim(vec_fl, delim = ",\t", skip = 0)
+#'
+#' # Note that you can pass arguments to readr::read_*
+#' # Compare animalid column to above
+#' fetch_delim(vec_fl, delim = ",\t", skip = 0, na = c("N/A"))
+#'
+fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
   assertthat::assert_that(
     length(file_path) >= 1,
     msg = "file_path argument is empty, please provide a valid path to a file"
@@ -65,7 +76,34 @@ fetch_csv <- function(file_path, skip = 0, ...) {
 
   suppressMessages(
     purrr::map_dfr(file_path, readr::read_csv, skip = skip, ...) %>%
-      adj_col_nms()
+      dplyr::rename_all(list(~ rename_fun))
+  )
+
+}
+
+#' @export
+#' @rdname fetch_csv
+fetch_delim <- function(file_path,
+                        delim = ",",
+                        skip = 0,
+                        rename_fun = adj_col_nms,
+                        ...) {
+  assertthat::assert_that(
+    length(file_path) >= 1,
+    msg = "file_path argument is empty, please provide a valid path to a file"
+  )
+  assertthat::assert_that(
+    all(file.exists(file_path)),
+    msg = "One or more files described in file_path do not exist"
+  )
+  assertthat::assert_that(
+    all(purrr::map_lgl(file_path, assertthat::is.readable)),
+    msg = "One or more files described in file_path are not readable, could this be a permissions issue?"
+  )
+
+  suppressMessages(
+    purrr::map_dfr(file_path, readr::read_delim, delim = delim, skip = skip, ...) %>%
+      dplyr::rename_all(list(~ rename_fun))
   )
 
 }
