@@ -58,7 +58,9 @@ fetch_ats <- function(bttn_nm = NULL,
 
   httr::stop_for_status(dat_dwnld)
 
-  out <- httr::content(dat_dwnld$response, type = "text/csv")
+  out <- httr::content(dat_dwnld$response, type = "text/csv") %>%
+    dplyr::rename_all(tolower) %>%
+    dplyr::rename_all(list(~ gsub("\\s", "", .)))
 
   return(out)
 }

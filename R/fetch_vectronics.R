@@ -396,17 +396,19 @@ call_vec_api <- function(url) {
 
   pb <- dplyr::progress_estimated(length(resp))
 
-  parse <- purrr::map_df(
-    resp,
-    ~{
-      pb$tick()$print()
-      jsonlite::fromJSON(
-        httr::content(.x, "text"),
-        simplifyVector = TRUE
-      )
-    }
-  ) %>%
-    tibble::as.tibble()
+  parse <- purrr::map_dfr(
+      resp,
+      ~{
+        pb$tick()$print()
+        jsonlite::fromJSON(
+          httr::content(.x, "text"),
+          simplifyVector = TRUE
+        )
+      }
+    ) %>%
+    tibble::as.tibble() %>%
+    dplyr::rename_all(tolower) %>%
+    dplyr::rename_all(list(~ gsub("\\s", "", .)))
 
   difftime(Sys.time(), st_time, units = "mins") %>%
     as.numeric() %>%
