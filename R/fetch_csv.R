@@ -3,7 +3,12 @@
 #' @param file_path The full path to one or more csv(s) to read
 #' @param skip integer, the number of rows to skip at the top of the
 #' file, see details
+#' @param delim the delimiter to apply to the file, see ?readr::read_delim
+#' @inheritParams fetch_ats
 #' @param ... Other parameters to pass to readr::read_csv
+#'
+#' @details
+#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
 #'
 #' @seealso cllr_remove_header
 #'
@@ -59,6 +64,11 @@
 #' # Note that you can pass arguments to readr::read_*
 #' # Compare animalid column to above
 #' fetch_delim(vec_fl, delim = ",\t", skip = 0, na = c("N/A"))
+#'
+#' # The argument rename_fun can take custom functions for renaming
+#' colnames(fetch_csv(fls[1]))
+#' colnames(fetch_csv(fls[1], rename_fun = tolower))
+#' colnames(fetch_csv(fls[1], rename_fun = make.names))
 #'
 fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
   assertthat::assert_that(

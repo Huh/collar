@@ -2,11 +2,17 @@ context("test-fetch_csv.R")
 
 test_that("Check assertions", {
   # Error should occur when NULL is passed
-  expect_error(fetch_csv(NULL))
+  expect_condition(
+    fetch_csv(NULL),
+    "file_path argument is empty, please provide a valid path to a file"
+  )
 
   # Try to read file that does not exist
   my_file <- paste0(Sys.time(), runif(10))
-  expect_error(fetch_csv("myfile"))
+  expect_condition(
+    fetch_csv("myfile"),
+    "One or more files described in file_path do not exist"
+  )
 
   # Successfully read and return csv
   tmp_dir <- tempdir()

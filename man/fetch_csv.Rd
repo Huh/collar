@@ -2,9 +2,13 @@
 % Please edit documentation in R/fetch_csv.R
 \name{fetch_csv}
 \alias{fetch_csv}
+\alias{fetch_delim}
 \title{Read collar data stored in CSV file(s)}
 \usage{
-fetch_csv(file_path, skip = 0, ...)
+fetch_csv(file_path, skip = 0, rename_fun = adj_col_nms, ...)
+
+fetch_delim(file_path, delim = ",", skip = 0,
+  rename_fun = adj_col_nms, ...)
 }
 \arguments{
 \item{file_path}{The full path to one or more csv(s) to read}
@@ -12,13 +16,20 @@ fetch_csv(file_path, skip = 0, ...)
 \item{skip}{integer, the number of rows to skip at the top of the
 file, see details}
 
+\item{rename_fun}{A function used to rename columns, defaults to adj_col_nms, see details}
+
 \item{...}{Other parameters to pass to readr::read_csv}
+
+\item{delim}{the delimiter to apply to the file, see ?readr::read_delim}
 }
 \value{
 a tibble
 }
 \description{
 Read collar data stored in CSV file(s)
+}
+\details{
+Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
 }
 \examples{
 #  Define file path
@@ -57,6 +68,17 @@ tlncs <- fetch_csv(fls[4], skip = which(r1[,1] == "Acquisition Time"))
 # Beware that in some cases the algorithm that finds the first row of data
 #  may be overly simplistic
 cllr_remove_header(r1, col_nm = "Acquisition Time")
+
+# Sometimes files are not comma delimited even if they are saved that way
+# The example vectronics.csv is actually a tab delimited file that was
+#  stored as a csv, to fix this we use the fetch_delim function and specify
+#  the delimiter as a comma and a tab
+vec_fl <- system.file("extdata", "vectronics.csv", package = "collar")
+fetch_delim(vec_fl, delim = ",\\t", skip = 0)
+
+# Note that you can pass arguments to readr::read_*
+# Compare animalid column to above
+fetch_delim(vec_fl, delim = ",\\t", skip = 0, na = c("N/A"))
 
 }
 \seealso{

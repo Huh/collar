@@ -6,7 +6,7 @@
 \usage{
 fetch_vectronics(key_paths, base_url = NULL, after_data_id = NULL,
   type = "gps", count = FALSE, start_date = NULL,
-  which_date = NULL)
+  which_date = NULL, rename_fun = adj_col_nms)
 }
 \arguments{
 \item{key_paths}{The full path to one or more key files}
@@ -32,6 +32,8 @@ collar_key.  Only one of start_date and after_data_id may be supplied.}
 
 \item{which_date}{either scts or acquisition, indicates date column to use
 for subsetting}
+
+\item{rename_fun}{A function used to rename columns, defaults to adj_col_nms, see details}
 }
 \value{
 Tibble
@@ -57,6 +59,8 @@ This function assumes that the user stores key files for each collar deployed in
   \item "trap" returns trap event data
   \item "vit" returns vaginal implant data
 }
+
+Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
 }
 \examples{
 \dontrun{
