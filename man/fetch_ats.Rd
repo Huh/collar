@@ -4,7 +4,7 @@
 \alias{fetch_ats}
 \title{Scrape data from ATS website}
 \usage{
-fetch_ats(bttn_nm = NULL, usr = NULL, pwd = NULL,
+fetch_ats(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3", usr, pwd,
   base_url = "atsidaq.net")
 }
 \arguments{

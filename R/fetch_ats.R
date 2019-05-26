@@ -5,9 +5,11 @@
 #' @param pwd The password used with the supplied username
 #' @param base_url The URL where the function attempts to gain access. By default this is set to "atsidaq.net" which is the domain used for recent GPS collars. Use of other domains (e.g. "atsdat.net") is supported by specifying a URL value in order to support older Iridium based collars and for future compatibility.
 #'
-#' @details The url where the function attempts to gain access is atsidaq.net.
+#' @details
+#' The url where the function attempts to gain access is atsidaq.net.
 #'
 #' To download from a new button name use the developer tools in your browser and record the name of the button as described there. For example, the download all button has name 'ctl00$ContentPlaceHolder1$DownloadAll3'. See the vignette for more details about finding button names.
+#'
 #' @return A tibble
 #' @export
 #'
@@ -15,15 +17,13 @@
 #' \dontrun{
 #'   fetch_ats(usr = "my_username", pwd = "secret_code")
 #' }
-fetch_ats <- function(bttn_nm = NULL,
-                      usr = NULL,
-                      pwd = NULL,
+fetch_ats <- function(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3",
+                      usr,
+                      pwd,
                       base_url = "atsidaq.net") {
   if (is.null(bttn_nm)) {
     warning("Button name NULL, downloading all data")
   }
-  stopifnot(!is.null(usr))
-  stopifnot(!is.null(pwd))
 
   #  Connect to webpage
   pgsession <- rvest::html_session(base_url)
@@ -40,9 +40,23 @@ fetch_ats <- function(bttn_nm = NULL,
   )
 
   # "click" login button
-  dwnld_form <- rvest::submit_form(pgsession, filled_form) %>%
+  dwnld_form <- rvest::submit_form(
+      pgsession,
+      filled_form,
+      submit = "btt_SignIn"
+    ) %>%
     xml2::read_html(.) %>%
     rvest::html_form(.)
+
+  if(any(grepl("btt_SignIn", dwnld_form[[1]]))){
+    stop(
+      paste(
+        "Failed to login to",
+        paste0(base_url, ","),
+        "please check credentials and try again"
+      )
+    )
+  }
 
   # Which button to download data from?
   if (is.null(bttn_nm)) {
@@ -58,7 +72,8 @@ fetch_ats <- function(bttn_nm = NULL,
 
   httr::stop_for_status(dat_dwnld)
 
-  out <- httr::content(dat_dwnld$response, type = "text/csv")
+  out <- httr::content(dat_dwnld$response, type = "text/csv") %>%
+    adj_col_nms()
 
   return(out)
 }

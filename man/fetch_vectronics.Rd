@@ -4,11 +4,12 @@
 \alias{fetch_vectronics}
 \title{Download data from Vectronics' web service}
 \usage{
-fetch_vectronics(key_dir = NULL, base_url = NULL, after_data_id = NULL,
-  type = "gps", start_date = NULL, which_date = NULL)
+fetch_vectronics(key_paths, base_url = NULL, after_data_id = NULL,
+  type = "gps", count = FALSE, start_date = NULL,
+  which_date = NULL)
 }
 \arguments{
-\item{key_dir}{path to a single directory containing, potentially many, key files}
+\item{key_paths}{The full path to one or more key files}
 
 \item{base_url}{NULL or the url to build from, the default NULL should
 suffice in almost all cases}
@@ -19,7 +20,9 @@ ID.  Must be equal in length to collar_id and collar_key.  Only one of
 start_date and after_data_id may be supplied.}
 
 \item{type}{The data type, options include "gps", "act", "mit", "mor", "prx",
-"SEP" and "TRAP".  See details.}
+"sep", "trap" and "vit".  See details.}
+
+\item{count}{logical indicating whether you want a count of the data type}
 
 \item{start_date}{A character vector specifying date and time as
 DD-MM-YYYYTHH:MM:SS (the T is required, for example 01-01-2018T00:00:00).
@@ -31,7 +34,7 @@ collar_key.  Only one of start_date and after_data_id may be supplied.}
 for subsetting}
 }
 \value{
-An object of class collar, which inherits from data.frame, tbl_df
+Tibble
 }
 \description{
 A function to download data from the Vectronics' web service. The function relies on a directory containing collar keys \code{key_dir}. The function will then attempt to download the relevant data using the keys in the \code{key_dir} directory. The user may alter the data downloaded by, for example, downloading data after some arbitrary date, downloading different types of data or after a data id.
@@ -44,33 +47,47 @@ This function assumes that the user stores key files for each collar deployed in
  The type argument allows the user to download different types of information collected by Vectronics collars. The possible options are
 
 \itemize{
+  \item "count" returns count of data records, used with values below
   \item "gps" returns location data
   \item "act" returns activity data
   \item "mit" returns implant mortality data
   \item "mor" returns mortality data
   \item "prx" returns proximity data
-  \item "SEP" returns separation data
-  \item "TRAP" returns trap event data
+  \item "sep" returns separation data
+  \item "trap" returns trap event data
+  \item "vit" returns vaginal implant data
 }
 }
 \examples{
 \dontrun{
-key_dir <- system.file("extdata", package = "collar")
+# Use get_paths function to extract full path to each key file in directory
+path <- get_paths(
+  system.file(
+    "extdata",
+    package = "collar"
+  )
+)
+
+# Download count of GPS data
+fetch_vectronics(path, type = "gps", count = TRUE)
 
 # Download all data
-all_dat <- fetch_vectronics(key_dir, type = "gps")
+all_dat <- fetch_vectronics(path, type = "gps")
+
+# Fake multiple key_paths
+too_much <- fetch_vectronics(c(path, path), type = "gps")
 
 # Download data after some data id
-id_pos <- all_dat$idPosition
+id_pos <- all_dat$idposition
 data_id <- id_pos[which(id_pos == (max(id_pos) - 10))]
-new_dat <- fetch_vectronics(key_dir, type = "gps", after_data_id = data_id)
+new_dat <- fetch_vectronics(path, type = "gps", after_data_id = data_id)
 
 (nrow(new_dat) == 10)
 
 # Download all data after some acquisition date
 after <- "2018-06-30T00:00:00"
 after_dat <- fetch_vectronics(
-  key_dir,
+  path,
   type = "gps",
   start_date = after,
   which_date = "acquisition"

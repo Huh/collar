@@ -33,6 +33,12 @@ Authors:
 \itemize{
   \item Forest Hayes \email{forest.hayes@umontana.edu}
   \item T.J. Clark \email{tjclark1873@gmail.com}
+  \item Hans Martin \email{hmartin289@gmail.com}
+}
+
+Other contributors:
+\itemize{
+  \item SpeedGoat Wildlife Solutions [copyright holder, funder]
 }
 
 }

@@ -6,13 +6,14 @@
 \title{Functions to build the url required to call the API}
 \usage{
 build_vec_url(base_url = NULL, collar_id = NULL, collar_key = NULL,
-  type = c("gps", "act", "mit", "mor", "prx", "SEP", "TRAP"),
-  after_data_id = NULL, start_date = NULL, which_date = NULL)
+  type = c("gps", "act", "mit", "mor", "prx", "sep", "trap", "vit"),
+  count = FALSE, after_data_id = NULL, start_date = NULL,
+  which_date = NULL)
 
 build_vec_urls(base_url = NULL, collar_id = NULL, collar_key = NULL,
-  type = c("gps", "act", "mit", "mor", "prx", "SEP", "TRAP"),
-  after_data_id = NULL, start_date = NULL, which_date = c("scts",
-  "acquisition"))
+  type = c("gps", "act", "mit", "mor", "prx", "sep", "trap", "vit"),
+  count = FALSE, after_data_id = NULL, start_date = NULL,
+  which_date = c("scts", "acquisition"))
 }
 \arguments{
 \item{base_url}{NULL or the url to build from, the default NULL should
@@ -23,7 +24,9 @@ suffice in almost all cases}
 \item{collar_key}{The key(s) of the collars to query for data}
 
 \item{type}{The data type, options include "gps", "act", "mit", "mor", "prx",
-"SEP" and "TRAP".  See details.}
+"sep", "trap" and "vit".  See details.}
+
+\item{count}{logical indicating whether you want a count of the data type}
 
 \item{after_data_id}{All data types have a unique ID maintained by the
 manufacturer.  Use this parameter to download data after the supplied data
@@ -60,28 +63,15 @@ Data types are defined by the user and only a single data type is returned by
 the API for any given call.  The url tells the API which data type to return,
 such that passing
 \itemize{
+  \item "count" modifies requests below to return count of data type
   \item "gps" returns location data
   \item "act" returns activity data
   \item "mit" returns implant mortality data
   \item "mor" returns mortality data
   \item "prx" returns proximity data
-  \item "SEP" returns separation data
-  \item "TRAP" returns trap event data
+  \item "sep" returns separation data
+  \item "trap" returns trap event data
+  \item "vit" returns vaginal implant data
 }
-}
-\examples{
-collar:::build_vec_urls(
-  base_url = NULL,
-  collar_id = collar:::get_id_from_key(
-    system.file("extdata", package = "collar")
-  ),
-  collar_key = collar:::get_keys(
-    system.file(
-      "extdata",
-      package = "collar"
-    )
-  ),
-  type = "act"
-)
 }
 \keyword{internal}

@@ -1,5 +1,8 @@
 context("test-fetch_ats.R")
 
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
+test_that("Test ATS assertions", {
+  expect_error(fetch_ats())
+  expect_error(fetch_ats("A"))
+  expect_error(fetch_ats("A", usr = "dave"))
+  expect_error(fetch_ats(usr = "A", pwd = "B"))
 })

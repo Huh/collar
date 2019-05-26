@@ -13,57 +13,74 @@
 #'  The type argument allows the user to download different types of information collected by Vectronics collars. The possible options are
 #'
 #' \itemize{
+#'   \item "count" returns count of data records, used with values below
 #'   \item "gps" returns location data
 #'   \item "act" returns activity data
 #'   \item "mit" returns implant mortality data
 #'   \item "mor" returns mortality data
 #'   \item "prx" returns proximity data
-#'   \item "SEP" returns separation data
-#'   \item "TRAP" returns trap event data
+#'   \item "sep" returns separation data
+#'   \item "trap" returns trap event data
+#'   \item "vit" returns vaginal implant data
 #' }
 #'
 #'
-#' @return An object of class collar, which inherits from data.frame, tbl_df
+#' @return Tibble
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' key_dir <- system.file("extdata", package = "collar")
+#' # Use get_paths function to extract full path to each key file in directory
+#' path <- get_paths(
+#'   system.file(
+#'     "extdata",
+#'     package = "collar"
+#'   )
+#' )
+#'
+#' # Download count of GPS data
+#' fetch_vectronics(path, type = "gps", count = TRUE)
 #'
 #' # Download all data
-#' all_dat <- fetch_vectronics(key_dir, type = "gps")
+#' all_dat <- fetch_vectronics(path, type = "gps")
+#'
+#' # Fake multiple key_paths
+#' too_much <- fetch_vectronics(c(path, path), type = "gps")
 #'
 #' # Download data after some data id
-#' id_pos <- all_dat$idPosition
+#' id_pos <- all_dat$idposition
 #' data_id <- id_pos[which(id_pos == (max(id_pos) - 10))]
-#' new_dat <- fetch_vectronics(key_dir, type = "gps", after_data_id = data_id)
+#' new_dat <- fetch_vectronics(path, type = "gps", after_data_id = data_id)
 #'
 #' (nrow(new_dat) == 10)
 #'
 #' # Download all data after some acquisition date
 #' after <- "2018-06-30T00:00:00"
 #' after_dat <- fetch_vectronics(
-#'   key_dir,
+#'   path,
 #'   type = "gps",
 #'   start_date = after,
 #'   which_date = "acquisition"
 #' )
 #' }
-fetch_vectronics <- function(key_dir = NULL,
+fetch_vectronics <- function(key_paths,
                              base_url = NULL,
                              after_data_id = NULL,
                              type = "gps",
+                             count = FALSE,
                              start_date = NULL,
                              which_date = NULL) {
-  ids <- get_id_from_key(key_dir)
 
-  keys <- get_keys(key_dir)
+  ids <- get_id_from_key(key_paths)
+
+  keys <- get_keys(key_paths)
 
   urls <- build_vec_urls(
     base_url = base_url,
     collar_id = ids,
     collar_key = keys,
     type = type,
+    count = count,
     after_data_id = after_data_id,
     start_date = start_date,
     which_date = which_date
@@ -72,131 +89,133 @@ fetch_vectronics <- function(key_dir = NULL,
   call_vec_api(urls)
 }
 
-#' Create paths to key files
+#' Extract path(s) to files in a directory
 #'
-#' @inheritParams get_keys
-#' @param ext Defaults to keyx, which should be correct for key files, but could also be a regular expression used to match file extension.
+#' @param key_dir Path to a directory
+#' @param ext Defaults to keyx, which should be correct for Vectronics key files, but could also be a regular expression used to match any file extension.
+#' @param ... other arguments to pass to list.files, see ?list.files
 #'
-#' @return Character vector defining path to each file matching \code{ext}
-#' @keywords internal
-#'
+#' @return full path to each file matching \code{ext}
+#' @family get
+#' @export
 #' @examples
-#' collar:::key_paths(
-#'   system.file("extdata", package = "collar")
+#' # Example collar key
+#' get_paths(
+#'   system.file("extdata", package = "collar"),
+#'   ext = "keyx$"
 #' )
-key_paths <- function(key_dir, ext = "keyx") {
+#'
+#' # Example trap key
+#' get_paths(
+#'   system.file("extdata", "TrapKeys", package = "collar")
+#' )
+#'
+#' # All csv files included in this package
+#' get_paths(
+#'   system.file("extdata", package = "collar"),
+#'   ext = "csv$"
+#' )
+#'
+#' # All keyx files included with this package
+#' get_paths(system.file("extdata", package = "collar"), recursive = TRUE)
+get_paths <- function(key_dir, ext = "keyx$", ...) {
   assertthat::assert_that(assertthat::is.string(key_dir))
   assertthat::assert_that(assertthat::is.dir(key_dir))
   assertthat::assert_that(assertthat::is.readable(key_dir))
 
-  list.files(key_dir, pattern = ext, full.names = TRUE)
+  list.files(
+    normalizePath(key_dir, winslash = "/", mustWork = TRUE),
+    full.names = TRUE,
+    pattern = ext,
+    ...
+  )
 }
 
-#' Extract collar ID from key
+#' Extract collar ID from key files
 #'
 #' @inheritParams get_keys
-#' @param ... Other arguments to pass to key_paths
 #'
-#' @details Vectronics includes the collar ID in the key file name as well as within the XML of the .keyx file.  These functions give the user the option of either extracting the information from the name of the file(s) get_id_from_fnames or reading the ID encoded in the key file get_id__from_key. Storing information in file names or directory names is not a good practice and we would rather have all information stored in files and so prefer and suggest reading the XML within the files.
+#' @details
+#' Vectronics includes the collar ID in the XML of the .keyx file.  The get_id_from_key function gives the user the ability to read the ID encoded in the key file. This function was originally intended for internal package use, but is exported to package users in the hope it is helpful for reporting or other purposes. There is no reason to call it within the established package workflow.
 #'
-#' @keywords internal
 #' @return character vector of collar IDs
+#' @export
+#' @family get
 #'
 #' @examples
-#' collar:::get_id_from_fnames(
-#'   system.file("extdata", package = "collar")
+#' get_id_from_key(
+#'   get_paths(system.file("extdata", package = "collar"))
 #' )
-#' collar:::get_id_from_key(
-#'   system.file("extdata", package = "collar")
-#' )
-get_id_from_fnames <- function(key_dir, ...) {
-  assertthat::assert_that(assertthat::is.dir(key_dir))
-  assertthat::assert_that(assertthat::is.readable(key_dir))
-
-  paths <- key_paths(key_dir, ...)
-
+get_id_from_key <- function(key_paths) {
   assertthat::assert_that(
-    all(
-      file.exists(key_paths(key_dir))
-    )
+    all(file.exists(key_paths)),
+    msg = "In get_id_from_key, one or more key_paths point to files that do not exist"
+  )
+  assertthat::assert_that(
+    all(purrr::map_lgl(key_paths, assertthat::is.readable)),
+    msg = "In get_id_from_key, one or more key_paths point to files that cannot be read, is this a permissions issue?"
+  )
+  assertthat::assert_that(
+    all(purrr::map_lgl(key_paths, assertthat::has_extension, ext = "keyx")),
+    msg = "In get_id_from_key, one of more key_paths point to files that are not .keyx files"
   )
 
-  gsub("(.*Collar)([0-9]+)(_.*)", "\\2", paths)
-}
-
-#' @rdname get_id_from_fnames
-
-get_id_from_key <- function(key_dir) {
-  assertthat::assert_that(assertthat::is.dir(key_dir))
-  assertthat::assert_that(assertthat::is.readable(key_dir))
-
-  paths <- key_paths(key_dir)
-
   purrr::map_chr(
-    paths,
+    key_paths,
     ~xml2::read_xml(.x) %>%
       xml2::xml_find_all("//collar") %>%
       xml2::xml_attr("ID")
   )
 }
 
-#' Retrieve keys from a path to a key file or read all keys contained within a directory
+#' Extract alphanumeric key from key files
 #'
-#' The key is need to call the Vectronics API and given the length of the key copy and paste errors seems likely.  The functions here help users access the keys in a programmatic fashion.
+#' The key is needed to call the Vectronics API and given the length of the key copy and paste errors seems likely.  The functions here help users access the keys in a programmatic fashion. We don't anticipate much need for users to use this function as it was originally intended to be internal to the package, but if listing keys is needed for reporting purposes or otherwise the function is made available.
 #'
-#' @param key_path A length 1 character string describing the full path to a single key file.
-#' @param key_dir path to a single directory containing, potentially many, key files
-#'
-#' @details get_keys is a wrapper for get_key where the former is retained to allow users to access a single file if desired.
-#'
-#' @keywords internal
+#' @param key_paths The full path to one or more key files
+#' @family get
+#' @export
 #' @return A character vector of keys
 #'
 #' @examples
-#' collar:::get_key(
-#'   system.file(
-#'     "extdata",
-#'     "Collar1000001_Registration.keyx",
-#'     package = "collar"
-#'   )
+#'
+#' my_key <- system.file(
+#'   "extdata",
+#'   "Collar1000001_Registration.keyx",
+#'   package = "collar"
 #' )
 #'
-#' collar:::get_keys(
-#'   system.file(
-#'     "extdata",
-#'     package = "collar"
-#'   )
-#' )
-
-get_key <- function(key_path) {
+#' # Extract one key
+#' get_keys(my_key)
+#'
+#' # Extract keys from "several" files
+#' get_keys(c(my_key, my_key, my_key))
+get_keys <- function(key_paths) {
+  assertthat::assert_that(
+    all(purrr::map_lgl(key_paths, file.exists)),
+    msg = "In get_keys, one or more files in key_paths do not exist"
+  )
   is_file <- function(x) {
     !assertthat::is.dir(x)
   }
+  assertthat::assert_that(
+    all(purrr::map_lgl(key_paths, is_file)),
+    msg = "In get_keys, key_paths must be files not directories"
+  )
+  assertthat::assert_that(
+    all(purrr::map_lgl(key_paths, assertthat::has_extension, ext = "keyx")),
+    msg = "In get_keys, one or more files in key_paths do not have extension .keyx"
+  )
+  assertthat::assert_that(
+    all(purrr::map_lgl(key_paths, assertthat::is.readable)),
+    msg = "In get_keys, one or more files in key_paths are not readable, is this a permissions issue?"
+  )
 
-  assertthat::on_failure(is_file) <- function(call, env) {
-    "key_path should be the path to a single file, not a directory.  Did you mean to call get_keys?"
-  }
-
-  assertthat::assert_that(is_file(key_path))
-  assertthat::assert_that(is.character(key_path))
-  assertthat::assert_that(file.exists(key_path))
-  assertthat::assert_that(assertthat::has_extension(key_path, ext = "keyx"))
-  assertthat::assert_that(assertthat::is.readable(key_path))
-
-  xml2::read_xml(key_path) %>%
-    xml2::xml_find_all("//key") %>%
-    xml2::xml_text()
-}
-
-#' @rdname get_key
-
-get_keys <- function(key_dir) {
-  assertthat::assert_that(assertthat::is.dir(key_dir))
-  assertthat::assert_that(assertthat::is.readable(key_dir))
-
-  paths <- key_paths(key_dir)
-
-  purrr::map_chr(paths, get_key)
+  purrr::map_chr(key_paths,
+    ~ xml2::read_xml(.x) %>%
+      xml2::xml_find_all("//key") %>%
+      xml2::xml_text()
+  )
 }
 
 #' Functions to build the url required to call the API
@@ -211,7 +230,8 @@ get_keys <- function(key_dir) {
 #' @param collar_id The ID(s) of the collars to query for data
 #' @param collar_key The key(s) of the collars to query for data
 #' @param type The data type, options include "gps", "act", "mit", "mor", "prx",
-#' "SEP" and "TRAP".  See details.
+#' "sep", "trap" and "vit".  See details.
+#' @param count logical indicating whether you want a count of the data type
 #' @param after_data_id All data types have a unique ID maintained by the
 #' manufacturer.  Use this parameter to download data after the supplied data
 #' ID.  Must be equal in length to collar_id and collar_key.  Only one of
@@ -235,77 +255,117 @@ get_keys <- function(key_dir) {
 #' the API for any given call.  The url tells the API which data type to return,
 #' such that passing
 #' \itemize{
+#'   \item "count" modifies requests below to return count of data type
 #'   \item "gps" returns location data
 #'   \item "act" returns activity data
 #'   \item "mit" returns implant mortality data
 #'   \item "mor" returns mortality data
 #'   \item "prx" returns proximity data
-#'   \item "SEP" returns separation data
-#'   \item "TRAP" returns trap event data
+#'   \item "sep" returns separation data
+#'   \item "trap" returns trap event data
+#'   \item "vit" returns vaginal implant data
 #' }
 #'
 #' @keywords internal
 #' @return Formatted url(s) as a character string
-#'
-#' @examples
-#' collar:::build_vec_urls(
-#'   base_url = NULL,
-#'   collar_id = collar:::get_id_from_key(
-#'     system.file("extdata", package = "collar")
-#'   ),
-#'   collar_key = collar:::get_keys(
-#'     system.file(
-#'       "extdata",
-#'       package = "collar"
-#'     )
-#'   ),
-#'   type = "act"
-#' )
 build_vec_url <- function(base_url = NULL,
                           collar_id = NULL,
                           collar_key = NULL,
                           type = c(
-                            "gps", "act", "mit", "mor", "prx", "SEP", "TRAP"
+                            "gps", "act", "mit", "mor", "prx", "sep", "trap",
+                            "vit"
                           ),
+                          count = FALSE,
                           after_data_id = NULL,
                           start_date = NULL,
                           which_date = NULL) {
   one_null <- function(x, y) {
     is.null(x) | is.null(y)
   }
-
   assertthat::on_failure(one_null) <- function(call, env) {
     "The Vectronics API cannot accept both the after_data_id and start_date arguments at the same time.  Please change one or both to NULL."
   }
-
   assertthat::assert_that(one_null(after_data_id, start_date))
-
   assertthat::assert_that(
-    type %in% c("gps", "act", "mit", "mor", "prx", "SEP", "TRAP")
+    assertthat::is.string(collar_id),
+    msg = "In build_vec_url, collar_id must be a length one character vector, did you pass more than one collar_id?"
   )
-
+  assertthat::assert_that(
+    assertthat::is.string(collar_key),
+    msg = "In build_vec_url, collar_key must be a length one character vector, did you pass more than one collar_key?"
+  )
+  assertthat::assert_that(
+    type %in% c("gps", "act", "mit", "mor", "prx", "sep", "trap", "vit"),
+    msg = paste(
+      "Function build_vec_url called with type",
+      paste0(type, ","),
+      "but type must be one of gps, act, mit, mor, prx, sep, trap, vit"
+    )
+  )
+  assertthat::assert_that(
+    assertthat::is.flag(count),
+    msg = paste(
+      "Function build_vec_url called with count set to",
+      paste0(count, ","),
+      "but count must be TRUE or FALSE"
+    )
+  )
   if(!is.null(start_date)){
     assertthat::assert_that(
-      which_date %in% c("scts", "acquisition")
+      assertthat::is.string(start_date),
+      msg = "In build_vec_url, start_date must be a length one character vector, did you pass more than one start_date?"
+    )
+    assertthat::assert_that(
+      grepl(
+        "^(19[78][0-9]|199[0-9]|20[0-9]{2}|2100)-0*([1-9]|1[0-2])-0*([1-9]|[12][0-9]|3[01])(T)0*([0-9]|1[0-9]|2[0-4]):0*([0-9]|[1-5][0-9]|60):0*([0-9]|[1-5][0-9]|60)$",
+        start_date
+      ),
+      msg = "In build_vec_url, the format of start_date must follow YYYY-MM-DDTHH:MM:SS, don't forget the T in the middle"
+    )
+    assertthat::assert_that(
+      which_date %in% c("scts", "acquisition"),
+      msg = paste(
+        "Function build_vec_url called with which_date set to",
+        paste0(which_date, ","),
+        "but which_date must be one of scts or acquisition."
+      )
     )
   }
 
+  # Insert base url if NULL to save typing
   if (is.null(base_url)) {
     base_url <- "https://wombat.vectronic-wildlife.com:9443/"
   }
 
-  url <- httr::modify_url(
-    base_url,
-    path = list(
-      "v2",
-      "collar",
-      collar_id,
-      type
-    ),
-    query = list(
-      "collarkey" = collar_key
+  # Modify url conditional on count variable to simplify user interaction
+  if(count){
+    url <- httr::modify_url(
+      base_url,
+      path = list(
+        "v2",
+        "collar",
+        collar_id,
+        type,
+        "count"
+      ),
+      query = list(
+        "collarkey" = collar_key
+      )
     )
-  )
+  }else{
+    url <- httr::modify_url(
+      base_url,
+      path = list(
+        "v2",
+        "collar",
+        collar_id,
+        type
+      ),
+      query = list(
+        "collarkey" = collar_key
+      )
+    )
+  }
 
   if (!is.null(after_data_id)) {
     url <- paste0(url, "&gt-id=", after_data_id)
@@ -329,18 +389,25 @@ build_vec_urls <- function(base_url = NULL,
                            collar_key = NULL,
                            type = c(
                              "gps", "act", "mit", "mor", "prx",
-                             "SEP", "TRAP"
+                             "sep", "trap", "vit"
                            ),
+                           count = FALSE,
                            after_data_id = NULL,
                            start_date = NULL,
                            which_date = c("scts", "acquisition")) {
+  assertthat::assert_that(
+    length(collar_id) == length(collar_key),
+    msg = "In build_vec_urls, collar_id and collar_key must be the same length"
+  )
+
   purrr::map2_chr(
     collar_id, collar_key,
     ~build_vec_url(
       base_url,
-      .x,
-      .y,
+      collar_id = .x,
+      collar_key = .y,
       type,
+      count,
       after_data_id,
       start_date,
       which_date
@@ -354,24 +421,6 @@ build_vec_urls <- function(base_url = NULL,
 #'
 #' @keywords internal
 #' @return tibble
-#'
-#' @examples
-#' #  Build url from base url, collar id, collar key and data type
-#' url <- collar:::build_vec_urls(
-#'   base_url = NULL,
-#'   collar_id = collar:::get_id_from_key(
-#'     system.file("extdata", package = "collar")
-#'   ),
-#'   collar_key = collar:::get_keys(
-#'     system.file(
-#'       "extdata",
-#'       package = "collar"
-#'     )
-#'   ),
-#'   type = "act"
-#' )
-#' # Call API - This will not work without a valid key and collar id
-#' # collar:::call_vec_api(url)
 call_vec_api <- function(url) {
   assertthat::assert_that(
     RCurl::url.exists("www.google.com"),
@@ -380,7 +429,7 @@ call_vec_api <- function(url) {
 
   st_time <- Sys.time()
 
-  message("Downloading raw collar data...")
+  message("Downloading Vectronics collar data...")
 
   pb <- dplyr::progress_estimated(length(url))
 
@@ -396,17 +445,18 @@ call_vec_api <- function(url) {
 
   pb <- dplyr::progress_estimated(length(resp))
 
-  parse <- purrr::map_df(
-    resp,
-    ~{
-      pb$tick()$print()
-      jsonlite::fromJSON(
-        httr::content(.x, "text"),
-        simplifyVector = TRUE
-      )
-    }
-  ) %>%
-    tibble::as.tibble()
+  parse <- purrr::map_dfr(
+      resp,
+      ~{
+        pb$tick()$print()
+        jsonlite::fromJSON(
+          httr::content(.x, "text"),
+          simplifyVector = TRUE
+        )
+      }
+    ) %>%
+    tibble::as.tibble() %>%
+    adj_col_nms()
 
   difftime(Sys.time(), st_time, units = "mins") %>%
     as.numeric() %>%

@@ -7,44 +7,58 @@
 fetch_csv(file_path, skip = 0, ...)
 }
 \arguments{
-\item{file_path}{The full path to one csv to read}
+\item{file_path}{The full path to one or more csv(s) to read}
 
-\item{skip}{Scalar integer, the number of rows to skip at the top of the
+\item{skip}{integer, the number of rows to skip at the top of the
 file, see details}
 
 \item{...}{Other parameters to pass to readr::read_csv}
 }
 \value{
-a tibble with columns collar_id, date_time, x, y plus any additional
-columns requested via aux_cols
+a tibble
 }
 \description{
 Read collar data stored in CSV file(s)
 }
 \examples{
 #  Define file path
-fpath <- system.file(
+dir_path <- system.file(
   "extdata",
-  "lotek_2.csv",
   package = "collar",
   mustWork = TRUE
 )
 
+# List files
+fls <- get_paths(dir_path, ext = "csv$")
+
 #  Read file
-ltk <- readr::read_csv(fpath)
+ltk <- fetch_csv(fls[1])
 
-#  Example with large header
-fpath <- system.file(
-"extdata",
-"telonics.csv",
-package = "collar",
-mustWork = TRUE
-)
+# Read first two files
+all_ltk <- fetch_csv(fls[1:2])
 
-#  Read in whole data, use it to find first row in next step
-r1 <- fetch_csv(fpath)
+# You might get into trouble if too many formats are contained in the same directory,
+#  this will fail because column types are different. You could specify col_types
+#  argument and pass it to readr::read_csv, but because different manufacturers use
+#  different column names this won't work (col_types is not vectorized).
+\dontrun{
+all_fls <- fetch_csv(fls)
+}
 
-#  Read in Telonics data skipping header
-tlncs <- fetch_csv(fpath, skip = which(r1[,1] == "Acquisition Time"))
+#  Example with large header, common with companies like Telonics
+#  Read in data with header and use it to find first row in next step
+r1 <- fetch_csv(fls[4])
 
+# At this point you might print the first n rows of r1
+# Then find where the data start or do the following to skip lines
+tlncs <- fetch_csv(fls[4], skip = which(r1[,1] == "Acquisition Time"))
+
+# However, a function is included in this package to help with this issue
+# Beware that in some cases the algorithm that finds the first row of data
+#  may be overly simplistic
+cllr_remove_header(r1, col_nm = "Acquisition Time")
+
+}
+\seealso{
+cllr_remove_header
 }
