@@ -261,8 +261,10 @@ test_that("Check get_paths", {
     get_paths(dir, recursive = TRUE),
     "character"
   )
-  expect_error(
-    get_paths(c(dir, dir))
+  expect_condition(
+    get_paths(c(dir, dir)),
+    "key_dir is not a string (a length one character vector).",
+    fixed = T
   )
   expect_error(
     get_paths(system.file("extdata", "telonics.csv", package = "collar"))
