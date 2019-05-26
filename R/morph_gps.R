@@ -26,12 +26,8 @@ morph_gps <- function(
                       meta = list(),
                       extra = character()) {
   #  check x
-  # assertthat::assert_that(assertthat::not_empty(x))
-  # assertthat::assert_that(is.data.frame(x))
-  # #  Check id, lat, lon
-  # assertthat::assert_that(assertthat::is.string(id_col))
-  # assertthat::assert_that(assertthat::is.string(lat_col))
-  # assertthat::assert_that(assertthat::is.string(lon_col))
+  assertthat::assert_that(assertthat::not_empty(x))
+  assertthat::assert_that(is.data.frame(x))
   #  Check meta
   assertthat::assert_that(is.list(meta) | is.null(meta))
   assertthat::assert_that(length(names(meta)) == length(meta))
@@ -44,6 +40,7 @@ morph_gps <- function(
     paste0("Column ", deparse(call$x), " must be unquoted. If special characters or spaces exist use back ticks (`A B`).")
   }
 
+  # check unquo
   assertthat::assert_that(is_unquo(id_col))
   assertthat::assert_that(is_unquo(dt_col))
   assertthat::assert_that(is_unquo(lat_col))
