@@ -11,7 +11,12 @@ test_that("Check fetch_vectronics", {
   )
 
   expect_s3_class(
-    all_dat <- fetch_vectronics(keys, type = "gps"),
+    fetch_vectronics(keys, type = "gps"),
+    "data.frame"
+  )
+
+  expect_s3_class(
+    fetch_vectronics(keys, type = "gps", count = T),
     "data.frame"
   )
 
@@ -47,6 +52,7 @@ test_that("Check fetch_vectronics", {
     "data.frame"
   )
 
+  all_dat <- fetch_vectronics(keys, type = "gps")
   id_pos <- all_dat$idposition
   data_id <- id_pos[which(id_pos == (max(id_pos) - 10))]
   new_dat <- fetch_vectronics(keys, type = "gps", after_data_id = data_id)
@@ -418,6 +424,7 @@ test_that("Testing build_vec_url(s) calls", {
   expect_is(multi_urls, "character")
 
 })
+
 
 
 
