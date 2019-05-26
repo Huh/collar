@@ -4,6 +4,7 @@
 #'
 #' @inheritParams get_keys
 #' @inheritParams build_vec_url
+#' @inheritParams fetch_ats
 #'
 #' @details
 #' This function assumes that the user stores key files for each collar deployed in a single directory and that directory only contains key files. The function will extract all of the keys contained in this directory and attempt to download data for each collar.
@@ -24,6 +25,7 @@
 #'   \item "vit" returns vaginal implant data
 #' }
 #'
+#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
 #'
 #' @return Tibble
 #' @export
@@ -38,7 +40,7 @@
 #'   )
 #' )
 #'
-#' # Download count of GPS data
+#' # Download count of GPS data - throws error at time of writing
 #' fetch_vectronics(path, type = "gps", count = TRUE)
 #'
 #' # Download all data
@@ -69,7 +71,8 @@ fetch_vectronics <- function(key_paths,
                              type = "gps",
                              count = FALSE,
                              start_date = NULL,
-                             which_date = NULL) {
+                             which_date = NULL,
+                             rename_fun = adj_col_nms) {
 
   ids <- get_id_from_key(key_paths)
 
@@ -418,10 +421,11 @@ build_vec_urls <- function(base_url = NULL,
 #' A basic call to the Vectronics API
 #'
 #' @param url a character string representing the url to query
+#' @inheritParams fetch_ats
 #'
 #' @keywords internal
 #' @return tibble
-call_vec_api <- function(url) {
+call_vec_api <- function(url, rename_fun = adj_col_nms) {
   assertthat::assert_that(
     RCurl::url.exists("www.google.com"),
     msg = "Are you connected to the internet? You must have an internet connection to call the API"
@@ -456,7 +460,7 @@ call_vec_api <- function(url) {
       }
     ) %>%
     tibble::as.tibble() %>%
-    adj_col_nms()
+    dplyr::rename_all(rename_fun)
 
   difftime(Sys.time(), st_time, units = "mins") %>%
     as.numeric() %>%

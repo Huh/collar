@@ -4,8 +4,10 @@ test_that("Check fetch_vectronics", {
   key_dir <- system.file("extdata", package = "collar")
   keys <- get_paths(key_dir)
 
-  expect_error(
-    fetch_vectronics()
+  expect_condition(
+    fetch_vectronics(),
+    "argument \"key_paths\" is missing, with no default",
+    fixed = T
   )
 
   expect_s3_class(
@@ -224,7 +226,7 @@ test_that("Check fetch_vectronics assertions", {
   expect_true(all(is.character(unlist(dt_tst))))
 
   # Bad value for which_date
-  expect_error(
+  expect_condition(
     collar:::build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
@@ -261,14 +263,19 @@ test_that("Check get_paths", {
     get_paths(dir, recursive = TRUE),
     "character"
   )
-  expect_error(
-    get_paths(c(dir, dir))
+  expect_condition(
+    get_paths(c(dir, dir)),
+    "key_dir is not a string (a length one character vector).",
+    fixed = T
+  )
+  expect_condition(
+    get_paths(system.file("extdata", "telonics.csv", package = "collar")),
+    "Path .* is not a directory"
   )
   expect_error(
-    get_paths(system.file("extdata", "telonics.csv", package = "collar"))
-  )
-  expect_error(
-    get_paths("C:/?\\Temp")
+    get_paths("C:/?\\Temp"),
+    "Path 'C:/?\\Temp' does not exist",
+    fixed = T
   )
 })
 

@@ -4,11 +4,14 @@
 #' @param usr The username associated with the account
 #' @param pwd The password used with the supplied username
 #' @param base_url The URL where the function attempts to gain access. By default this is set to "atsidaq.net" which is the domain used for recent GPS collars. Use of other domains (e.g. "atsdat.net") is supported by specifying a URL value in order to support older Iridium based collars and for future compatibility.
+#' @param rename_fun A function used to rename columns, defaults to adj_col_nms, see details
 #'
 #' @details
 #' The url where the function attempts to gain access is atsidaq.net.
 #'
 #' To download from a new button name use the developer tools in your browser and record the name of the button as described there. For example, the download all button has name 'ctl00$ContentPlaceHolder1$DownloadAll3'. See the vignette for more details about finding button names.
+#'
+#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
 #'
 #' @return A tibble
 #' @export
@@ -20,7 +23,8 @@
 fetch_ats <- function(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3",
                       usr,
                       pwd,
-                      base_url = "atsidaq.net") {
+                      base_url = "atsidaq.net",
+                      rename_fun = adj_col_nms) {
   if (is.null(bttn_nm)) {
     warning("Button name NULL, downloading all data")
   }
@@ -73,7 +77,7 @@ fetch_ats <- function(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3",
   httr::stop_for_status(dat_dwnld)
 
   out <- httr::content(dat_dwnld$response, type = "text/csv") %>%
-    adj_col_nms()
+    dplyr::rename_all(list(~ rename_fun))
 
   return(out)
 }

@@ -1,6 +1,10 @@
 adj_col_nms <- function(x){
   x %>%
-    dplyr::rename_all(tolower) %>%
-    dplyr::rename_all(list(~ gsub("\\s", "", .)))
+    # remove non ASCII characters, like degree symbol
+    iconv(., to = "ASCII", sub = "") %>%
+    make.names(.) %>%
+    tolower() %>%
+    gsub("\\.+$", "", .) %>%
+    gsub("\\.+", "_", .)
 }
 
