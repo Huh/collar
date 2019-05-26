@@ -26,6 +26,29 @@ cllr_remove_header <- function(x,
                                col_nm,
                                rm_header = TRUE,
                                rename_fun = adj_col_nms) {
+  is_unquo <- function(x) {
+    class(try(class(x), silent = T)) == "try-error"
+  }
+  assertthat::on_failure(is_unquo) <- function(call, env) {
+    paste0("Column ", deparse(call$x), " must be unquoted. If special characters or spaces exist use back ticks (`A B`).")
+  }
+  assertthat::assert_that(is_unquo(col_nm))
+  assertthat::assert_that(
+    assertthat::is.flag(rm_header),
+    msg = paste(
+      "Function cllr_remove_header called with rm_header set to",
+      paste0(rm_header, ","),
+      "but rm_header must be TRUE or FALSE"
+    )
+  )
+  assertthat::assert_that(
+    class(rename_fun) == "function",
+    msg = paste(
+      "In cllr_remove_header rename_fun must be a function, received",
+      class(rename_fun)
+    )
+  )
+
   col_name <- rlang::as_name(rlang::enquo(col_nm))
 
   if (!rm_header) {
