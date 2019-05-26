@@ -80,6 +80,11 @@ fetch_delim(vec_fl, delim = ",\\t", skip = 0)
 # Compare animalid column to above
 fetch_delim(vec_fl, delim = ",\\t", skip = 0, na = c("N/A"))
 
+# The argument rename_fun can take custom functions for renaming
+colnames(fetch_csv(fls[1]))
+colnames(fetch_csv(fls[1], rename_fun = tolower))
+colnames(fetch_csv(fls[1], rename_fun = make.names))
+
 }
 \seealso{
 cllr_remove_header
