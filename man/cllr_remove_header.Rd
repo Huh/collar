@@ -4,14 +4,14 @@
 \alias{cllr_remove_header}
 \title{A function to find and remove data headers form collar data based on the latitude column}
 \usage{
-cllr_remove_header(x, lat_col, rm_header)
+cllr_remove_header(x, col_nm, rm_header = TRUE)
 }
 \arguments{
 \item{x}{A dataframe containing collar data}
 
-\item{lat_col}{The unqouted name of the latitude or any other column in the data frame}
+\item{col_nm}{The unqouted name of any one column in the data frame}
 
-\item{rm_header}{Logical indicating whether to remove header completely}
+\item{rm_header}{Logical indicating whether to remove header completely, defaults to TRUE}
 }
 \value{
 tibble
@@ -19,8 +19,15 @@ tibble
 \description{
 A function to find and remove data headers form collar data based on the latitude column
 }
+\details{
+The argument rm_header is meant to aid in programming scenarios where some files should be left alone and others need the header removed. We are not sure this is actually useful, but thought of the scenario and accommodated it just the same.
+}
 \examples{
-ugly_file <- read.csv(system.file("extdata", "telonics.csv", package = "collar"))
-# Use backticks for column names with spaces
+ugly_file <- read.csv(
+  system.file("extdata", "telonics.csv", package = "collar")
+)
+
+# The column name needs to be unquoted (Column, not "Column")
+# If spaces exist in the column name you may need to use backticks
 collar::cllr_remove_header(ugly_file, `GPS Latitude`, rm_header = TRUE)
 }

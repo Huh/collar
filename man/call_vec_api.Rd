@@ -15,22 +15,4 @@ tibble
 \description{
 A basic call to the Vectronics API
 }
-\examples{
-#  Build url from base url, collar id, collar key and data type
-url <- collar:::build_vec_urls(
-  base_url = NULL,
-  collar_id = collar:::get_id_from_key(
-    system.file("extdata", package = "collar")
-  ),
-  collar_key = collar:::get_keys(
-    system.file(
-      "extdata",
-      package = "collar"
-    )
-  ),
-  type = "act"
-)
-# Call API - This will not work without a valid key and collar id
-# collar:::call_vec_api(url)
-}
 \keyword{internal}
