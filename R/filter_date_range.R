@@ -1,4 +1,4 @@
-#' Return location within the specified date range
+#' Return locations within the specified date range
 #'
 #' @param x A dataframe containing collar data with column "dt_col" that can be coerced into class "Date"
 #' @param date_col A character vector that specifies the name of date column in the supplied dataframe.

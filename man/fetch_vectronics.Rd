@@ -4,9 +4,8 @@
 \alias{fetch_vectronics}
 \title{Download data from Vectronics' web service}
 \usage{
-fetch_vectronics(key_dir = NULL, base_url = NULL,
-  after_data_id = NULL, type = "gps", start_date = NULL,
-  which_date = NULL)
+fetch_vectronics(key_dir = NULL, base_url = NULL, after_data_id = NULL,
+  type = "gps", start_date = NULL, which_date = NULL)
 }
 \arguments{
 \item{key_dir}{path to a single directory containing, potentially many, key files}

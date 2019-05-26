@@ -4,7 +4,7 @@
 \alias{filter_last_loc}
 \title{Find the last location for each individual}
 \usage{
-filter_last_loc(x, id = "id")
+filter_last_loc(x, id_col = id, dt_col = NULL)
 }
 \arguments{
 \item{x}{A dataframe containing collar data.}

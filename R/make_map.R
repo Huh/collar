@@ -1,4 +1,4 @@
-#' Create an interactive html based map of animal locations.
+#' Create an interactive html map of animal locations.
 #'
 #' @param x A dataframe containing collar data with the columns "id", "lat", "lon" and  "date_time".
 #' @param save_html Logical, whether or not the map should be saved to disk.
@@ -11,9 +11,9 @@
 #' \dontrun{
 #'   collardata %>%
 #'   filter_last_loc() %>%
-#'   produce_map()
+#'   make_map()
 #' }
-produce_map <- function(x,
+make_map <- function(x,
                         save_html = F,
                         file = "map.html"
 ) {
@@ -24,7 +24,7 @@ produce_map <- function(x,
   assertthat::assert_that(assertthat::noNA(x$lon))
   assertthat::assert_that(assertthat::noNA(x$lat))
 
-  if(interactive())
+  if(interactive()){
     if (nrow(x) > 1000)
       if (!isTRUE(
         askYesNo(
@@ -33,6 +33,7 @@ produce_map <- function(x,
           prompts = getOption("askYesNo", gettext(c("Yes", "No", "Cancel")))
         )))
         stop("Canceled by user.")
+  }
 
   content <- paste(
     sep = "",
@@ -41,8 +42,7 @@ produce_map <- function(x,
     "<b>GPS:</b> ", paste(round(x$lat, 6), round(x$lon, 6))
   )
 
-  x_sf <-
-    sf::st_as_sf(x, coords = c("lon", "lat"), crs = 4326)
+  x_sf <- sf::st_as_sf(x, coords = c("lon", "lat"), crs = 4326)
 
   out <-
     leaflet::leaflet("map") %>%
