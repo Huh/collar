@@ -4,7 +4,7 @@
 \alias{morph_gps}
 \title{Standardize GPS data to collar format}
 \usage{
-morph_gps(x = NULL, id_col = NULL, dt_col = NULL,
+morph_gps(x, id_col = NULL, dt_col = NULL,
   dt_format = "\%Y-\%m-\%d \%H:\%M:\%S", lon_col = NULL,
   lat_col = NULL, meta = list(), extra = character())
 }

@@ -67,7 +67,7 @@ tlncs <- fetch_csv(fls[4], skip = which(r1[,1] == "Acquisition Time"))
 # However, a function is included in this package to help with this issue
 # Beware that in some cases the algorithm that finds the first row of data
 #  may be overly simplistic
-cllr_remove_header(r1, col_nm = "Acquisition Time")
+cllr_remove_header(r1, col_nm = `Acquisition Time`)
 
 # Sometimes files are not comma delimited even if they are saved that way
 # The example vectronics.csv is actually a tab delimited file that was
