@@ -13,20 +13,26 @@ test_that("Check morph_gps", {
       id_col = collarid,
       dt_col = dt_col,
       dt_format = "%m/%d%Y %H:%M:%S",
-      lon_col = `longitude[°]`,
-      lat_col =`latitude[°]`
+      lon_col = longitude,
+      lat_col = latitude
     )
 
-  expect_error(
-    morph_gps()
+  expect_condition(
+    morph_gps(),
+    "argument \"x\" is missing, with no default",
+    fixed = T
   )
 
-  expect_error(
-    morph_gps(x = "A")
+  expect_condition(
+    morph_gps(x = "A"),
+    "x is not a data frame",
+    fixed = T
   )
 
-  expect_error(
-    morph_gps(x = dat, id_col = "id")
+  expect_condition(
+    morph_gps(x = dat, id_col = "id"),
+    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
   expect_s3_class(
@@ -51,7 +57,7 @@ test_that("Check morph_gps assertions", {
   # no data
   expect_condition(
     morph_gps(),
-    "x has an empty dimension"
+    "argument \"x\" is missing, with no default"
   )
 
   # not a data frame
@@ -67,10 +73,11 @@ test_that("Check morph_gps assertions", {
       id_col = collarid,
       dt_col = utc_date,
       dt_format = "%m/%d%Y %H:%M:%S",
-      lon_col = `longitude[°]`,
-      lat_col =`latitude[°]`,
+      lon_col = longitude,
+      lat_col = latitude,
       meta = "a"
-    ),    "is.list(meta) | is.null(meta) is not TRUE"
+    ),
+    "In morph_gps, meta must be NULL or a named list"
   )
 
   # column names are qouted
@@ -80,10 +87,11 @@ test_that("Check morph_gps assertions", {
       id_col = NULL,
       dt_col = utc_date,
       dt_format = "%m/%d%Y %H:%M:%S",
-      lon_col = `longitude[°]`,
-      lat_col =`latitude[°]`
+      lon_col = longitude,
+      lat_col = latitude
     ),
-    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
   expect_condition(
@@ -92,10 +100,11 @@ test_that("Check morph_gps assertions", {
       id_col = collarid,
       dt_col = NULL,
       dt_format = "%m/%d%Y %H:%M:%S",
-      lon_col = `longitude[°]`,
-      lat_col =`latitude[°]`
+      lon_col = longitude,
+      lat_col = latitude
     ),
-    "Column dt_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column dt_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
 
@@ -106,9 +115,10 @@ test_that("Check morph_gps assertions", {
       dt_col = utc_date,
       dt_format = "%m/%d%Y %H:%M:%S",
       lon_col = NULL,
-      lat_col =`latitude[°]`
+      lat_col = latitude
     ),
-    "Column lon_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column lon_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
   expect_condition(
@@ -117,10 +127,11 @@ test_that("Check morph_gps assertions", {
       id_col = collarid,
       dt_col = utc_date,
       dt_format = "%m/%d%Y %H:%M:%S",
-      lon_col = `longitude[°]`,
+      lon_col = longitude,
       lat_col = NULL
     ),
-    "Column lat_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column lat_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
 })
