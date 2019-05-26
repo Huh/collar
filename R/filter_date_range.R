@@ -18,7 +18,10 @@ filter_date_range <- function(x,
                               start = "1900-01-01",
                               end = (Sys.Date() + 1)) {
 
-  assertthat::assert_that(dt_col %in% names(x), msg = paste(dt_col, "is not a column name in the data frame supplied"))
+  assertthat::assert_that(assertthat::`%has_name%`(x, dt_col))
+  assertthat::assert_that(inherits(try(as.Date(dplyr::pull(x, dt_col)), silent = T), "Date"), msg = paste(dt_col, "column does not have a class of date and can not be coerced using as.Date()"))
+  assertthat::assert_that(inherits(try(as.Date(start), silent = T), "Date"), msg = "'start' does not have a class of date and can not be coerced using as.Date()")
+  assertthat::assert_that(inherits(try(as.Date(end), silent = T), "Date"), msg = "'end' does not have a class of date and can not be coerced using as.Date()")
 
   dplyr::filter(
     x,

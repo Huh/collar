@@ -22,13 +22,12 @@ make_gpx <- function(x,
                      lat_col = "lat",
                      lon_col = "lon",
                      dt_col = "dt",
-                     file = paste0("GPS Locations ", format(Sys.time(), "%Y-%m-%d %H%M%S"), ".gpx"),
+                     file = paste0("./GPS Locations ", format(Sys.time(), "%Y-%m-%d %H%M%S"), ".gpx"),
                      crs = 4326,
                      ...
 ){
   assertthat::assert_that(assertthat::noNA(x$lon))
   assertthat::assert_that(assertthat::noNA(x$lat))
-  assertthat::assert_that(assertthat::is.dir(dir))
   assertthat::assert_that(lat_col %in%  names(x), msg = paste(lat, "is not a column name in the data frame supplied"))
   assertthat::assert_that(lon_col %in%  names(x), msg = paste(lon, "is not a column name in the data frame supplied"))
   assertthat::assert_that(dt_col %in%  names(x), msg = paste(lon, "is not a column name in the data frame supplied"))

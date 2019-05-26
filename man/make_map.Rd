@@ -4,14 +4,10 @@
 \alias{make_map}
 \title{Create an interactive html map of animal locations.}
 \usage{
-make_map(x, save_html = F, file = "map.html")
+make_map(x)
 }
 \arguments{
 \item{x}{A dataframe containing collar data with the columns "id", "lat", "lon" and  "date_time".}
-
-\item{save_html}{Logical, whether or not the map should be saved to disk.}
-
-\item{file}{Used only if save_html = T. The direcotry and file name of the output html map file.}
 }
 \value{
 A leaflet map.

@@ -1,8 +1,6 @@
 #' Create an interactive html map of animal locations.
 #'
 #' @param x A dataframe containing collar data with the columns "id", "lat", "lon" and  "date_time".
-#' @param save_html Logical, whether or not the map should be saved to disk.
-#' @param file Used only if save_html = T. The direcotry and file name of the output html map file.
 #'
 #' @return A leaflet map.
 #' @export
@@ -13,10 +11,7 @@
 #'   filter_last_loc() %>%
 #'   make_map()
 #' }
-make_map <- function(x,
-                        save_html = F,
-                        file = "map.html"
-) {
+make_map <- function(x) {
   assertthat::assert_that("lat" %in%  names(x), msg = "A latitude column named 'lat' is required")
   assertthat::assert_that("lon" %in%  names(x), msg = "A longitude column named 'lon' is required")
   assertthat::assert_that("id" %in%  names(x), msg = "An id column named 'id' is required")
@@ -57,8 +52,6 @@ make_map <- function(x,
       data = x_sf,
       popup = content
     )
-
-  if(save_html == T){htmlwidgets::saveWidget(out, file=file)}
 
   return(out)
 }
