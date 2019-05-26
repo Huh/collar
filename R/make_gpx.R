@@ -26,11 +26,13 @@ make_gpx <- function(x,
                      crs = 4326,
                      ...
 ){
-  assertthat::assert_that(assertthat::noNA(x$lon))
-  assertthat::assert_that(assertthat::noNA(x$lat))
-  assertthat::assert_that(lat_col %in%  names(x), msg = paste(lat, "is not a column name in the data frame supplied"))
-  assertthat::assert_that(lon_col %in%  names(x), msg = paste(lon, "is not a column name in the data frame supplied"))
-  assertthat::assert_that(dt_col %in%  names(x), msg = paste(lon, "is not a column name in the data frame supplied"))
+  assertthat::assert_that(assertthat::noNA(dplyr::pull(x, lon_col)))
+  assertthat::assert_that(assertthat::noNA(dplyr::pull(x, lat_col)))
+  purrr::map(
+    c(id_col, lat_col, lon_col, dt_col),
+    ~assertthat::assert_that(assertthat::has_name(x, .))
+  )
+
 
   x %>%
   dplyr::mutate(name = paste(x[, id_col], format(as.data.frame(x[, dt_col]), "%Y-%m-%d h%H"))) %>%
