@@ -4,10 +4,10 @@ context("test-make_gpx.R")
 
   data_dir <- system.file("extdata", package = "collar")
 
-  dat <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
+  tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
 
-  df <-
-    dat %>%
+  dat <-
+    tmp %>%
     tidyr::drop_na(longitude) %>%
     morph_gps(
       x = .,
@@ -22,22 +22,13 @@ context("test-make_gpx.R")
     make_gpx()
   )
 
-  expect_s3_class(
-    make_gpx(df),
-    "data.frame"
-  )
-
-  expect_that(
-    nrow(make_gpx(df) == nrow(df))
-  )
-
   # test file produced
   tmp_dir <- tempdir()
-  tmp_file <- paste0(tmp_dir, "/map.html")
-  make_gpx(df, file = tmp_file)
+  tmp_file <- paste0("/", rnorm(1), ".gpx")
+  make_gpx(dat, file = paste0(tmp_dir, tmp_file))
 
-  testthat::test_that(
-    file.exists(tmp_file)
+  testthat::expect_true(
+    file.exists(paste0(tmp_dir, tmp_file))
   )
 
 })
@@ -46,10 +37,10 @@ test_that("Check make_gpx assertions", {
 
   data_dir <- system.file("extdata", package = "collar")
 
-  dat <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
+  tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
 
-  df <-
-    dat %>%
+  dat <-
+    tmp %>%
     tidyr::drop_na(longitude) %>%
     morph_gps(
       x = .,
@@ -68,26 +59,28 @@ test_that("Check make_gpx assertions", {
 
   # no column with name
   expect_condition(
-    make_gpx(df, id_col = "A"),
+    make_gpx(dat, id_col = "A"),
     "x does not have name A"
   )
 
-  df_na <-
-    dplyr::mutate(df, lon = NA) %>%
+  dat_na <-
+    dplyr::mutate(dat, lon = NA) %>%
     dplyr::slice(1)
 
   expect_condition(
-    make_gpx(df_na),
-    "dplyr::pull(x, lon_col) contains 1 missing values"
+    make_gpx(dat_na),
+    "dplyr::pull(x, lon_col) contains 1 missing values",
+    fixed = T
   )
 
-  df_na <-
-    dplyr::mutate(df, lat = NA) %>%
+  dat_na <-
+    dplyr::mutate(dat, lat = NA) %>%
     dplyr::slice(1)
 
   expect_condition(
-    make_gpx(df_na),
-    "dplyr::pull(x, lat_col) contains 1 missing values"
+    make_gpx(dat_na),
+    "dplyr::pull(x, lat_col) contains 1 missing values",
+    fixed = T
   )
 
 })

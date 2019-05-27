@@ -2,19 +2,20 @@ context("test-morph_gps.R")
 
 test_that("Check morph_gps", {
 
-  dat <-
-    system.file("extdata/vectronics.csv", package = "collar") %>%
-    collar::fetch_csv(.) %>%
-    dplyr::mutate(dt_col = paste(utc_date, utc_time))
+  data_dir <- system.file("extdata", package = "collar")
 
-  dat_morph <-
+  tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
+
+  dat <-
+    tmp %>%
+    tidyr::drop_na(longitude) %>%
     morph_gps(
-      x = dat,
-      id_col = collarid,
-      dt_col = dt_col,
-      dt_format = "%m/%d%Y %H:%M:%S",
-      lon_col = `longitude[°]`,
-      lat_col =`latitude[°]`
+      x = .,
+      id_col = idcollar,
+      dt_col = acquisitiontime,
+      dt_format = "%Y-%m-%dT%H:%M:%S",
+      lon_col =  longitude,
+      lat_col = latitude
     )
 
   expect_error(
@@ -26,17 +27,26 @@ test_that("Check morph_gps", {
   )
 
   expect_error(
-    morph_gps(x = dat, id_col = "id")
+    morph_gps(x = tmp, id_col = "id")
   )
 
   expect_s3_class(
-    dat_morph,
+    tmp %>%
+    tidyr::drop_na(longitude) %>%
+    morph_gps(
+      x = .,
+      id_col = idcollar,
+      dt_col = acquisitiontime,
+      dt_format = "%Y-%m-%dT%H:%M:%S",
+      lon_col =  longitude,
+      lat_col = latitude
+    ),
     "data.frame"
   )
 
-  expect_true(ncol(dat_morph) == 4)
+  expect_true(ncol(dat) == 4)
 
-  expect_true(nrow(dat) == nrow(dat_morph))
+  expect_true(nrow(dat) == nrow(tidyr::drop_na(tmp, longitude)))
 
 })
 
@@ -51,13 +61,15 @@ test_that("Check morph_gps assertions", {
   # no data
   expect_condition(
     morph_gps(),
-    "x has an empty dimension"
+    "x has an empty dimension",
+    fixed = T
   )
 
   # not a data frame
     expect_condition(
     morph_gps("a"),
-    "x is not a data frame"
+    "x is not a data frame",
+    fixed = T
   )
 
   # meta not a list
@@ -70,7 +82,8 @@ test_that("Check morph_gps assertions", {
       lon_col = `longitude[°]`,
       lat_col =`latitude[°]`,
       meta = "a"
-    ),    "is.list(meta) | is.null(meta) is not TRUE"
+    ),    "is.list(meta) | is.null(meta) is not TRUE",
+    fixed = T
   )
 
   # column names are qouted
@@ -83,7 +96,8 @@ test_that("Check morph_gps assertions", {
       lon_col = `longitude[°]`,
       lat_col =`latitude[°]`
     ),
-    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
   expect_condition(
@@ -95,7 +109,8 @@ test_that("Check morph_gps assertions", {
       lon_col = `longitude[°]`,
       lat_col =`latitude[°]`
     ),
-    "Column dt_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column dt_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
 
@@ -108,7 +123,8 @@ test_that("Check morph_gps assertions", {
       lon_col = NULL,
       lat_col =`latitude[°]`
     ),
-    "Column lon_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column lon_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
   expect_condition(
@@ -120,7 +136,8 @@ test_that("Check morph_gps assertions", {
       lon_col = `longitude[°]`,
       lat_col = NULL
     ),
-    "Column lat_col must be unquoted. If special characters or spaces exist use back ticks (`A B`)."
+    "Column lat_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
+    fixed = T
   )
 
 })

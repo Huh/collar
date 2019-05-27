@@ -9,23 +9,21 @@ make_gpx(x, id_col = "id", lat_col = "lat", lon_col = "lon",
   "\%Y-\%m-\%d \%H\%M\%S"), ".gpx"), crs = 4326, ...)
 }
 \arguments{
-\item{x}{A dataframe containing collar data with column "dt" that can be coerced into class "Date"}
+\item{x}{A data frame containing collar data with column "dt" that can be coerced into class "Date"}
 
-\item{id_col}{Quouted name of the ID column that signals the individual identifier.}
+\item{id_col}{Quoted name of the ID column that signals the individual identifier.}
 
-\item{lat_col}{Quouted name of the latitude column.}
+\item{lat_col}{Quoted name of the latitude column.}
 
-\item{lon_col}{Quouted name of the longitude column.}
+\item{lon_col}{Quoted name of the longitude column.}
 
-\item{dt_col}{Quouted name of the date/time column with class POSIXct.}
+\item{dt_col}{Quoted name of the date/time column with class POSIXct.}
 
-\item{crs}{The coordiante refernce system associated with the collar data in the supplied data frame.}
+\item{file}{The save location and name of the GPX file created.}
+
+\item{crs}{The coordinate reference system associated with the collar data in the supplied data frame.}
 
 \item{...}{Additional arguments to pass to sf::st_write()}
-
-\item{dir}{The directory to save the GPX file output. Default is here::here().}
-
-\item{file_name}{The name of the GPX file created with this function.}
 }
 \value{
 The original data frame passed to the function.

@@ -5,8 +5,8 @@
 \title{Standardize GPS data to collar format}
 \usage{
 morph_gps(x = NULL, id_col = NULL, dt_col = NULL,
-  dt_format = "\%Y-\%m-\%d \%H:\%M:\%S", lon_col = NULL, lat_col = NULL,
-  meta = list(), extra = character())
+  dt_format = "\%Y-\%m-\%d \%H:\%M:\%S", lon_col = NULL,
+  lat_col = NULL, meta = list(), extra = character())
 }
 \arguments{
 \item{x}{data.frame of GPS data with at least columns ID, Latitude, Longitude and Date-Time.}

@@ -12,7 +12,7 @@ save_map(x, file = "./map.html")
 \item{file}{The file path where the output html file should be saved.}
 }
 \value{
-The original object passed to the funciton unmodified.
+The original object passed to the function unmodified.
 }
 \description{
 Save interactive maps to html file

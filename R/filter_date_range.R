@@ -1,11 +1,11 @@
 #' Return locations within the specified date range
 #'
-#' @param x A dataframe containing collar data with column "dt_col" that can be coerced into class "Date"
-#' @param date_col A character vector that specifies the name of date column in the supplied dataframe.
+#' @param x A data frame containing collar data with column "dt_col" that can be coerced into class "Date"
+#' @param dt_col A character vector that specifies the name of date column in the supplied data frame.
 #' @param start A character, date, or POSIXct string that can be coerced into a date.  Used to return locations after the specified date.
 #' @param end A character, date, or POSIXct string that can be coerced into a date.  Used to return locations before the specified date.
 #'
-#' @return A dataframe with locations recorded between the start date and end date provided.
+#' @return A data frame with locations recorded between the start date and end date provided.
 #' @export
 #'
 #' @examples
@@ -18,7 +18,7 @@ filter_date_range <- function(x,
                               start = "1900-01-01",
                               end = (Sys.Date() + 1)) {
 
-  assertthat::assert_that(assertthat::`%has_name%`(x, dt_col))
+  assertthat::assert_that(assertthat::has_name(x, dt_col))
   assertthat::assert_that(inherits(try(as.Date(dplyr::pull(x, dt_col)), silent = T), "Date"), msg = paste(dt_col, "column does not have a class of date and can not be coerced using as.Date()"))
   assertthat::assert_that(inherits(try(as.Date(start), silent = T), "Date"), msg = "'start' does not have a class of date and can not be coerced using as.Date()")
   assertthat::assert_that(inherits(try(as.Date(end), silent = T), "Date"), msg = "'end' does not have a class of date and can not be coerced using as.Date()")

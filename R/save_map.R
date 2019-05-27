@@ -3,7 +3,7 @@
 #' @param x A leaflet class object e.g. as created with make_map.
 #' @param file The file path where the output html file should be saved.
 #'
-#' @return The original object passed to the funciton unmodified.
+#' @return The original object passed to the function unmodified.
 #' @export
 #'
 #' @examples
@@ -18,7 +18,7 @@ save_map <- function(
                      file = "./map.html"
                      ) {
 
-  assertthat::assert_that(inerhits(x, "leaflet"))
+  assertthat::assert_that(inherits(x, "leaflet"))
 
   htmlwidgets::saveWidget(x, file = file)
 

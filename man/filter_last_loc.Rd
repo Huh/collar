@@ -2,22 +2,22 @@
 % Please edit documentation in R/filter_last_loc.R
 \name{filter_last_loc}
 \alias{filter_last_loc}
-\title{Find the last location for each individual}
+\title{Select the last location for each individual}
 \usage{
 filter_last_loc(x, grps = "id", order_by = NULL)
 }
 \arguments{
-\item{x}{A dataframe containing collar data.}
+\item{x}{A data frame containing collar data.}
 
 \item{grps}{A character vector of the column(s) to be used as a grouping variable e.g. if "id" is used, a single row will be returned for each id.}
 
 \item{order_by}{A character vector of the column(s) to be used to arrange the data e.g. if the date/time column is used rows will be ordered chronologically.}
 }
 \value{
-A dataframe with the last location for each individual.
+A data frame with the last location for each individual.
 }
 \description{
-Find the last location for each individual
+Select the last location for each individual
 }
 \examples{
 \dontrun{

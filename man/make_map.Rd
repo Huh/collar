@@ -4,10 +4,19 @@
 \alias{make_map}
 \title{Create an interactive html map of animal locations.}
 \usage{
-make_map(x)
+make_map(x, id_col = "id", lon_col = "lon", lat_col = "lat",
+  dt_col = "dt")
 }
 \arguments{
-\item{x}{A dataframe containing collar data with the columns "id", "lat", "lon" and  "date_time".}
+\item{x}{A data frame containing collar data with the columns "id", "lat", "lon" and  "date_time".}
+
+\item{id_col}{Quoted name of the ID column that signals the individual identifier.}
+
+\item{lon_col}{Quoted name of the longitude column.}
+
+\item{lat_col}{Quoted name of the latitude column.}
+
+\item{dt_col}{Quoted name of the date/time column with class POSIXct.}
 }
 \value{
 A leaflet map.
