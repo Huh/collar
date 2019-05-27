@@ -2,13 +2,12 @@ context("test-morph_gps.R")
 
 test_that("Check morph_gps", {
 
-  data_dir <- system.file("extdata", package = "collar")
-
-  tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
-
   dat <-
-    tmp %>%
-    tidyr::drop_na(longitude) %>%
+    system.file("extdata/vectronics.csv", package = "collar") %>%
+    collar::fetch_csv(.) %>%
+    dplyr::mutate(dt_col = paste(utc_date, utc_time))
+
+  dat_morph <-
     morph_gps(
       x = dat,
       id_col = collarid,
@@ -37,22 +36,13 @@ test_that("Check morph_gps", {
   )
 
   expect_s3_class(
-    tmp %>%
-    tidyr::drop_na(longitude) %>%
-    morph_gps(
-      x = .,
-      id_col = idcollar,
-      dt_col = acquisitiontime,
-      dt_format = "%Y-%m-%dT%H:%M:%S",
-      lon_col =  longitude,
-      lat_col = latitude
-    ),
+    dat_morph,
     "data.frame"
   )
 
-  expect_true(ncol(dat) == 4)
+  expect_true(ncol(dat_morph) == 4)
 
-  expect_true(nrow(dat) == nrow(tidyr::drop_na(tmp, longitude)))
+  expect_true(nrow(dat) == nrow(dat_morph))
 
 })
 
@@ -73,8 +63,7 @@ test_that("Check morph_gps assertions", {
   # not a data frame
     expect_condition(
     morph_gps("a"),
-    "x is not a data frame",
-    fixed = T
+    "x is not a data frame"
   )
 
   # meta not a list
