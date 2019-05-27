@@ -67,7 +67,7 @@ tlncs <- fetch_csv(fls[4], skip = which(r1[,1] == "Acquisition Time"))
 # However, a function is included in this package to help with this issue
 # Beware that in some cases the algorithm that finds the first row of data
 #  may be overly simplistic
-cllr_remove_header(r1, col_nm = "Acquisition Time")
+cllr_remove_header(r1, col_nm = `Acquisition Time`)
 
 # Sometimes files are not comma delimited even if they are saved that way
 # The example vectronics.csv is actually a tab delimited file that was
@@ -79,6 +79,11 @@ fetch_delim(vec_fl, delim = ",\\t", skip = 0)
 # Note that you can pass arguments to readr::read_*
 # Compare animalid column to above
 fetch_delim(vec_fl, delim = ",\\t", skip = 0, na = c("N/A"))
+
+# The argument rename_fun can take custom functions for renaming
+colnames(fetch_csv(fls[1]))
+colnames(fetch_csv(fls[1], rename_fun = tolower))
+colnames(fetch_csv(fls[1], rename_fun = make.names))
 
 }
 \seealso{

@@ -53,19 +53,27 @@ library(collar)
 
 Call the API
 ```{r eval = F, warning = FALSE}
- vec_dat <- fetch_vectronics(key_dir = "C:/Temp/vec_keys")
+ key_paths <- get_paths(
+    system.file(
+      "extdata",
+      package = "collar"
+    )
+  )
+ vec_dat <- fetch_vectronics(key_paths)
 ```
 
-Cool, but what just happened? Let's break down the function call into its pieces. First, I told you that the API required a collar id, a collar key and a data type, but in our call we only supplied a key directory. The collar package extracted the collar id from the collar key, then it extracted the long alphanumeric key from the key file and finally it guessed that you wanted GPS location data because no value was supplied. Using these pieces of information the fetch_* function builds a URL and calls the API. The function can handle many keys at once or a single key if desired. The function returns a [tibble](https://tibble.tidyverse.org/), which prints nicely to the screen and does not coerce or recycle values in an unreasonable way.
+Cool, but what just happened? Let's break down the function call into its pieces. First, I told you that the API required a collar id, a collar key and a data type, but in our call we only supplied paths to key files. The collar package read the key files, extracted the collar id from the collar key, then it extracted the long alphanumeric key and finally it guessed that you wanted GPS location data because no value was supplied. Using these pieces of information the fetch_* function builds a URL and calls the API. The function can handle many keys at once or a single key if desired. The function returns a [tibble](https://tibble.tidyverse.org/), which prints nicely to the screen and does not coerce or recycle values in an unreasonable way. It also provides a means of passing a function to make pretty column names. The default removed all non-ASCII characters, like the degree symbol, made all letters lower case and replaced `.` with `_`. If you don't like that convention you can write your own function or pass something like `make.names` or `tolower`.
+
+The organization of calls to the Vectronic API can be organized into a simple dichotomous key. First, the user needs to decide what kind of data they desire, in the first example `gps`. Then the next decision is if you want to retrieve the data or a count of how much data is available, this is controlled by the `count` argument. Once that decision is made decide if all data is required or some subset of data is best. If a subset then choose to implement either data after a `positionid` or data after some date. This quick summary may be helpful as you get more familiar with the API. 
 
 ##### Data ID Limits
 
-More advanced calls to the API can be made to only download subsets of the data. For example, we could assume the 600th value of idPosition came from the last download we performed. Imagine that last time we downloaded data this was the last value we received, we can pass this value to the `fetch_vectronics` function to limit the download to only new data not previously downloaded. *Note: Some users have reported odd behavior if positions were collected, but not transmitted it is possible that smaller/older values of idPosition were previously missed. Don't assume that you downloaded every point ever collected.*
+More advanced calls to the API can be made to only download subsets of the data. For example, we could assume the 600th value of idPosition came from the last download we performed. Imagine that last time we downloaded data this was the last value we received, we can pass this value to the `fetch_vectronics` function to limit the download to only new data not previously downloaded. *Note: Some users have reported odd behavior if positions were collected, but not transmitted. It is possible that smaller/older values of idPosition were previously missed. Don't assume that you downloaded every point ever collected.*
 
 ```{r eval = F, warning = F}
 new_dat <- fetch_vectronics(
-  key_dir = "C:/Temp/vec_keys",
-  after_data_id = vec_dat$idPosition[600]
+  key_paths,
+  after_data_id = vec_dat$idposition[600]
 )
 ```
 ##### Date Limits
@@ -74,13 +82,13 @@ Similarly, we can use dates to limit data downloads. The format of the date must
 
 Create the date object used to subset the download
 ```{r eval = F}
-after <- format(max(as.Date(vec_dat$acquisitionTime)) - 10, "%Y-%m-%dT%H:%M:%S")
+after <- format(max(as.Date(vec_dat$acquisitiontime)) - 10, "%Y-%m-%dT%H:%M:%S")
 ```
 
 Call the API with the start date
 ```{r eval = F, warning = F}
 after_scts <- fetch_vectronics(
-  key_dir = "C:/Temp/vec_keys",
+  key_paths,
   start_date = after,
   which_date = "scts"
 )
@@ -88,7 +96,7 @@ after_scts <- fetch_vectronics(
 The same could be accomplished with the acquisition date by changing the call to
 ```{r eval = F, echo = T}
 after_acq <- fetch_vectronics(
-  key_dir = "C:/Temp/vec_keys",
+  key_paths,
   start_date = after,
   which_date = "acquisition"
 )
@@ -105,14 +113,17 @@ Users can choose to download data of different types using they type argument. T
 3) `mit` - Implant mortality data
 4) `mor` - Mortality data
 5) `prx` - Proximity data
-6) `SEP` - Separation data
-7) `TRAP`- Trap event data
+6) `sep` - Separation data
+7) `trap`- Trap event data
+8) `vit` - Vaginal implant data
+
+*Note: The count argument modifies all data requests to return only the quantity of data available per key file.*
 
 Definitions of the data types can be found in the [API documentation](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). So far, the calls above have implicitly called the API requesting GPS data, but what if we want activity data? A simple change to the `fetch_vectronics` call accomplishes this task.
 
 ```{r eval = F, warning = F}
 act_dat <- fetch_vectronics(
-  key_dir = "C:/Temp/vec_keys",
+  key_paths,
   type = "act"
 )
 ```
@@ -181,26 +192,16 @@ lotek_fpath <- system.file(
 lotek <- fetch_csv(lotek_fpath)
 ```
 
-The function fetch_csv allows us to read multiple csv's, but for the moment we left that to the user. For example, if we wanted to read all the csv files stored in this package we could write the following.
+The function fetch_csv allows us to read multiple csv's.
 ```{r eval = F}
 fpaths <- list.files(dirname(lotek_fpath), full.names = T, pattern = "csv$")
 
-my_dat <- purrr::map(fpaths, fetch_csv)
-```
-
-If you ran the code above you would see that the object returned by the function is not very useable. The point of keeping this code in is to demonstrate the need for consistency and a simple way to loop over many file names. All of the files being read should have a similar format and then skipping lines of the header (as you will see shortly) and other data handling techniques can be successful. If you are going to read multiple files they should have the same column names, number of columns and the names should mean the same thing.
-
-A nicer example is reading the two Lotek files that we have saved for you
-```{r}
-lotek_fpaths <- c(lotek_fpath, lotek_fpath)
-
-lotek_dat <- purrr::map_df(lotek_fpaths, fetch_csv)
-
+my_dat <- fetch_csv(fpaths[1:2])
 ```
 
 What if your file has a large header like the Telonics file referenced earlier? Well, we built a function to guess at the number of rows to omit when reading files with headers. Let's try it with the Telonics file provided with this package.
 
-```{r}
+```{r eval = F}
 telonics_fpath <- system.file(
   "extdata",
   "telonics.csv",
@@ -211,21 +212,21 @@ telonics_fpath <- system.file(
 tel_dat <- fetch_csv(telonics_fpath)
 ```
 
-That was ugly, but we have the `cllr_remove_header` to help with this situation. In order to use the function we just need to know one column name. For example, if you open the csv and look at it we see that one column name is "GPS Latitude". Now let's remove the header from our data.
+That was ugly, but we have the `cllr_remove_header` to help with this situation. In order to use the function we just need to know one column name. For example, if you open the csv and look at it we see that one column name is `GPS Latitude`. Now let's remove the header from our data, note that the column name is unquoted and because it has a space in the name we use back ticks.
 
-```{r}
-clean_tel <- cllr_remove_header(tel_dat, "GPS Latitude", TRUE)
+```{r eval = F}
+clean_tel <- cllr_remove_header(tel_dat, `GPS Latitude`, TRUE)
 ```
 
 Now our data no longer have the large header with all the metadata. At this point we may wish to add a unique identifier for each animal.
 
-```{r}
+```{r eval = F}
 id_tel <- cllr_add_id(clean_tel, "Dave")
 ```
 
-Cool, but how is that useful if I have to do it for each animal? Well, we can automate the reading and morphing just like before using purrr.
+### Issues
 
-```{r}
+If you have issues with package or want to see a new feature please leave a note at https://github.com/Huh/collar/issues.
 
-```
+
 

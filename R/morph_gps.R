@@ -17,7 +17,7 @@
 #' @examples
 #' 2+2
 morph_gps <- function(
-                      x = NULL,
+                      x,
                       id_col = NULL,
                       dt_col = NULL,
                       dt_format = "%Y-%m-%d %H:%M:%S",
@@ -26,10 +26,12 @@ morph_gps <- function(
                       meta = list(),
                       extra = character()) {
   #  check x
-  assertthat::assert_that(assertthat::not_empty(x))
   assertthat::assert_that(is.data.frame(x))
   #  Check meta
-  assertthat::assert_that(is.list(meta) | is.null(meta))
+  assertthat::assert_that(
+    is.list(meta) | is.null(meta),
+    msg = "In morph_gps, meta must be NULL or a named list"
+  )
   assertthat::assert_that(length(names(meta)) == length(meta))
 
   is_unquo <- function(x) {

@@ -40,8 +40,11 @@
 #'   )
 #' )
 #'
-#' # Download count of GPS data - throws error at time of writing
+#' # Download count of GPS data
 #' fetch_vectronics(path, type = "gps", count = TRUE)
+#'
+#' # Download count of activity data
+#' fetch_vectronics(path, type = "act", count = TRUE)
 #'
 #' # Download all data
 #' all_dat <- fetch_vectronics(path, type = "gps")
@@ -449,18 +452,32 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
 
   pb <- dplyr::progress_estimated(length(resp))
 
-  parse <- purrr::map_dfr(
-      resp,
+  if(grepl("count?collarkey=", url[1], fixed = TRUE)){
+    parse <- purrr::map2_dfr(
+      resp, url,
       ~{
         pb$tick()$print()
-        jsonlite::fromJSON(
-          httr::content(.x, "text"),
-          simplifyVector = TRUE
+        tibble::tibble(
+          id = gsub("^.*(v2/collar/)([0-9]*)(/).*$", "\\2", .y),
+          type = gsub("^.*(v2/collar/.*/)([A-z]*)(/).*$", "\\2", .y),
+          count = httr::content(.x)
         )
       }
-    ) %>%
-    tibble::as.tibble() %>%
-    dplyr::rename_all(rename_fun)
+    )
+  }else{
+    parse <- purrr::map_dfr(
+        resp,
+        ~{
+          pb$tick()$print()
+          jsonlite::fromJSON(
+            httr::content(.x, "text"),
+            simplifyVector = TRUE
+          )
+        }
+      ) %>%
+      tibble::as.tibble() %>%
+      dplyr::rename_all(rename_fun)
+  }
 
   difftime(Sys.time(), st_time, units = "mins") %>%
     as.numeric() %>%

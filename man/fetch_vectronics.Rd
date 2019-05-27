@@ -75,6 +75,9 @@ path <- get_paths(
 # Download count of GPS data
 fetch_vectronics(path, type = "gps", count = TRUE)
 
+# Download count of activity data
+fetch_vectronics(path, type = "act", count = TRUE)
+
 # Download all data
 all_dat <- fetch_vectronics(path, type = "gps")
 

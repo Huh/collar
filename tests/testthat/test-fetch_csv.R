@@ -7,10 +7,19 @@ test_that("Check assertions", {
     "file_path argument is empty, please provide a valid path to a file"
   )
 
+  expect_condition(
+    fetch_delim(NULL),
+    "file_path argument is empty, please provide a valid path to a file"
+  )
+
   # Try to read file that does not exist
   my_file <- paste0(Sys.time(), runif(10))
   expect_condition(
     fetch_csv("myfile"),
+    "One or more files described in file_path do not exist"
+  )
+  expect_condition(
+    fetch_delim("myfile"),
     "One or more files described in file_path do not exist"
   )
 
@@ -20,6 +29,10 @@ test_that("Check assertions", {
   write.csv(df, file = file.path(tmp_dir, "mycsv.csv"), row.names = F)
   expect_s3_class(
     fetch_csv(file.path(tmp_dir, "mycsv.csv")),
+    "data.frame"
+  )
+  expect_s3_class(
+    fetch_delim(file.path(tmp_dir, "mycsv.csv")),
     "data.frame"
   )
 })
@@ -36,7 +49,10 @@ test_that("Read single csv", {
     fetch_csv(file.path(tmp_dir, "mycsv.csv")),
     "data.frame"
   )
-
+  expect_s3_class(
+    fetch_delim(file.path(tmp_dir, "mycsv.csv")),
+    "data.frame"
+  )
 
 })
 
@@ -55,9 +71,17 @@ test_that("Read multiple csv files", {
     fetch_csv(fls),
     "data.frame"
   )
+  expect_s3_class(
+    fetch_delim(fls),
+    "data.frame"
+  )
 
   expect_equal(
     fetch_csv(fls)$val,
+    rep(df$Val, 2)
+  )
+  expect_equal(
+    fetch_delim(fls)$val,
     rep(df$Val, 2)
   )
 })
@@ -74,13 +98,25 @@ test_that("Check features of read_csv work", {
     trim_ws = TRUE,
     na = "Missing"
   )
+  rd2 <- fetch_delim(
+    file.path(tmp_dir, "readr.csv"),
+    trim_ws = TRUE,
+    na = "Missing"
+  )
 
   expect_equal(
     rd$val[1],
     "ab"
   )
+  expect_equal(
+    rd2$val[1],
+    "ab"
+  )
   expect_true(
     is.na(rd$val[3])
+  )
+  expect_true(
+    is.na(rd2$val[3])
   )
 
 })
