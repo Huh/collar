@@ -1,0 +1,195 @@
+---
+title: "Reading .csv Files"
+author: "Kenneth Loonam"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Downloading Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Purpose
+
+Legacy collar data is often stored in csv files that are rarely "clean." The
+"Downloading Data" vignette provides examples of how to use collar to handle 
+clean csv files and files with problematic headers (metadata in rows above the
+column names and data). This vignette reviews using collar to download clean csv
+files, shows examples of csv files with poorly named columns, and demonstrates
+one potential workflow for combining multiple legacy csv formats.
+
+```{r setup}
+library(collar)
+```
+
+### Clean csv
+
+In the first example, the csv file is clean. The first row is column names and 
+each column is named. The fetch_csv function just needs the file path:
+
+```{r}
+ex_a <- fetch_csv(
+  file_path = system.file(
+  "extdata",
+  "csv_vingette_data",
+  "ex_a.csv",
+  package = "collar",
+  mustWork = TRUE
+)
+)
+```
+
+Once the data has been read into R, we want to format it for collar so that all
+of the legacy files will end up with the same column names and formats. The 
+morph_gps function does that for us:
+
+```{r}
+a_clean <- morph_gps(
+  x = ex_a,
+  id_col = sensor,
+  dt_col = date_time_gmt,
+  dt_format = "%m/%d/%Y %H:%M:%S",
+  lon_col = longitude,
+  lat_col = latitude
+)
+```
+
+In this function:
+
+- x specifies the object to morph
+- id_col specifies a column that identifies which collar the data is from
+- dt_col specifies which column contains the date and time information
+- dt_format defines the order and separators for the date/time fields
+- lon_col and lat_col specify the columns with the longitude and latitude values
+
+### Multiple files and missing column names
+
+The next example has two matching csv files that are missing column names. The
+fetch_csv function could automatically name the columns for us, but we can also 
+use the rename_fun argument to pass a function that renames the columns.
+
+```{r}
+
+# will throw error for missing names, then applies function to name columns
+ex_b <- fetch_csv(
+  file_path = get_paths(system.file(
+    "extdata",
+    "csv_vingette_data",
+    "ex_b",
+    package = "collar",
+    mustWork = TRUE), 
+  ext = "csv$"),
+  rename_fun = function(x){ 
+      # pass function to rename cols
+      out <- as.character(1:length(x))
+      out[c(1,2,3,9,10)] <- c("id", "date", "time", "lat", "long")
+      return(out)
+    }
+)
+
+```
+
+That was a lot messier. First, we were reading in more than one file, so rather
+than specify a single file path, we used get_paths to pull the file paths of 
+every csv file (ext = "csv$") in the folder. 
+
+The next change was in the column names. It throws an error for the missing 
+names, then renames all of the columns based on the function we provided. In the
+backgroun, fetch_csv assigns names that we overwrite with the rename_fun 
+argument. The "x" in the rename_fun is the vector of assigned names, so calling
+as.character(1:length(x)) simply numbers the columns from 1. After that, we hard
+coded specific columns that we wanted named. 1 is id; 2 is date; etc.
+
+Comparing this to the clean example we did first, we see that date and time are
+in separate columns. The morph_gps function needs them in a single column, so we
+need a new column with date and time combinded:
+
+```{r}
+# create single date/time column
+b$date_time <- paste(b$date, b$time)
+```
+
+Now we are ready to call morph_gps and get the data into the collar format.
+
+```{r}
+# will throw warning about NAs due to missing lat long values
+b_clean <- morph_gps(
+  x = ex_b,
+  id_col = id,
+  dt_col = date_time,
+  dt_format = "%m/%d/%Y %H:%M:%S",
+  lon_col = long,
+  lat_col = lat
+)
+```
+
+There are two final things to note in this example. First, morph_gps threw a 
+warning message about NAs. In the original csv files, some rows were missing 
+lat/long values, list "N/A" instead. Morph_gps coerced those to NAs in the data
+when covnerting the lat/long columns to numerics. Second, we started with multiple
+csv files but only have one tibble in R. The fetch_csv function will automatically
+bind multiple csv files by rows when fetching them. That means that the id column
+needs to specify the individual the data is from and that the columns between 
+the csv files need to match.
+
+### Missing names and extra rows
+
+This is another example of irritating csv file organization. Again we have 
+column names on the first row, with some unnamed columns. We can also see that
+the actually data doesn't start until the fourth row of the csv for some strange 
+reason (there are two rows we don't care about between the column names and the 
+data).
+
+We'll start by reading in the csv, this time letting fetch_csv rename the columns
+for us rather than providing a function.
+
+# Single file, messy header, messy names
+# The column names are on the first row, followed by a row of units and a space 
+  # holding row, data starts on row 4
+
+```{r}
+c <- fetch_csv(
+  file_path = system.file(
+    "extdata",
+    "csv_vingette_data",
+    "ex_c.csv",
+    package = "collar",
+    mustWork = TRUE
+  )
+)
+```
+
+After throwing a warning about duplicated names, fetch_csv assigned unique names
+to each column. Now we need to drop the useless rows before the actual data starts:
+
+```{r}
+c <- c[3:27,]
+```
+
+Combine the date and time into a single column:
+```{r}
+c$date_time <- paste(c$gmt_date, c$gmt_time)
+```
+
+And call morph_gps like we did in the last two examples:
+
+```{r}
+c_clean <- morph_gps(
+  x = c,
+  id_col = no,
+  dt_col = date_time,
+  dt_format = "%m/%d/%Y %H:%M:%S",
+  lon_col = longitude,
+  lat_col = latitude
+)
+```
+
+### Combine data
+
+Once all of the csv files have been read in and passed through morph_gps, the
+tibbles will have the same columns, so a simple bind by rows will give you one
+long format tibble:
+
+```{r}
+data <- rbind(a_clean, b_clean, c_clean)
+```
