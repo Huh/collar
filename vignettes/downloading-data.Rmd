@@ -1,0 +1,232 @@
+---
+title: "Downloading Data"
+author: "Josh Nowak"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Downloading Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Purpose
+
+Data collected by tags attached to animals often relay data to users via satellite modems and email. Email is a cumbersome way to receive large amounts of data. For this reason manufacturers typically create a graphical user interface (GUI), which requires the user to visit a website, click on a series of buttons and download individual files. This workflow is better than email, but onerous if more than a few collars are deployed at a time. A more ideal workflow would be for a server to wake up in the middle of the night contact another server and download data in an automated fashion. Few companies, namely Vectronics, have developed application program interfaces (i.e. API) to solve this problem and facilitate the latter more desirable workflow. This package is a workaround for those using tags from companies that do not supply an API and in the case of Vectronics we offer a simple solution to interacting with the API via R. Writing this package in R (and using S3) is important because of the prevalance of R in wildlife science.  
+
+### Roadmap
+
+When creating this package we imagined a simple interface that made it easy for users to retrieve their data, but we realize that this is only the beginning and are working to create a series of tools for the standardization of data, visualization and analysis of telemetry derived locations. For more information on where we are headed or to give us your two cents visit the GitHub repository for the project at https://github.com/Huh/collar.
+
+### Companies
+
+At the time of this writing we have tools to download data from Vectronics, ATS, and legacy csv files. We have plans to work on Telonics in the near future and note that an option exists for Lotek via the [CollarScraper](https://github.com/rgzn/CollarScraper) package.
+
+#### Vectronics
+
+The Vectronics API is [documented here](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). A basic request to API is just a URL like www.google.com except that it also specifies some parameters, which tell the receiving server to do something.  Let's take a look
+
+`https://wombat.vectronic-wildlife.com:9443/v2/collar/{collarid}/{datatype}?collarkey={key}`
+
+Looking at the request we see that we are going to securely pass data via the encrypted https protocol. Then we see the base url for the server and it specifies port 9443. After that v2/collar/ and we don't need to know much about this chunk as we suspect it is for internal routing. Finally we get to some information that we are required to provide, the collar id. A collar id often looks like 1000001. After passing the collar id we will need to provide the datatype we want to retrieve. Data types depend on the device type, but generally include the following:
+
+1) activity data
+2) mortality implant data
+3) mortality data
+4) proximity data
+5) position data
+6) separation data
+7) trap event data
+8) vaginal implant data
+
+The last piece of information we are required to pass is the collar key. A key is a bit of XML (eXtensible Markup Language) that allows Vectronics to identify each unique device and return the relevant data. Thankfully Vectronics provides a test key that we can all use to test the API. If you have your own keys that you want to use go for it, but for this example we provide an example test key in the package. The example key can be located at:
+```{r eval = F}
+system.file("extdata", "Collar1000001_Registration.keyx", package = "collar")
+```
+
+We are now ready to download data from the test collar. The `key_dir` argument of the `fetch_vectronics` function actually needs a directory, not a single key.
+
+Load the package
+
+```{r}
+library(collar)
+```
+
+Call the API
+```{r eval = F, warning = FALSE}
+ key_paths <- get_paths(
+    system.file(
+      "extdata",
+      package = "collar"
+    )
+  )
+ vec_dat <- fetch_vectronics(key_paths)
+```
+
+Cool, but what just happened? Let's break down the function call into its pieces. First, I told you that the API required a collar id, a collar key and a data type, but in our call we only supplied paths to key files. The collar package read the key files, extracted the collar id from the collar key, then it extracted the long alphanumeric key and finally it guessed that you wanted GPS location data because no value was supplied. Using these pieces of information the fetch_* function builds a URL and calls the API. The function can handle many keys at once or a single key if desired. The function returns a [tibble](https://tibble.tidyverse.org/), which prints nicely to the screen and does not coerce or recycle values in an unreasonable way. It also provides a means of passing a function to make pretty column names. The default removed all non-ASCII characters, like the degree symbol, made all letters lower case and replaced `.` with `_`. If you don't like that convention you can write your own function or pass something like `make.names` or `tolower`.
+
+The organization of calls to the Vectronic API can be organized into a simple dichotomous key. First, the user needs to decide what kind of data they desire, in the first example `gps`. Then the next decision is if you want to retrieve the data or a count of how much data is available, this is controlled by the `count` argument. Once that decision is made decide if all data is required or some subset of data is best. If a subset then choose to implement either data after a `positionid` or data after some date. This quick summary may be helpful as you get more familiar with the API. 
+
+##### Data ID Limits
+
+More advanced calls to the API can be made to only download subsets of the data. For example, we could assume the 600th value of idPosition came from the last download we performed. Imagine that last time we downloaded data this was the last value we received, we can pass this value to the `fetch_vectronics` function to limit the download to only new data not previously downloaded. *Note: Some users have reported odd behavior if positions were collected, but not transmitted. It is possible that smaller/older values of idPosition were previously missed. Don't assume that you downloaded every point ever collected.*
+
+```{r eval = F, warning = F}
+new_dat <- fetch_vectronics(
+  key_paths,
+  after_data_id = vec_dat$idposition[600]
+)
+```
+##### Date Limits
+
+Similarly, we can use dates to limit data downloads. The format of the date must be `YYYY-MM-DDTHH:MM:SS` and yes, the T is necessary. The scenario is the same, imagine we download data regularly, say daily, and we only want to download data with a scts date greater than some value. Below we create a date to use for downloading by subtracting 10 from the maximum observed date in the `vec_dat` created by the first download.
+
+Create the date object used to subset the download
+```{r eval = F}
+after <- format(max(as.Date(vec_dat$acquisitiontime)) - 10, "%Y-%m-%dT%H:%M:%S")
+```
+
+Call the API with the start date
+```{r eval = F, warning = F}
+after_scts <- fetch_vectronics(
+  key_paths,
+  start_date = after,
+  which_date = "scts"
+)
+```
+The same could be accomplished with the acquisition date by changing the call to
+```{r eval = F, echo = T}
+after_acq <- fetch_vectronics(
+  key_paths,
+  start_date = after,
+  which_date = "acquisition"
+)
+```
+
+If you have more than one collar to download then the length of the dates passed to `start_date` must be equal to the number of keys found in the key directory.  In other words, you have to have one date for each tag.
+
+##### Data Types
+
+Users can choose to download data of different types using they type argument. The possible options are:
+
+1) `gps` - GPS location/position data
+2) `act` - Activity data
+3) `mit` - Implant mortality data
+4) `mor` - Mortality data
+5) `prx` - Proximity data
+6) `sep` - Separation data
+7) `trap`- Trap event data
+8) `vit` - Vaginal implant data
+
+*Note: The count argument modifies all data requests to return only the quantity of data available per key file.*
+
+Definitions of the data types can be found in the [API documentation](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). So far, the calls above have implicitly called the API requesting GPS data, but what if we want activity data? A simple change to the `fetch_vectronics` call accomplishes this task.
+
+```{r eval = F, warning = F}
+act_dat <- fetch_vectronics(
+  key_paths,
+  type = "act"
+)
+```
+
+The pattern is the same for the remaining data types.
+
+***
+
+#### ATS
+
+ATS has a typical web portal that, like many companies, requires the user to click endless buttons in order to download data in a reasonable fashion. For this reason, the collar package provides web scraping utilities to interact with the ATS website. Webscraping is a technique that mimics user interactions with a website in order to make something happen, like retrieiving data. Have you ever seen a table of data on a website and thought I would like to have a copy of that? That is the job of webscraping, but in the case of the ATS site we are going to click buttons to get the desired data. Functionality at this point is somewhat limited, but also general, so if you choose to learn how to use the functions then you should be able to accomplish complex tasks.
+
+The main function users interact with to download data from ATS is the `fetch_ats` function. This function has 4 arguments. The bttn_nm argument allows the user to control which data is downloaded by specifying the button to "click". The usr and pwd arguments are for authentication. Each user must provide there own credentials for authentication. The base_url argument has a default value of `atsidaq.net`, which should suffice for most all applications. If you navigate to `atsidaq.net` and login you will see the GUI and all of its buttons. Let's start with an example of downloading all the data from a study. 
+
+```{r eval = F}
+ats_dat <- fetch_ats(usr = Sys.getenv("ats_usr"), pwd = Sys.getenv("ats_pwd"))
+```
+
+In the above call we are downloading all data from all collars with data stored on the site. The only arguments we have to pass are the username and password. Here I have chosen to store the username and password as environmental variables. To read more about how to do this try [this link](https://cran.r-project.org/web/packages/httr/vignettes/secrets.html). So if all you ever want to do is download all the data and rely on a database to deal with [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) like operations then you are done with the tutorial, but the function can do more. What if you wanted to download all the data passed by the button labelled "Download New Transmissions"? Well we need to pass the name of that button to the function and then we will get that data, but what do we mean by name? When you look at the button in the website you see that it has words on it, but those words are not the name or unique identifying bit of information. What we really need is stored in the HTML that makes up the webpage. My preferred way to get that information in Google Chrome is to right click and choose inspect. This gives me access to the developer tools and consequently the HTML for the site. Another great technique is to use [SelectorGadget](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html). I won't go into great detail here, but will instead show examples of downloading data using different buttons.
+
+Download data using new transmissions button
+```{r eval = F}
+new_trans <- fetch_ats(
+  bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll2",
+  usr = Sys.getenv("ats_usr"), 
+  pwd = Sys.getenv("ats_pwd")
+)
+```
+
+Download data using Download All Events button
+
+*Note: At the time of this writing ATS was having a server issue and this request returned a 500 error code meaning an internal server error had occurred.*
+
+```{r eval = F}
+all_events <- fetch_ats(
+  bttn_nm = "ctl00$ContentPlaceHolder1$DownLoadlastEvents",
+  usr = Sys.getenv("ats_usr"), 
+  pwd = Sys.getenv("ats_pwd")
+)
+```
+
+Hopefully the pattern is clear, find the button name in the html and insert it into the bttn_nm argument of the function. This pattern applies to all buttons on the page that return data. A few buttons and their names are provided below for reference:
+
+1) Download New Data - `ctl00$ContentPlaceHolder1$DownloadAll1`
+2) Download New Transmissions - `ctl00$ContentPlaceHolder1$DownloadAll2`
+3) Download All Data - `ctl00$ContentPlaceHolder1$DownloadAll3`
+4) Download Download All Transmissions - `ctl00$ContentPlaceHolder1$DownloadAll4`
+5) Download All Events - `ctl00$ContentPlaceHolder1$DownLoadlastEvents`
+
+
+***
+
+#### CSV Legacy/Loose Files
+
+Sometimes we just have a bunch of loose csv files from old collars or maybe we received them by email regardless of how we got them we want to use them. The function `fetch_csv` is a wrapper for just this task. One *special* and undesirable feature of some collar data is that it has a header of many lines containing metadata of some sort. Some examples are contained in this package. You can run `system.file("extdata", "telonics.csv", package = "collar")` to see a nice example of an extra large header that makes life difficult.
+
+A clean first example uses a file without a problematic header
+```{r}
+lotek_fpath <- system.file(
+  "extdata",
+  "lotek.csv",
+  package = "collar",
+  mustWork = TRUE
+)
+
+lotek <- fetch_csv(lotek_fpath)
+```
+
+The function fetch_csv allows us to read multiple csv's.
+```{r eval = F}
+fpaths <- list.files(dirname(lotek_fpath), full.names = T, pattern = "csv$")
+
+my_dat <- fetch_csv(fpaths[1:2])
+```
+
+What if your file has a large header like the Telonics file referenced earlier? Well, we built a function to guess at the number of rows to omit when reading files with headers. Let's try it with the Telonics file provided with this package.
+
+```{r eval = F}
+telonics_fpath <- system.file(
+  "extdata",
+  "telonics.csv",
+  package = "collar",
+  mustWork = TRUE
+)
+
+tel_dat <- fetch_csv(telonics_fpath)
+```
+
+That was ugly, but we have the `cllr_remove_header` to help with this situation. In order to use the function we just need to know one column name. For example, if you open the csv and look at it we see that one column name is `GPS Latitude`. Now let's remove the header from our data, note that the column name is unquoted and because it has a space in the name we use back ticks.
+
+```{r eval = F}
+clean_tel <- cllr_remove_header(tel_dat, `GPS Latitude`, TRUE)
+```
+
+Now our data no longer have the large header with all the metadata. At this point we may wish to add a unique identifier for each animal.
+
+```{r eval = F}
+id_tel <- cllr_add_id(clean_tel, "Dave")
+```
+
+### Issues
+
+If you have issues with package or want to see a new feature please leave a note at https://github.com/Huh/collar/issues.
+
+
+

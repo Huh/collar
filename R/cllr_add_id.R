@@ -1,16 +1,27 @@
-# cllr_add_id
-# A function to add an id column if it doesn't exist in the data frame
+#' @title Add id column
+#'
+#' @description If your data does not have unique identifiers for each animal cllr_add_id will create that column and insert values you provide.
+#'
+#' @inheritParams cllr_rename_id
+#' @param id_vals values (character) to include in a newly created id column, these are the unique identifier for each individual
+#'
+#' @details
+#' When adding a new column to data using cllr_add_id the user should supply either a length 1 character string or a character vector equal in length to the number of observations in the data. The latter is not recommended.
+#'
+#' @return data.frame
+#' @seealso cllr_rename_id
+#' @export
+#'
+#' @examples
+#' # Add unique identifiers
+#' df <- data.frame(val = 1:3)
+#' cllr_add_id(df, "1A")
+cllr_add_id <- function(x, id_vals) {
+  assertthat::assert_that(inherits(x, "data.frame"))
+  assertthat::assert_that(inherits(id_vals, "character"))
 
-cllr_add_id <- function(x, id_col){
-  # a function to add an id column
-  # returns the data frame unchaged if the id column specified already exists
-  # creates a column named id with the value entered for id_col repeated if not
-
-  idc <- rlang::enquo(id_col)
-  if(sum(rlang::quo_text(idc) == names(x)) == 0){
-    out <- dplyr::mutate(x, id = rep(rlang::quo_text(idc), nrow(x)))
-    }else{
-    out <- x
-  }
-  return(out)
+  dplyr::mutate(
+    x,
+    id = as.character(id_vals)
+  )
 }

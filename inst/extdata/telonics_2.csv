@@ -1,0 +1,6 @@
+Acquisition Time,Acquisition Start Time,Iridium CEP Radius,Iridium Latitude,Iridium Longitude,GPS Fix Time,GPS Fix Attempt,GPS Latitude,GPS Longitude,GPS UTM Zone,GPS UTM Northing,GPS UTM Easting,GPS Horizontal Error,GPS Navigation Time,GPS Geofence Count,GPS Geofence List,Activity Count,Temperature,Satellite Uplink,Receive Time,Repetition Count,Low Voltage,Mortality,Iridium Command,Schedule Set,Predeployment Data,Error
+2018.07.18 18:01:18,2018.07.18 18:00:00,,,,2018.07.18 18:01:18,Succeeded,47.509673,-113.939043,12T,5265992,278700,6.5,78,0,,,,,2018.07.20 15:01:42,1,,,,Primary (outside),No,
+2018.07.18 21:30:41,2018.07.18 21:30:00,,,,2018.07.18 21:30:41,Succeeded,47.508375,-113.935556,12T,5265838,278957,7.5,41,0,,,,,2018.07.20 15:01:42,1,,,,Primary (outside),No,
+2018.07.19 01:01:23,2018.07.19 01:00:00,,,,2018.07.19 01:01:23,Succeeded,47.509952,-113.932863,12T,5266005,279166,13.5,83,0,,,,,2018.07.20 15:01:42,1,,,,Primary (outside),No,
+2018.07.19 04:32:00,2018.07.19 04:30:00,,,,2018.07.19 04:32:00,Succeeded,47.509512,-113.953151,12T,5266014,277637,43.5,120,0,,,,,2018.07.20 15:01:42,1,,,,Primary (outside),No,
+2018.07.19 08:00:54,2018.07.19 08:00:00,,,,2018.07.19 08:00:54,Succeeded,47.510961,-113.954782,12T,5266180,277520,19.5,54,0,,,,,2018.07.20 15:01:42,1,,,,Primary (outside),No,

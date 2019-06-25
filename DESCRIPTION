@@ -1,12 +1,42 @@
 Package: collar
+Title: Utilities for Accessing and Manipulating GPS Data
 Version: 0.0.0.9000
-Title: What the Package Does (One Line, Title Case)
-Description: What the package does (one paragraph).
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-License: What license is it under?
+Authors@R: c(
+  person("Josh", "Nowak", email = "josh.nowak@speedgoat.io", role = c("aut", "cre")),
+  person("Forest", "Hayes", email = "forest.hayes@umontana.edu", role = "aut"),
+  person("T.J.", "Clark", email = "tjclark1873@gmail.com", role = "aut"),
+  person("Hans", "Martin", email = "hmartin289@gmail.com", role = "aut"),
+  person("SpeedGoat Wildlife Solutions", role = c("cph", "fnd"))
+  )
+Description: Provides a consistent toolset for downloading, formatting and 
+  interacting with data collected via GPS collars and similar sensors.
+License: MIT + file LICENSE
+URL: https://github.com/Huh/collar
+BugReports: https://github.com/Huh/collar/issues
 Encoding: UTF-8
 LazyData: true
 ByteCompile: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
+Imports:
+    assertthat,
+    dplyr,
+    ggplot2,
+    grDevices,
+    htmlwidgets,
+    httr,
+    jsonlite,
+    leaflet,
+    magrittr,
+    purrr,
+    RCurl,
+    readr,
+    rlang,
+    rvest,
+    sf,
+    tibble,
+    xml2
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
