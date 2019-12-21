@@ -25,7 +25,7 @@ At the time of this writing we have tools to download data from Vectronics, ATS,
 
 The Vectronics API is [documented here](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). A basic request to API is just a URL like www.google.com except that it also specifies some parameters, which tell the receiving server to do something.  Let's take a look
 
-`https://wombat.vectronic-wildlife.com:9443/v2/collar/{collarid}/{datatype}?collarkey={key}`
+`https://api.vectronic-wildlife.com/collar/{collarid}/{datatype}?collarkey={key}`
 
 Looking at the request we see that we are going to securely pass data via the encrypted https protocol. Then we see the base url for the server and it specifies port 9443. After that v2/collar/ and we don't need to know much about this chunk as we suspect it is for internal routing. Finally we get to some information that we are required to provide, the collar id. A collar id often looks like 1000001. After passing the collar id we will need to provide the datatype we want to retrieve. Data types depend on the device type, but generally include the following:
 
