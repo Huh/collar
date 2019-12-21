@@ -5,10 +5,10 @@
 \alias{fetch_delim}
 \title{Read collar data stored in CSV file(s)}
 \usage{
-fetch_csv(file_path, skip = 0, rename_fun = adj_col_nms, ...)
+fetch_csv(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...)
 
 fetch_delim(file_path, delim = ",", skip = 0,
-  rename_fun = adj_col_nms, ...)
+  rename_fun = collar:::adj_col_nms, ...)
 }
 \arguments{
 \item{file_path}{The full path to one or more csv(s) to read}
@@ -16,7 +16,7 @@ fetch_delim(file_path, delim = ",", skip = 0,
 \item{skip}{integer, the number of rows to skip at the top of the
 file, see details}
 
-\item{rename_fun}{A function used to rename columns, defaults to adj_col_nms, see details}
+\item{rename_fun}{a function used to rename columns, see example}
 
 \item{...}{Other parameters to pass to readr::read_csv}
 
