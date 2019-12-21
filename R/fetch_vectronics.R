@@ -476,7 +476,7 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
           )
         }
       ) %>%
-      tibble::as.tibble() %>%
+      tibble::as_tibble() %>%
       dplyr::rename_all(rename_fun)
   }
 
