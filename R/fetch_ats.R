@@ -77,7 +77,7 @@ fetch_ats <- function(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3",
   httr::stop_for_status(dat_dwnld)
 
   out <- httr::content(dat_dwnld$response, type = "text/csv") %>%
-    dplyr::rename_all(list(~ rename_fun))
+    dplyr::rename_all(rename_fun)
 
   return(out)
 }
