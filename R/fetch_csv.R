@@ -4,6 +4,7 @@
 #' @param skip integer, the number of rows to skip at the top of the
 #' file, see details
 #' @param delim the delimiter to apply to the file, see ?readr::read_delim
+#' @param rename_fun a function used to rename columns, see example
 #' @inheritParams fetch_ats
 #' @param ... Other parameters to pass to readr::read_csv
 #'
@@ -70,7 +71,7 @@
 #' colnames(fetch_csv(fls[1], rename_fun = tolower))
 #' colnames(fetch_csv(fls[1], rename_fun = make.names))
 #'
-fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
+fetch_csv <- function(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...) {
   assertthat::assert_that(
     length(file_path) >= 1,
     msg = "file_path argument is empty, please provide a valid path to a file"
@@ -86,7 +87,7 @@ fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
 
   suppressMessages(
     purrr::map_dfr(file_path, readr::read_csv, skip = skip, ...) %>%
-      dplyr::rename_all(list(~ rename_fun))
+      dplyr::rename_all(rename_fun)
   )
 
 }
@@ -96,7 +97,7 @@ fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
 fetch_delim <- function(file_path,
                         delim = ",",
                         skip = 0,
-                        rename_fun = adj_col_nms,
+                        rename_fun = collar:::adj_col_nms,
                         ...) {
   assertthat::assert_that(
     length(file_path) >= 1,
@@ -113,7 +114,7 @@ fetch_delim <- function(file_path,
 
   suppressMessages(
     purrr::map_dfr(file_path, readr::read_delim, delim = delim, skip = skip, ...) %>%
-      dplyr::rename_all(list(~ rename_fun))
+      dplyr::rename_all(rename_fun)
   )
 
 }

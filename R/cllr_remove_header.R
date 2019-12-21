@@ -74,6 +74,6 @@ cllr_remove_header <- function(x,
         as.character(unlist(dplyr::slice(., row_loc)))
       ) %>%
       dplyr::slice((row_loc + 1):nrow(x)) %>%
-      dplyr::rename_all(list(~ rename_fun))
+      dplyr::rename_all(rename_fun)
   }
 }
