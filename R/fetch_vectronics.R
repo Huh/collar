@@ -340,7 +340,7 @@ build_vec_url <- function(base_url = NULL,
 
   # Insert base url if NULL to save typing
   if (is.null(base_url)) {
-    base_url <- "https://wombat.vectronic-wildlife.com:9443/"
+    base_url <- "https://api.vectronic-wildlife.com/"
   }
 
   # Modify url conditional on count variable to simplify user interaction
@@ -348,7 +348,6 @@ build_vec_url <- function(base_url = NULL,
     url <- httr::modify_url(
       base_url,
       path = list(
-        "v2",
         "collar",
         collar_id,
         type,
@@ -433,6 +432,8 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
     RCurl::url.exists("www.google.com"),
     msg = "Are you connected to the internet? You must have an internet connection to call the API"
   )
+
+
 
   st_time <- Sys.time()
 
