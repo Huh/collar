@@ -14,5 +14,5 @@
 #' @import tibble
 #' @importFrom rlang !! !!! :=
 #' @importFrom magrittr %>%
-#' @importFrom utils head tail data
+#' @importFrom utils head tail data askYesNo
 "_PACKAGE"
