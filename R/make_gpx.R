@@ -34,10 +34,15 @@ make_gpx <- function(x,
 
 
   x %>%
-  dplyr::mutate(name = paste(x[, id_col], format(as.data.frame(x[, dt_col]), "%Y-%m-%d h%H"))) %>%
-  sf::st_as_sf(coords = c(lon_col, lat_col), crs = crs) %>%
-  dplyr::select(name) %>%
-  sf::st_write(dsn = file, layer = "waypoints", driver = "GPX", ...)
+    dplyr::mutate(
+      name = paste(
+        x[, id_col],
+        format(as.data.frame(x[, dt_col]), "%Y-%m-%d h%H")
+      )
+    ) %>%
+    sf::st_as_sf(coords = c(lon_col, lat_col), crs = crs) %>%
+    dplyr::select(name) %>%
+    sf::st_write(dsn = file, layer = "waypoints", driver = "GPX", ...)
 
   return(invisible(x))
 }
