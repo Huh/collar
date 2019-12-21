@@ -5,8 +5,8 @@ test_that("Check filter_date_range", {
 
   data_dir <- system.file("extdata", package = "collar")
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
-  dat <-
-    tmp %>%
+
+  dat <- tmp %>%
     tidyr::drop_na(longitude) %>%
     morph_gps(
       x = .,
@@ -65,26 +65,20 @@ test_that("Check make_gpx assertions", {
 
   expect_condition(
     filter_date_range(dat, dt_col = "a"),
-    "x does not have name a",
+    "x does not have all of these name(s): 'a'",
     fixed = T
   )
 
-  expect_condition(
-    filter_date_range(dat, dt_col = "lon"),
-    "lon column does not have a class of date and can not be coerced using as.Date()",
-    fixed = T
+  expect_error(
+    filter_date_range(dat, dt_col = "lon")
   )
 
-  expect_condition(
-    filter_date_range(dat, start = "a"),
-    "'start' does not have a class of date and can not be coerced using as.Date()",
-    fixed = T
+  expect_error(
+    filter_date_range(dat, start = "a")
   )
 
-  expect_condition(
-    filter_date_range(dat, end = "a"),
-    "'end' does not have a class of date and can not be coerced using as.Date()",
-    fixed = T
+  expect_error(
+    filter_date_range(dat, end = "a")
   )
 
 })

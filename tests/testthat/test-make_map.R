@@ -45,28 +45,25 @@ test_that("check make_map assertions", {
     fixed = T
   )
 
+  expect_error(
+    make_map(dat, id_col = "a")
+  )
+
   expect_condition(
-    make_map(dat, id_col = "a"),
-    "x does not have name a",
+    dplyr::mutate(dat, lon = NA) %>%
+    dplyr::slice(1) %>%
+    make_map(),
+    "x[, lon_col] contains 1 missing values",
     fixed = T
   )
 
-  #' Actual message is an rlang error
-  # expect_condition(
-  #   dplyr::mutate(dat, lon = NA) %>%
-  #   dplyr::slice(1) %>%
-  #   make_map(),
-  #   "x[, lon_col] contains 1 missing values",
-  #   fixed = T
-  # )
-  #
-  # expect_condition(
-  #   dplyr::mutate(dat, lat = NA) %>%
-  #   dplyr::slice(1) %>%
-  #   make_map(),
-  #   "x[, lat_col] contains 1 missing values",
-  #   fixed = T
-  # )
+  expect_condition(
+    dplyr::mutate(dat, lat = NA) %>%
+    dplyr::slice(1) %>%
+    make_map(),
+    "x[, lat_col] contains 1 missing values",
+    fixed = T
+  )
 
   dat_large <-
     dat %>%

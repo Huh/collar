@@ -58,29 +58,24 @@ test_that("Check make_gpx assertions", {
   )
 
   # no column with name
-  expect_condition(
-    make_gpx(dat, id_col = "A"),
-    "x does not have name A"
+  expect_error(
+    make_gpx(dat, id_col = "A")
   )
 
   dat_na <-
     dplyr::mutate(dat, lon = NA) %>%
     dplyr::slice(1)
 
-  expect_condition(
-    make_gpx(dat_na),
-    "dplyr::pull(x, lon_col) contains 1 missing values",
-    fixed = T
+  expect_error(
+    make_gpx(dat_na)
   )
 
   dat_na <-
     dplyr::mutate(dat, lat = NA) %>%
     dplyr::slice(1)
 
-  expect_condition(
-    make_gpx(dat_na),
-    "dplyr::pull(x, lat_col) contains 1 missing values",
-    fixed = T
+  expect_error(
+    make_gpx(dat_na)
   )
 
 })

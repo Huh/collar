@@ -1,8 +1,8 @@
 context("test-fetch_vectronics.R")
 
-# test_that("Check fetch_vectronics", {
-#   key_dir <- system.file("extdata", package = "collar")
-#   keys <- get_paths(key_dir)
+test_that("Check fetch_vectronics", {
+  key_dir <- system.file("extdata", package = "collar")
+  keys <- get_paths(key_dir)
 #
 #   expect_condition(
 #     fetch_vectronics(),
