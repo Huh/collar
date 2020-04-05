@@ -5,15 +5,27 @@
 \alias{build_vec_urls}
 \title{Functions to build the url required to call the API}
 \usage{
-build_vec_url(base_url = NULL, collar_id = NULL, collar_key = NULL,
+build_vec_url(
+  base_url = NULL,
+  collar_id = NULL,
+  collar_key = NULL,
   type = c("gps", "act", "mit", "mor", "prx", "sep", "trap", "vit"),
-  count = FALSE, after_data_id = NULL, start_date = NULL,
-  which_date = NULL)
+  count = FALSE,
+  after_data_id = NULL,
+  start_date = NULL,
+  which_date = NULL
+)
 
-build_vec_urls(base_url = NULL, collar_id = NULL, collar_key = NULL,
+build_vec_urls(
+  base_url = NULL,
+  collar_id = NULL,
+  collar_key = NULL,
   type = c("gps", "act", "mit", "mor", "prx", "sep", "trap", "vit"),
-  count = FALSE, after_data_id = NULL, start_date = NULL,
-  which_date = c("scts", "acquisition"))
+  count = FALSE,
+  after_data_id = NULL,
+  start_date = NULL,
+  which_date = c("scts", "acquisition")
+)
 }
 \arguments{
 \item{base_url}{NULL or the url to build from, the default NULL should

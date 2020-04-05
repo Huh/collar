@@ -24,6 +24,8 @@ get_id_from_key(
 )
 }
 \seealso{
-Other get: \code{\link{get_keys}}, \code{\link{get_paths}}
+Other get: 
+\code{\link{get_keys}()},
+\code{\link{get_paths}()}
 }
 \concept{get}
