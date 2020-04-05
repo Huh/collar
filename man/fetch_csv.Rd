@@ -7,8 +7,13 @@
 \usage{
 fetch_csv(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...)
 
-fetch_delim(file_path, delim = ",", skip = 0,
-  rename_fun = collar:::adj_col_nms, ...)
+fetch_delim(
+  file_path,
+  delim = ",",
+  skip = 0,
+  rename_fun = collar:::adj_col_nms,
+  ...
+)
 }
 \arguments{
 \item{file_path}{The full path to one or more csv(s) to read}
@@ -74,11 +79,11 @@ cllr_remove_header(r1, col_nm = `Acquisition Time`)
 #  stored as a csv, to fix this we use the fetch_delim function and specify
 #  the delimiter as a comma and a tab
 vec_fl <- system.file("extdata", "vectronics.csv", package = "collar")
-fetch_delim(vec_fl, delim = ",\\t", skip = 0)
+fetch_delim(vec_fl, delim = ",\t", skip = 0)
 
 # Note that you can pass arguments to readr::read_*
 # Compare animalid column to above
-fetch_delim(vec_fl, delim = ",\\t", skip = 0, na = c("N/A"))
+fetch_delim(vec_fl, delim = ",\t", skip = 0, na = c("N/A"))
 
 # The argument rename_fun can take custom functions for renaming
 colnames(fetch_csv(fls[1]))

@@ -4,9 +4,17 @@
 \alias{make_gpx}
 \title{Save collar locations to disk as a GPX file}
 \usage{
-make_gpx(x, id_col = "id", lat_col = "lat", lon_col = "lon",
-  dt_col = "dt", file = paste0("./GPS Locations ", format(Sys.time(),
-  "\%Y-\%m-\%d \%H\%M\%S"), ".gpx"), crs = 4326, ...)
+make_gpx(
+  x,
+  id_col = "id",
+  lat_col = "lat",
+  lon_col = "lon",
+  dt_col = "dt",
+  file = paste0("./GPS Locations ", format(Sys.time(), "\%Y-\%m-\%d \%H\%M\%S"),
+    ".gpx"),
+  crs = 4326,
+  ...
+)
 }
 \arguments{
 \item{x}{A data frame containing collar data with column "dt" that can be coerced into class "Date"}

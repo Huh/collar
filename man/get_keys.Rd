@@ -30,7 +30,8 @@ get_keys(my_key)
 get_keys(c(my_key, my_key, my_key))
 }
 \seealso{
-Other get: \code{\link{get_id_from_key}},
-  \code{\link{get_paths}}
+Other get: 
+\code{\link{get_id_from_key}()},
+\code{\link{get_paths}()}
 }
 \concept{get}

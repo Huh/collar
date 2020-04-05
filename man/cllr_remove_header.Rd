@@ -4,8 +4,7 @@
 \alias{cllr_remove_header}
 \title{A function to find and remove data headers form collar data based on the latitude column}
 \usage{
-cllr_remove_header(x, col_nm, rm_header = TRUE,
-  rename_fun = adj_col_nms)
+cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 }
 \arguments{
 \item{x}{A dataframe containing collar data}

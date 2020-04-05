@@ -4,7 +4,9 @@
 \name{cllr_palettes}
 \alias{cllr_palettes}
 \title{Create palettes}
-\format{An object of class \code{list} of length 4.}
+\format{
+An object of class \code{list} of length 4.
+}
 \usage{
 cllr_palettes
 }
