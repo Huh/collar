@@ -21,14 +21,14 @@ Consistent naming prefixes were used when possible in an effort to enhance the u
 
 #### Helpers
 
-1) `filter_date_range()` - Returns locations within a specified date range
-2) `filter_last_loc()` - Retrieve the last location for each individual
-3) `make_gpx()` - Save locations to disc, for use on GPS device or phone app
-4) `make_map()` - Builds leaflet map using location data
-5) `save_map()` - Saves the map
-6) `cllr_add_id()` - Add inidividual identifier to each animal, some manufacturers do not include this information in downloads or store it in the file name
-7) `cllr_remove_header()` - Some manufacturers include metadata in the first n lines of a download, this function attempts to remove those headers so the data can be used
-8) `cllr_rename_id()` - The collar package has expectations about the column names in the data, this function exists to help the user change column names and conform to expectations
+- `filter_date_range()` - Returns locations within a specified date range
+- `filter_last_loc()` - Retrieve the last location for each individual
+- `make_gpx()` - Save locations to disc, for use on GPS device or phone app
+- `make_map()` - Builds leaflet map using location data
+- `save_map()` - Saves the map
+- `cllr_add_id()` - Add inidividual identifier to each animal, some manufacturers do not include this information in downloads or store it in the file name
+- `cllr_remove_header()` - Some manufacturers include metadata in the first n lines of a download, this function attempts to remove those headers so the data can be used
+- `cllr_rename_id()` - The collar package has expectations about the column names in the data, this function exists to help the user change column names and conform to expectations
 
 
 ## Installation
