@@ -6,6 +6,7 @@ Authors@R: c(
   person("Forest", "Hayes", email = "forest.hayes@umontana.edu", role = "aut"),
   person("T.J.", "Clark", email = "tjclark1873@gmail.com", role = "aut"),
   person("Hans", "Martin", email = "hmartin289@gmail.com", role = "aut"),
+  person("Eric", "Newkirk", email = "eric.newkirk@speedgoat.io", role = "aut"),
   person("SpeedGoat Wildlife Solutions", role = c("cph", "fnd"))
   )
 Description: Provides a consistent toolset for downloading, formatting and 

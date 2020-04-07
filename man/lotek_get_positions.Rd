@@ -15,8 +15,8 @@ lotek_get_positions(
 \item{lotek_auth}{a list matching the output of lotek_get_token}
 
 \item{device_id}{a single device id as character, or a
-single character value containing multiple device ids separated
-by commas, or NULL for all devices associated with current account}
+list or vector of device ids, or NULL for all devices
+associated with current account}
 
 \item{start_date}{only fixes at or after start_date will be inlcluded
 in the output. Must be in the format YYYY-MM-DDTHH:MM:SSZ. Don't
@@ -29,10 +29,10 @@ analagous to start_date above.  If NULL current date/time is used.}
 A tibble containing position data
 }
 \description{
-Retrieve position (fix) data from Lotek site via API
+Retrieves GPS data optionally filtered by date or collar.
 }
 \examples{
-
+\dontrun{
 tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
 
 ltk_fixes_2020 <- lotek_get_positions(tkn,
@@ -41,5 +41,5 @@ ltk_fixes_2020 <- lotek_get_positions(tkn,
 
 ltk_fixes_collar123 <- lotek_get_positions(tkn,
                                            device_id = "123")
-
+}
 }
