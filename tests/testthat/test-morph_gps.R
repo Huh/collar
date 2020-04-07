@@ -2,8 +2,7 @@ context("test-morph_gps.R")
 
 test_that("Check morph_gps", {
 
-  dat <-
-    system.file("extdata/vectronics.csv", package = "collar") %>%
+  dat <- system.file("extdata/vectronics.csv", package = "collar") %>%
     collar::fetch_csv(.) %>%
     dplyr::mutate(dt_col = paste(utc_date, utc_time))
 
