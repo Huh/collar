@@ -12,10 +12,10 @@ The package is a work in progress, feedback is always appreciated.
 
 We focus on companies that our collaborators use often and that provide some means of automating access to data (e.g. API).
 
-1) `fetch_vectronics()` - Vectronics Aerospace
-2) `fetch_ats()` - Advanced Telemetry Solutions
-3) `fetch_lotek()` - Lotek (NEW, needs testing)
-4) `fetch_csv()` - Loose csv's
+- Vectronics Aerospace
+- Advanced Telemetry Solutions
+- Lotek (NEW, needs testing)
+- Loose csv's
 
 Consistent naming prefixes were used when possible in an effort to enhance the user experience.
 
