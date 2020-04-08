@@ -95,7 +95,7 @@ lotek_auth_token <- function(lotek_auth) {
     msg = "Invalid Lotek token. Are you logged in?")
 
   # replace input object with same or refreshed object
-  eval.parent(substitute(lotek_auth<-lotek_check_token(lotek_auth)))
+  eval.parent(substitute(lotek_auth <- lotek_check_token(lotek_auth)))
 
   # return as character for API header
   paste(lotek_auth["token_type"], lotek_auth["access_token"])
@@ -112,7 +112,7 @@ lotek_auth_token <- function(lotek_auth) {
 #'
 #' @keywords internal
 #'
-lotek_refresh_token <- function (lotek_auth) {
+lotek_refresh_token <- function(lotek_auth) {
 
   # send request
   resp <- httr::POST(
@@ -154,8 +154,8 @@ lotek_refresh_token <- function (lotek_auth) {
 #' tkn <- lotek_get_token("demo", "PASSWORD09")
 #'
 #' ltk_alerts <- lotek_get_alerts(tkn)
-#'
-lotek_get_alerts <- function (lotek_auth) {
+#' }
+lotek_get_alerts <- function(lotek_auth) {
 
   # send request
   resp <- httr::GET(
@@ -173,11 +173,11 @@ lotek_get_alerts <- function (lotek_auth) {
   )
 
   # combine lists into tibble
-  tbl_out <- purrr::map(
+  tbl_out <- purrr::map_dfr(
     httr::content(resp),
-    ~purrr::map(.x, function(y) ifelse(is.null(y), NA, y)) %>%
-    tibble::as_tibble()) %>%
-    dplyr::bind_rows()
+    ~ purrr::map(.x, function(y) ifelse(is.null(y), NA, y)) %>%
+    tibble::as_tibble()
+  )
 
   # clean up some column names and types
   if (nrow(tbl_out) > 0) {
@@ -215,8 +215,8 @@ lotek_get_alerts <- function (lotek_auth) {
 #' tkn <- lotek_get_token("demo", "PASSWORD09")
 #'
 #' ltk_collars <- lotek_get_device_list(tkn)
-#'
-lotek_get_device_list <- function (lotek_auth) {
+#' 
+lotek_get_device_list <- function(lotek_auth) {
 
   # send request
   resp <- httr::GET(
@@ -234,10 +234,10 @@ lotek_get_device_list <- function (lotek_auth) {
   )
 
   # combine list into tibble and clean up names/types
-  purrr::map(
+  purrr::map_dfr(
       httr::content(resp),
-      ~tibble::as_tibble(.x)) %>%
-    dplyr::bind_rows() %>%
+      ~tibble::as_tibble(.x)
+    ) %>%
     dplyr::rename(
       DeviceID = nDeviceID,
       SpecialID = strSpecialID,
@@ -305,10 +305,10 @@ lotek_get_positions <- function (lotek_auth,
   )
 
   # combine lists into tibble
-  tbl_out <- purrr::map(
+  tbl_out <- purrr::map_dfr(
     httr::content(resp),
-    ~tibble::as_tibble(.x)) %>%
-    dplyr::bind_rows()
+    ~tibble::as_tibble(.x)
+  )
 
   # set data type for date columns
   if (nrow(tbl_out) > 0) {
