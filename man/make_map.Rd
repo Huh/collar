@@ -4,8 +4,7 @@
 \alias{make_map}
 \title{Create an interactive html map of animal locations.}
 \usage{
-make_map(x, id_col = "id", lon_col = "lon", lat_col = "lat",
-  dt_col = "dt")
+make_map(x, id_col = "id", lon_col = "lon", lat_col = "lat", dt_col = "dt")
 }
 \arguments{
 \item{x}{A data frame containing collar data with the columns "id", "lat", "lon" and  "date_time".}

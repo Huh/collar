@@ -41,7 +41,8 @@ get_paths(
 get_paths(system.file("extdata", package = "collar"), recursive = TRUE)
 }
 \seealso{
-Other get: \code{\link{get_id_from_key}},
-  \code{\link{get_keys}}
+Other get: 
+\code{\link{get_id_from_key}()},
+\code{\link{get_keys}()}
 }
 \concept{get}

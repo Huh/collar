@@ -5,7 +5,6 @@
 #' file, see details
 #' @param delim the delimiter to apply to the file, see ?readr::read_delim
 #' @param rename_fun a function used to rename columns, see example
-#' @inheritParams fetch_ats
 #' @param ... Other parameters to pass to readr::read_csv
 #'
 #' @details
@@ -26,7 +25,7 @@
 #' )
 #'
 #' # List files
-#' fls <- get_paths(dir_path, ext = "csv$")
+#' fls <- list.files(dir_path, full.names = TRUE, pattern = "csv$")
 #'
 #' #  Read file
 #' ltk <- fetch_csv(fls[1])
@@ -55,21 +54,23 @@
 #' #  may be overly simplistic
 #' cllr_remove_header(r1, col_nm = `Acquisition Time`)
 #'
-#' # Sometimes files are not comma delimited even if they are saved that way
-#' # The example vectronics.csv is actually a tab delimited file that was
-#' #  stored as a csv, to fix this we use the fetch_delim function and specify
-#' #  the delimiter as a comma and a tab
-#' vec_fl <- system.file("extdata", "vectronics.csv", package = "collar")
-#' fetch_delim(vec_fl, delim = ",\t", skip = 0)
-#'
 #' # Note that you can pass arguments to readr::read_*
-#' # Compare animalid column to above
-#' fetch_delim(vec_fl, delim = ",\t", skip = 0, na = c("N/A"))
+#' # If reading a tab delimited file something like this might work
+#' \dontrun{
+#' fetch_delim(some_file_name, delim = ",\t", skip = 0, na = c("N/A"))
+#' }
 #'
 #' # The argument rename_fun can take custom functions for renaming
+#' # Default custom function attempts to remove non-ASCII characters
 #' colnames(fetch_csv(fls[1]))
+#'
+#' # Simply make every name lowercase
 #' colnames(fetch_csv(fls[1], rename_fun = tolower))
+#'
+#' # Use the make.names function
 #' colnames(fetch_csv(fls[1], rename_fun = make.names))
+#'
+#'
 #'
 fetch_csv <- function(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...) {
   assertthat::assert_that(
@@ -113,8 +114,13 @@ fetch_delim <- function(file_path,
   )
 
   suppressMessages(
-    purrr::map_dfr(file_path, readr::read_delim, delim = delim, skip = skip, ...) %>%
-      dplyr::rename_all(rename_fun)
+    purrr::map_dfr(
+      file_path,
+      readr::read_delim,
+      delim = delim,
+      skip = skip,
+      ...
+    ) %>%
+    dplyr::rename_all(rename_fun)
   )
-
 }

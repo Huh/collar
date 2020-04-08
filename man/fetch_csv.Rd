@@ -7,8 +7,13 @@
 \usage{
 fetch_csv(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...)
 
-fetch_delim(file_path, delim = ",", skip = 0,
-  rename_fun = collar:::adj_col_nms, ...)
+fetch_delim(
+  file_path,
+  delim = ",",
+  skip = 0,
+  rename_fun = collar:::adj_col_nms,
+  ...
+)
 }
 \arguments{
 \item{file_path}{The full path to one or more csv(s) to read}
@@ -40,7 +45,7 @@ dir_path <- system.file(
 )
 
 # List files
-fls <- get_paths(dir_path, ext = "csv$")
+fls <- list.files(dir_path, full.names = TRUE, pattern = "csv$")
 
 #  Read file
 ltk <- fetch_csv(fls[1])
@@ -69,21 +74,23 @@ tlncs <- fetch_csv(fls[4], skip = which(r1[,1] == "Acquisition Time"))
 #  may be overly simplistic
 cllr_remove_header(r1, col_nm = `Acquisition Time`)
 
-# Sometimes files are not comma delimited even if they are saved that way
-# The example vectronics.csv is actually a tab delimited file that was
-#  stored as a csv, to fix this we use the fetch_delim function and specify
-#  the delimiter as a comma and a tab
-vec_fl <- system.file("extdata", "vectronics.csv", package = "collar")
-fetch_delim(vec_fl, delim = ",\\t", skip = 0)
-
 # Note that you can pass arguments to readr::read_*
-# Compare animalid column to above
-fetch_delim(vec_fl, delim = ",\\t", skip = 0, na = c("N/A"))
+# If reading a tab delimited file something like this might work
+\dontrun{
+fetch_delim(some_file_name, delim = ",\t", skip = 0, na = c("N/A"))
+}
 
 # The argument rename_fun can take custom functions for renaming
+# Default custom function attempts to remove non-ASCII characters
 colnames(fetch_csv(fls[1]))
+
+# Simply make every name lowercase
 colnames(fetch_csv(fls[1], rename_fun = tolower))
+
+# Use the make.names function
 colnames(fetch_csv(fls[1], rename_fun = make.names))
+
+
 
 }
 \seealso{

@@ -4,9 +4,9 @@ author: "Kenneth Loonam"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Downloading Data}
+  %\VignetteIndexEntry{Reading .csv Files}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  %\VignetteEncoding{utf8}
 ---
 
 ## Purpose
@@ -106,7 +106,7 @@ need a new column with date and time combinded:
 
 ```{r}
 # create single date/time column
-b$date_time <- paste(b$date, b$time)
+ex_b$date_time <- paste(ex_b$date, ex_b$time)
 ```
 
 Now we are ready to call morph_gps and get the data into the collar format.
