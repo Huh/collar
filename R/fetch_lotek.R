@@ -16,7 +16,7 @@ lotek_base_url <- "https://webservice.lotek.com"
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
+#' tkn <- lotek_get_token("demo", "PASSWORD09")
 #'
 lotek_get_token <- function(user, pw) {
 
@@ -151,7 +151,7 @@ lotek_refresh_token <- function (lotek_auth) {
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
+#' tkn <- lotek_get_token("demo", "PASSWORD09")
 #'
 #' ltk_alerts <- lotek_get_alerts(tkn)
 #'
@@ -212,7 +212,7 @@ lotek_get_alerts <- function (lotek_auth) {
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
+#' tkn <- lotek_get_token("demo", "PASSWORD09")
 #'
 #' ltk_collars <- lotek_get_device_list(tkn)
 #'
@@ -267,14 +267,14 @@ lotek_get_device_list <- function (lotek_auth) {
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
+#' tkn <- lotek_get_token("demo", "PASSWORD09")
 #'
 #' ltk_fixes_2020 <- lotek_get_positions(tkn,
 #'                                       start_date = "2020-01-01T00:00:00Z",
-#'                                       end_date = "2021-01-01T00:00:00Z",)
+#'                                       end_date = "2021-01-01T00:00:00Z")
 #'
-#' ltk_fixes_collar123 <- lotek_get_positions(tkn,
-#'                                            device_id = "123")
+#' ltk_fixes_collar32763 <- lotek_get_positions(tkn,
+#'                                            device_id = "32763")
 #'
 lotek_get_positions <- function (lotek_auth,
                                         device_id = NULL,
@@ -292,7 +292,7 @@ lotek_get_positions <- function (lotek_auth,
       from = dplyr::if_else(is.null(start_date), "1970-01-01T00:00:00Z", start_date),
       to = dplyr::if_else(is.null(end_date),
                           paste0(
-                            gsub(" ", "T", lubridate::now()),
+                            gsub(" ", "T", lubridate::now(tzone = "GMT")),
                             "Z"), end_date),
       deviceID = paste0(device_id, collapse = ",")
     ))
