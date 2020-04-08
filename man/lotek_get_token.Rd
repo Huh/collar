@@ -21,7 +21,7 @@ Send username and password info to Lotek API
   to retrieve authentication token
 }
 \examples{
-
+\dontrun{
 tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
-
+}
 }

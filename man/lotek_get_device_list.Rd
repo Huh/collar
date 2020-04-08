@@ -17,9 +17,9 @@ Retrieves a list of devices (collars) associated
   with the account currently logged in via lotek_auth.
 }
 \examples{
-
+\dontrun{
 tkn <- lotek_get_token(user = "speedgoat", pw = "L0tek1")
 
 ltk_collars <- lotek_get_device_list(tkn)
-
+}
 }

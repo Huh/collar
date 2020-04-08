@@ -483,6 +483,6 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
   difftime(Sys.time(), st_time, units = "mins") %>%
     as.numeric() %>%
     round(2) %>%
-    message("Done. Elapsed time: ", ., " minutes")
+    message("Done. Elapsed time: ", .data, " minutes")
   return(parse)
 }
