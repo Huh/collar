@@ -4,9 +4,16 @@
 \alias{fetch_vectronics}
 \title{Download data from Vectronics' web service}
 \usage{
-fetch_vectronics(key_paths, base_url = NULL, after_data_id = NULL,
-  type = "gps", count = FALSE, start_date = NULL,
-  which_date = NULL, rename_fun = adj_col_nms)
+fetch_vectronics(
+  key_paths,
+  base_url = NULL,
+  after_data_id = NULL,
+  type = "gps",
+  count = FALSE,
+  start_date = NULL,
+  which_date = NULL,
+  rename_fun = adj_col_nms
+)
 }
 \arguments{
 \item{key_paths}{The full path to one or more key files}

@@ -1,11 +1,12 @@
 Package: collar
 Title: Utilities for Accessing and Manipulating GPS Data
-Version: 0.0.0.9000
+Version: 0.0.2
 Authors@R: c(
   person("Josh", "Nowak", email = "josh.nowak@speedgoat.io", role = c("aut", "cre")),
   person("Forest", "Hayes", email = "forest.hayes@umontana.edu", role = "aut"),
   person("T.J.", "Clark", email = "tjclark1873@gmail.com", role = "aut"),
   person("Hans", "Martin", email = "hmartin289@gmail.com", role = "aut"),
+  person("Eric", "Newkirk", email = "eric.newkirk@speedgoat.io", role = "aut"),
   person("SpeedGoat Wildlife Solutions", role = c("cph", "fnd"))
   )
 Description: Provides a consistent toolset for downloading, formatting and 
@@ -16,7 +17,7 @@ BugReports: https://github.com/Huh/collar/issues
 Encoding: UTF-8
 LazyData: true
 ByteCompile: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Imports:
     assertthat,
     dplyr,
@@ -34,7 +35,8 @@ Imports:
     rvest,
     sf,
     tibble,
-    xml2
+    xml2,
+    lubridate
 Suggests: 
     testthat,
     knitr,

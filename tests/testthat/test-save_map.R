@@ -8,7 +8,7 @@ test_that("check save_map", {
 
   dat <-
     tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,

@@ -8,7 +8,7 @@ context("test-make_gpx.R")
 
   dat <-
     tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,
@@ -41,7 +41,7 @@ test_that("Check make_gpx assertions", {
 
   dat <-
     tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,
