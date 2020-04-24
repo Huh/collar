@@ -45,7 +45,9 @@ This package is not available on CRAN.
 Check out the help pages and the vignettes to get a handle on how we use the package.
 
 `vignette("downloading-data", package = "collar")`
+
 `vignette("reading-csv", package = "collar")`
+
 `vignette("lotek-api-functions", package = "collar")`
 
 ## Issues and Enhancements
