@@ -1,198 +1,78 @@
-lotek_base_url <- "https://webservice.lotek.com"
+################################################################################
+#
+# Lotek Download Functions
+#
+################################################################################
 
-#' Initial login to lotek web service
+#' @title Download Alerts via Lotek API
 #'
-#' @description Send username and password info to Lotek API
-#'   to retrieve authentication token
+#' @description Retrieves alerts for all devices associated with the account
+#'   currently logged in via lotek_login.
 #'
-#' @param user username
-#' @param pw password
+#' @return A tibble with information about mortalities, births, etc.
 #'
-#' @return a list containing the json response,
-#'   inluding access_token, refresh_token, and .expires
-#'   This list is reused for authenticating subsequent calls
+#' @seealso \code{\link{fetch_lotek_devices}} for downloading a list of
+#'   available devices, and \code{\link{fetch_lotek_positions}} for downloading
+#'   GPS data.
 #'
 #' @export
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token("demo", "PASSWORD09")
+#' lotek_login("demo", "PASSWORD09")
 #'
-lotek_get_token <- function(user, pw) {
-
-  # call API
-  resp <- httr::POST(
-    url = lotek_base_url,
-    path = list("API", "user", "login"),
-    body = list(
-      grant_type = "password",
-      username = user,
-      Password = pw
-    ),
-    encode = "form"
-  )
-
-  # check call was successful
-  assertthat::assert_that(
-    httr::status_code(resp) == 200,
-    msg = "API call failed"
-  )
-
-  # convert json to list object
-  httr::content(resp)
-
-}
-
-#' Check and when appropriate refresh lotek auth token
+#' # get all alerts for this account
+#' alerts <- fetch_lotek_alerts()
 #'
-#' @param lotek_auth a list matching the output of lotek_get_token
-#'
-#' @return the same list, or an updated list if tokens are refreshed
-#'
-#' @keywords internal
-#'
-lotek_check_token <- function(lotek_auth) {
+fetch_lotek_alerts <- function() {
 
-  # get token expiration and current time
-  exp_date <- lubridate::dmy_hms(lotek_auth[[".expires"]])
-  now_date <- lubridate::now(tzone = "GMT")
-
-  # if token is already expired a new login is required using lotek_get_token
-  assertthat::assert_that(
-    exp_date > now_date,
-    msg = "Login timed out. Please log in to your Lotek account again.")
-
-  # if 15 min or less are left until exp refresh token,
-  #   otherwise return original token unchanged
-  if (exp_date <= (now_date + lubridate::dminutes(15))) {
-    refr_auth <- lotek_refresh_token(lotek_auth)
-    return(lotek_check_token(refr_auth))
-  } else {
-    return(lotek_auth)
-  }
-
-}
-
-#' Format current access token
-#'
-#' @description Checks token is valid and returns as character for API calls.
-#'   Note that the current token in the environment is intentionally
-#'   overwritten in this function, in case it was refreshed in the call to
-#'   lotek_check_auth_token
-#'
-#' @param lotek_auth a list matching the output of lotek_get_token
-#'
-#' @return access token as string for authenticating API calls
-#'
-#' @keywords internal
-#'
-lotek_auth_token <- function(lotek_auth) {
-
-  # check for valid input object
-  assertthat::assert_that(
-    assertthat::has_name(lotek_auth,
-      c("token_type", "access_token", ".expires")),
-    msg = "Invalid Lotek token. Are you logged in?")
-
-  # replace input object with same or refreshed object
-  eval.parent(substitute(lotek_auth <- lotek_check_token(lotek_auth)))
-
-  # return as character for API header
-  paste(lotek_auth["token_type"], lotek_auth["access_token"])
-
-}
-
-#' Refresh current access token
-#'
-#' @description Retrieves new authentication token from Lotek API
-#'
-#' @param lotek_auth a list matching the output of lotek_get_token
-#'
-#' @return a list matching the input with new values
-#'
-#' @keywords internal
-#'
-lotek_refresh_token <- function(lotek_auth) {
+  # get login info
+  # function will exit here if login info is invalid
+  tkn <- lotek_token()
 
   # send request
-  resp <- httr::POST(
-    url = lotek_base_url,
-    path = list("API", "user", "login"),
-    body = list(
-      grant_type = "refresh_token",
-      username = lotek_auth[["userName"]],
-      refresh_token = lotek_auth[["refresh_token"]]
-    ),
-    encode = "form"
-  )
-
-  # verify successful status
-  assertthat::assert_that(
-    httr::status_code(resp) == 200,
-    msg = "API call failed"
-  )
-
-  # return response as list
-  httr::content(resp)
-
-}
-
-#' Retrieve alerts from Lotek site via API
-#'
-#' @description Retrieves alert data from the lotek API.
-#'   Retrieves alerts for all devices associated with the account
-#'   currently logged in via lotek_auth.
-#'
-#' @param lotek_auth a list matching the output of lotek_get_token
-#'
-#' @return A tibble with alert data
-#'
-#' @export
-#'
-#' @examples
-#'
-#' tkn <- lotek_get_token("demo", "PASSWORD09")
-#'
-#' ltk_alerts <- lotek_get_alerts(tkn)
-#' }
-lotek_get_alerts <- function(lotek_auth) {
-
-  # send request
-  resp <- httr::GET(
+  resp <- httr::RETRY(
+    "GET",
     url = lotek_base_url,
     config = httr::add_headers(
-      Authorization = lotek_auth_token(lotek_auth)
+      Authorization = tkn
     ),
-    path = list("API", "alerts")
+    path = list("API", "alerts"),
+    quiet = TRUE
   )
 
   # verify successful status
   assertthat::assert_that(
     httr::status_code(resp) == 200,
-    msg = "API call failed"
+    msg = paste(
+      "API call failed - alerts.",
+      paste("Status:", httr::status_code(resp)),
+      paste("Response:", httr::content(resp)),
+      sep = "\n"
+    )
   )
 
   # combine lists into tibble
   tbl_out <- purrr::map_dfr(
     httr::content(resp),
     ~ purrr::map(.x, function(y) ifelse(is.null(y), NA, y)) %>%
-    tibble::as_tibble()
+      tibble::as_tibble()
   )
 
   # clean up some column names and types
   if (nrow(tbl_out) > 0) {
     tbl_out <- tbl_out %>%
       dplyr::rename(
-        DeviceID = nDeviceID,
-        AlertType = strAlertType,
-        AlertDate = dtTimestamp,
-        CancelDate = dtTimestampCancel,
-        VirtualFenceType = strVirtualFenceType,
-        ReleaseCodeOrTransmitterID = strReleaseCodeOrTransmitterID
+        DeviceID = .data$nDeviceID,
+        AlertType = .data$strAlertType,
+        AlertDate = .data$dtTimestamp,
+        CancelDate = .data$dtTimestampCancel,
+        VirtualFenceType = .data$strVirtualFenceType,
+        ReleaseCodeOrTransmitterID = .data$strReleaseCodeOrTransmitterID
       ) %>%
       dplyr::mutate(
-        AlertDate = lubridate::as_datetime(AlertDate),
-        CancelDate = lubridate::as_datetime(CancelDate)
+        AlertDate = lubridate::as_datetime(.data$AlertDate),
+        CancelDate = lubridate::as_datetime(.data$CancelDate)
       )
   }
 
@@ -200,123 +80,204 @@ lotek_get_alerts <- function(lotek_auth) {
 
 }
 
-#' Retrieve device list from Lotek site via API
+#' @title Download Device List via Lotek API
 #'
 #' @description Retrieves a list of devices (collars) associated
-#'   with the account currently logged in via lotek_auth.
+#'   with the account currently logged in via lotek_login.
 #'
-#' @param lotek_auth a list matching the output of lotek_get_token
+#' @return A tibble with device information.
 #'
-#' @return A tibble with device information
+#' @seealso \code{\link{fetch_lotek_alerts}} for downloading alerts such as
+#'   mortality events, and \code{\link{fetch_lotek_positions}} for downloading
+#'   GPS data.
+#'
 #' @export
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token("demo", "PASSWORD09")
+#' lotek_login("demo", "PASSWORD09")
 #'
-#' ltk_collars <- lotek_get_device_list(tkn)
-#' 
-lotek_get_device_list <- function(lotek_auth) {
+#' # get list of collars for this account
+#' collars <- fetch_lotek_devices()
+#'
+#' # get fixes for the first collar
+#' fixes <- fetch_lotek_positions(device_id = collars[[1, "DeviceID"]])
+#'
+fetch_lotek_devices <- function() {
+
+  # get login info
+  # function will exit here if login info is invalid
+  tkn <- lotek_token()
 
   # send request
-  resp <- httr::GET(
+  resp <- httr::RETRY(
+    "GET",
     url = lotek_base_url,
     config = httr::add_headers(
-      Authorization = lotek_auth_token(lotek_auth)
+      Authorization = tkn
     ),
-    path = list("API", "devices")
+    path = list("API", "devices"),
+    quiet = TRUE
   )
 
   # verify successful status
   assertthat::assert_that(
     httr::status_code(resp) == 200,
-    msg = "API call failed"
+    msg = paste(
+      "API call failed - device list.",
+      paste("Status:", httr::status_code(resp)),
+      paste("Response:", httr::content(resp)),
+      sep = "\n"
+    )
   )
 
   # combine list into tibble and clean up names/types
   purrr::map_dfr(
-      httr::content(resp),
-      ~tibble::as_tibble(.x)
-    ) %>%
+    httr::content(resp),
+    ~tibble::as_tibble(.x)
+  ) %>%
     dplyr::rename(
-      DeviceID = nDeviceID,
-      SpecialID = strSpecialID,
-      Created = dtCreated,
-      Satellite = strSatellite
+      DeviceID = .data$nDeviceID,
+      SpecialID = .data$strSpecialID,
+      Created = .data$dtCreated,
+      Satellite = .data$strSatellite
     ) %>%
-    dplyr::mutate(Created = lubridate::as_datetime(Created))
+    dplyr::mutate(Created = lubridate::as_datetime(.data$Created))
 
 }
 
-#' Retrieve position (fix) data from Lotek site via API
+#' @title Download Position (Fix) Data via Lotek API
 #'
 #' @description Retrieves GPS data optionally filtered by date or collar.
 #'
-#' @param lotek_auth a list matching the output of lotek_get_token
-#' @param device_id a single device id as character, or a
-#'   list or vector of device ids, or NULL for all devices
-#'   associated with current account
-#' @param start_date only fixes at or after start_date will be inlcluded
-#'   in the output. Must be in the format YYYY-MM-DDTHH:MM:SSZ. Don't
-#'   forget the 'T' and 'Z'.  If NULL Jan 1 1970 is used.
-#' @param end_date only fixes at or before end_date are included,
-#'   analagous to start_date above.  If NULL current date/time is used.
+#' @section Notes:
 #'
-#' @return A tibble containing position data
+#'   Unlike other fetch_lotek... functions in this package, this will not
+#'   return an error if the API call fails. This behavior is intentional and
+#'   due to the fact that failures/errors and successful calls that did not
+#'   return any data are indistinguishable on the client side. If the API
+#'   response indicate an error (for either reason) an empty tibble is
+#'   returned with the same columns as a successful download.
+#'
+#' @param device_id A single device id, or a list or vector of device ids,
+#'   or NULL for all devices associated with current account.
+#' @param start_date Only fixes at or after start_date will be included
+#'   in the output. Must be in the format YYYY-MM-DD HH:MM:SS. If NULL
+#'   Jan 1 1970 is used.
+#' @param end_date Only fixes at or before end_date are included,
+#'   analagous to start_date above. If NULL current date/time is used.
+#'
+#' @return A tibble containing position data, or an empty tibble in the
+#'   same format is no rows are returned.
+#'
+#' @seealso \code{\link{fetch_lotek_alerts}} for downloading alerts such as
+#'   mortality events, and \code{\link{fetch_lotek_devices}} for downloading
+#'   a list of collars associated with the current account.
+#'
 #' @export
 #'
 #' @examples
 #'
-#' tkn <- lotek_get_token("demo", "PASSWORD09")
+#' lotek_login("demo", "PASSWORD09")
 #'
-#' ltk_fixes_2020 <- lotek_get_positions(tkn,
-#'                                       start_date = "2020-01-01T00:00:00Z",
-#'                                       end_date = "2021-01-01T00:00:00Z")
+#' # all fixes for all collars in 2020
+#' fixes <- fetch_lotek_positions(start_date = "2020-01-01 00:00:00",
+#'                                     end_date = "2021-01-01 00:00:00")
 #'
-#' ltk_fixes_collar32763 <- lotek_get_positions(tkn,
-#'                                            device_id = "32763")
+#' # all fixes for collar 32763
+#' fixes_32763 <- fetch_lotek_positions(device_id = 32763)
 #'
-lotek_get_positions <- function (lotek_auth,
-                                        device_id = NULL,
-                                        start_date = NULL,
-                                        end_date = NULL) {
+#' # all fixes for collars 32763, 34023, and 42492
+#' fixes_3_cols <- fetch_lotek_positions(device_id = c(32763, 34023, 42492))
+#'
+#' # fixes for collar 32763 in 2018
+#' fixes <- fetch_lotek_positions(device_id = 32763,
+#'                                start_date = "2018-01-01 00:00:00",
+#'                                end_date = "2019-01-01 00:00:00")
+#'
+fetch_lotek_positions <- function (device_id = NULL,
+                                   start_date = NULL,
+                                   end_date = NULL) {
+
+  # get login info
+  # function will exit here if login info is invalid
+  tkn <- lotek_token()
+
+  st <- dplyr::if_else(
+    is.null(start_date),
+    "1970-01-01T00:00:00Z",
+    start_date)
+
+  end <- dplyr::if_else(
+    is.null(end_date),
+    paste0(
+      gsub(" ", "T", lubridate::now(tzone = "GMT")),
+      "Z"),
+    end_date)
+
+  dev <- paste0(
+    device_id,
+    collapse = ",")
 
   # send request
-  resp <- httr::GET(
+  resp <- httr::RETRY(
+    "GET",
     url = lotek_base_url,
     config = httr::add_headers(
-      Authorization = lotek_auth_token(lotek_auth)
+      Authorization = tkn
     ),
     path = list("API", "positions", "findByDate"),
-    query = as.list(c(
-      from = dplyr::if_else(is.null(start_date), "1970-01-01T00:00:00Z", start_date),
-      to = dplyr::if_else(is.null(end_date),
-                          paste0(
-                            gsub(" ", "T", lubridate::now(tzone = "GMT")),
-                            "Z"), end_date),
-      deviceID = paste0(device_id, collapse = ",")
-    ))
+    query = as.list(c(from = st, to = end, deviceID = dev)),
+    quiet = TRUE
   )
 
   # verify successful status
-  assertthat::assert_that(
-    httr::status_code(resp) == 200,
-    msg = "API call failed"
-  )
+  if (httr::status_code(resp) == 200) {
 
-  # combine lists into tibble
-  tbl_out <- purrr::map_dfr(
-    httr::content(resp),
-    ~tibble::as_tibble(.x)
-  )
+    # combine lists into tibble
+    purrr::map_dfr(
+      httr::content(resp),
+      ~tibble::as_tibble(.x)
+    ) %>%
+      dplyr::mutate(
+        RecDateTime = lubridate::as_datetime(.data$RecDateTime),
+        UploadTimeStamp = lubridate::as_datetime(.data$UploadTimeStamp)
+      ) %>%
+      dplyr::rename(
+        HasTempVoltage = .data$bHasTempVoltage
+      )
 
-  # set data type for date columns
-  if (nrow(tbl_out) > 0) {
-    dplyr::mutate(tbl_out,
-                  RecDateTime = lubridate::as_datetime(RecDateTime),
-                  UploadTimeStamp = lubridate::as_datetime(UploadTimeStamp))
+  } else {
+    # API returns an error if filtered to 0 rows
+    # unfortunately there is no way to tell from the response
+    #   if an error occurred or no rows were returned
+    # this ignores the error and returns an empty tibble with
+    #   the same columns as a successful API call
+    tibble::tibble(
+      ChannelStatus = character(),
+      UploadTimeStamp =  .POSIXct(double()),
+      Latitude = double(),
+      Longitude = double(),
+      Altitude = double(),
+      ECEFx = integer(),
+      ECEFy = integer(),
+      ECEFz = integer(),
+      RxStatus = integer(),
+      PDOP = double(),
+      MainV = double(),
+      BkUpV = double(),
+      Temperature = double(),
+      FixDuration = integer(),
+      HasTempVoltage = logical(),
+      DevName = character(),
+      DeltaTime = integer(),
+      FixType = integer(),
+      CEPRadius = integer(),
+      CRC = integer(),
+      DeviceID = integer(),
+      RecDateTime = .POSIXct(double())
+    )
+
   }
-
-  tbl_out
 
 }

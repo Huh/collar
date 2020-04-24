@@ -1,0 +1,104 @@
+---
+title: "Lotek API Functions"
+author: "Eric Newkirk"
+date: "4/23/2020"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Lotek API Functions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{utf8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Authentication
+
+Use `lotek_login` with your username and password to log in to your Lotek account. There's no need to assign the return value of this function to a variable.
+
+```{r}
+library(collar)
+lotek_login(user = "demo", pw = "PASSWORD09")
+```
+
+Your login information should last for about an hour. If you experience problems retrieving your data you can always run the same code again to log back in to your account.
+
+To log out use `lotek_logout()`. None of the data retrieval functions detailed below will work if you're not logged in.
+
+```{r}
+lotek_logout()
+```
+
+## Retrieving Alerts
+
+Use `fetch_lotek_alerts` to get a list of alerts from the server. No parameters are required:
+
+```{r}
+lotek_login(user = "demo", pw = "PASSWORD09")
+alerts <- fetch_lotek_alerts()
+alerts
+```
+
+## Retrieving A List of Available Devices
+
+As with alerts above, use `fetch_lotek_devices` to see a list of devices (collars) associated with your account:
+
+```{r}
+collars <- fetch_lotek_devices()
+collars
+```
+
+## Retrieving Position Data
+
+Position data can be retrieved the same way with `fetch_lotek_positions`, but you can also use parameters to narrow down the data returned. Running this function without parameters may take a very long time depending on the number of positions being returned. To narrow down the results by date use the `start_date` and `end_date` parameters:
+
+```{r}
+# download position data for 2019 (all collars)
+fixes <- fetch_lotek_positions(
+  start_date = "2019-01-01 00:00:00", 
+  end_date = "2020-01-01 00:00:00")
+nrow(fixes)
+min(fixes$RecDateTime)
+max(fixes$RecDateTime)
+```
+
+Note that start and end dates should be converted to UTC or GMT time zone, and that all position data downloaded from the API will be in UTC/GMT as well.
+
+You can also use the device_id parameter to filter by collar:
+
+```{r}
+# download position data for collar 32763
+fixes <- fetch_lotek_positions(device_id = 32763)
+nrow(fixes)
+# download position data for 3 collars at once
+collars <- c(32763, 34023, 42492)
+fixes <- fetch_lotek_positions(device_id = collars)
+nrow(fixes)
+min(fixes$DeviceID)
+max(fixes$DeviceID)
+```
+
+And of course you can combine date and device filters:
+
+```{r}
+# download position data for collar 32763 in 2017
+fixes <- fetch_lotek_positions(
+  device_id = 32763,
+  start_date = "2017-01-01 00:00:00", 
+  end_date = "2018-01-01 00:00:00")
+nrow(fixes)
+```
+
+Errors are suppressed if no data is available. Instead an empty tibble is returned:
+
+```{r}
+# download position data for collar 32763 in 2019
+# empty result because no data satisfies the criteria
+fixes <- fetch_lotek_positions(
+  device_id = 32763,
+  start_date = "2019-01-01 00:00:00", 
+  end_date = "2020-01-01 00:00:00")
+nrow(fixes)
+lotek_logout()
+```

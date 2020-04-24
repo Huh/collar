@@ -1,3 +1,8 @@
+# collar 0.0.2
+
+* adds Lotek API functions and documentation
+* replaces tidyr drop_na with dplyr filter to match stated dependencies
+
 # collar 0.0.1
 
 * Updates Vectronic's URL

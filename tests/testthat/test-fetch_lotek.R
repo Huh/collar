@@ -10,17 +10,7 @@ check_api <- function() {
   }
 }
 
-tkn <- lotek_get_token("demo", "PASSWORD09")
-
-dt_format1 <- function(dt) {
-  strftime(
-    dt,
-    tz = "GMT",
-    format = "%a, %d %b %Y %T",
-    usetz = TRUE)
-}
-
-dt_format2 <- function(dt_in) {
+dt_format <- function(dt_in) {
   paste0(
     gsub(
       " ",
@@ -33,59 +23,71 @@ dt_format2 <- function(dt_in) {
   )
 }
 
-check_pos <- function(x) {
+check_data <- function(x, data_type) {
   expect_is(x, "tbl_df")
+  check_names <- switch(
+    data_type,
+    "alerts" = c(
+      "DeviceID",
+      "AlertType",
+      "AlertDate",
+      "CancelDate",
+      "latitude",
+      "longitude"
+    ),
+    "devices" = c("DeviceID"),
+    "postions" = c(
+      "UploadTimeStamp",
+      "Latitude",
+      "Longitude",
+      "Altitude",
+      "PDOP",
+      "Temperature",
+      "DeviceID",
+      "RecDateTime"
+    )
+  )
   expect_true(
     all(
-      rlang::has_name(x,
-                      c("UploadTimeStamp",
-                        "Latitude",
-                        "Longitude",
-                        "DeviceID",
-                        "RecDateTime"
-                      )
-      )
+      rlang::has_name(x, check_names)
     )
   )
 }
 
-test_that("Check lotek login functions", {
+test_that("Check lotek login function", {
 
   check_api()
 
   # check that bad inputs return errors
-  expect_error(lotek_get_token("baduser", "badpw"))
-  expect_error(lotek_get_token(NA, "badpw"))
-  expect_error(lotek_get_token("baduser", NA))
-  expect_error(lotek_get_token(NA, NA))
-  expect_error(lotek_get_token(NULL, "badpw"))
-  expect_error(lotek_get_token("baduser", NULL))
+  expect_error(lotek_login("baduser", "badpw"))
+  expect_error(lotek_login(NA, "badpw"))
+  expect_error(lotek_login("baduser", NA))
+  expect_error(lotek_login(NA, NA))
+  expect_error(lotek_login(NULL, "badpw"))
+  expect_error(lotek_login("baduser", NULL))
+
+  # check that GET API calls fail without login
+  expect_error(fetch_lotek_alerts())
+  expect_error(fetch_lotek_devices())
+  expect_error(fetch_lotek_positions())
+
+  # test valid login
+  lotek_login("demo", "PASSWORD09")
 
   # check object returned with valid inputs
-  expect_is(tkn, "list")
-  expect_equal(length(tkn), 7)
-  expect_true(
-    all(
-      rlang::has_name(tkn,
-                      c("access_token",
-                        "token_type",
-                        "refresh_token",
-                        ".expires"
-                      )
-      )
-    )
-  )
+  expect_is(lotek_token(), "character")
 
   # check that refresh function works as expected
-  at1 <- tkn[["access_token"]]
-  tkn[[".expires"]] <-
-    dt_format1(
-      lubridate::now(tzone = "GMT") +
-        lubridate::dminutes(5)
-    )
-  dl <- lotek_get_device_list(tkn)
-  at2 <- tkn[["access_token"]]
-  expect_false(at1 == at2)
+  t <- ltk.env$ltk$access_token
+  lotek_refresh_token(force_refresh = TRUE)
+  expect_false(t == ltk.env$ltk$access_token)
+
+  # check that token works for retrieving data
+  dl <- fetch_lotek_devices()
+
+  # check that logging out revokes access
+  lotek_logout()
+  expect_error(fetch_lotek_alerts())
 
 })
 
@@ -93,81 +95,45 @@ test_that("Check lotek data functions", {
 
   check_api()
 
-  bad_tkn <- list(
-    access_token = "XXX",
-    token_type = "bearer",
-    expires_in = 3599,
-    refresh_token = "YYY",
-    userName = "BadUser",
-    `.issued` =
-      dt_format1(
-        lubridate::now(tzone = "GMT") -
-          lubridate::dminutes(5)
-      ),
-    `.expires` =
-      dt_format1(
-        lubridate::now(tzone = "GMT") +
-          lubridate::dminutes(55)
-      )
-  )
+  lotek_login("demo", "PASSWORD09")
 
-  # check for errors with bad input
-  expect_error(lotek_get_alerts(NULL))
-  expect_error(lotek_get_alerts(bad_tkn))
-  expect_error(lotek_get_device_list(NULL))
-  expect_error(lotek_get_device_list(bad_tkn))
-  expect_error(lotek_get_positions(NULL))
-  expect_error(lotek_get_positions(bad_tkn))
+  # check data retrieval functions
+  alerts <- fetch_lotek_alerts()
+  check_data(alerts, "alerts")
 
-  # check functions that don't use parameters
-  alerts <- lotek_get_alerts(tkn)
-  expect_is(alerts, "tbl_df")
-  expect_true(
-    all(
-      rlang::has_name(alerts,
-                      c("DeviceID",
-                        "AlertType",
-                        "AlertDate",
-                        "CancelDate",
-                        "latitude",
-                        "longitude"
-                      )
-      )
-    )
-  )
-
-  dl <- lotek_get_device_list(tkn)
-  expect_is(dl, "tbl_df")
-  expect_true(rlang::has_name(dl, "DeviceID"))
+  dl <- fetch_lotek_devices()
+  check_data(dl, "devices")
 
   # check position function
   dev <- as.character(dl[1,"DeviceID"])
   end <- lubridate::now(tzone = "GMT") - months(1)
   st <- end - months(6)
 
-
-
-  pos <- lotek_get_positions(
-    tkn,
-    start_date = dt_format2(st)
+  pos <- fetch_lotek_positions(
+    start_date = dt_format(st)
   )
-  check_pos(pos)
+  check_data(pos, "positions")
   expect_true(min(pos$RecDateTime) >= st)
 
-  pos <- lotek_get_positions(
-    tkn,
-    start_date = dt_format2(st),
-    end_date = dt_format2(end)
+  pos <- fetch_lotek_positions(
+    start_date = dt_format(st),
+    end_date = dt_format(end)
   )
-  check_pos(pos)
+  check_data(pos, "positions")
   expect_true(min(pos$RecDateTime) >= st)
   expect_true(max(pos$RecDateTime) <= end)
 
-  pos <- lotek_get_positions(
-    tkn,
+  pos <- fetch_lotek_positions(
     device_id = dev
   )
-  check_pos(pos)
+  check_data(pos, "positions")
+  expect_equal(as.integer(dev), as.integer(pos[[1, "DeviceID"]]))
   expect_equal(as.integer(dev), as.integer(pos[[nrow(pos), "DeviceID"]]))
+
+  pos <- fetch_lotek_positions(
+    st <- lubridate::now(tzone = "GMT") + months(1)
+  )
+  check_data(pos, "positions")
+  expect_equal(nrow(pos), 0)
 
 })

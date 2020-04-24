@@ -7,7 +7,7 @@ test_that("Check filter_date_range", {
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
 
   dat <- tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,
@@ -52,7 +52,7 @@ test_that("Check make_gpx assertions", {
 
   dat <-
     tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,
