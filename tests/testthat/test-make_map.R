@@ -6,7 +6,7 @@ test_that("check make_map", {
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
   dat <-
     tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,
@@ -29,7 +29,7 @@ test_that("check make_map assertions", {
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
   dat <-
     tmp %>%
-    tidyr::drop_na(longitude) %>%
+    dplyr::filter(!is.na(longitude)) %>%
     morph_gps(
       x = .,
       id_col = idcollar,
