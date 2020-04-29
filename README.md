@@ -14,7 +14,7 @@ We focus on companies that our collaborators use often and that provide some mea
 
 - Vectronics Aerospace
 - Advanced Telemetry Solutions
-- Lotek (NEW, needs testing)
+- Lotek (NEW)
 - Loose csv's
 
 Consistent naming prefixes were used when possible in an effort to enhance the user experience.
@@ -26,7 +26,7 @@ Consistent naming prefixes were used when possible in an effort to enhance the u
 - `make_gpx()` - Save locations to disc, for use on GPS device or phone app
 - `make_map()` - Builds leaflet map using location data
 - `save_map()` - Saves the map
-- `cllr_add_id()` - Add inidividual identifier to each animal, some manufacturers do not include this information in downloads or store it in the file name
+- `cllr_add_id()` - Add individual identifier to each animal, some manufacturers do not include this information in downloads or store it in the file name
 - `cllr_remove_header()` - Some manufacturers include metadata in the first n lines of a download, this function attempts to remove those headers so the data can be used
 - `cllr_rename_id()` - The collar package has expectations about the column names in the data, this function exists to help the user change column names and conform to expectations
 
@@ -45,7 +45,10 @@ This package is not available on CRAN.
 Check out the help pages and the vignettes to get a handle on how we use the package.
 
 `vignette("downloading-data", package = "collar")`
+
 `vignette("reading-csv", package = "collar")`
+
+`vignette("lotek-api-functions", package = "collar")`
 
 ## Issues and Enhancements
 
