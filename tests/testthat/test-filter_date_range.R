@@ -44,7 +44,7 @@ test_that("Check filter_date_range", {
 })
 
 
-test_that("Check make_gpx assertions", {
+test_that("Check filter_date_range assertions", {
 
   data_dir <- system.file("extdata", package = "collar")
 
