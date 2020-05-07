@@ -9,7 +9,7 @@ make_gpx(x, file, lon = lon, lat = lat, date_time, name, desc)
 \arguments{
 \item{x}{a data frame containing collar data with latitude and longitude location data}
 
-\item{file}{the save location and name of the GPX file to be created}
+\item{file}{the file path where the output GPX file should be saved}
 
 \item{lon}{unquoted name of column containing longitude coordinates}
 
