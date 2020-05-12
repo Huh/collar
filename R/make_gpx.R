@@ -29,7 +29,7 @@ make_gpx <- function(x,
   assertthat::assert_that(assertthat::noNA(dplyr::pull(x, lat_col)))
   purrr::map(
     c(id_col, lat_col, lon_col, dt_col),
-    ~assertthat::assert_that(assertthat::has_name(x, .))
+    ~assertthat::assert_that(assertthat::has_name(x, .data))
   )
 
 
@@ -41,7 +41,7 @@ make_gpx <- function(x,
       )
     ) %>%
     sf::st_as_sf(coords = c(lon_col, lat_col), crs = crs) %>%
-    dplyr::select(name) %>%
+    dplyr::select(.data$name) %>%
     sf::st_write(dsn = file, layer = "waypoints", driver = "GPX", ...)
 
   return(invisible(x))
