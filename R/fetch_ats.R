@@ -49,8 +49,8 @@ fetch_ats <- function(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3",
       filled_form,
       submit = "btt_SignIn"
     ) %>%
-    xml2::read_html(.) %>%
-    rvest::html_form(.)
+    xml2::read_html(.data) %>%
+    rvest::html_form(.data)
 
   if(any(grepl("btt_SignIn", dwnld_form[[1]]))){
     stop(
