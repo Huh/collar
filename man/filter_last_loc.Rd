@@ -4,12 +4,12 @@
 \alias{filter_last_loc}
 \title{Select the last location for each individual}
 \usage{
-filter_last_loc(x, grps = "id", order_by = NULL)
+filter_last_loc(x, ..., order_by)
 }
 \arguments{
 \item{x}{A data frame containing collar data.}
 
-\item{grps}{A character vector of the column(s) to be used as a grouping variable e.g. if "id" is used, a single row will be returned for each id.}
+\item{...}{unquoted column name(s) to be used as a grouping variable e.g. if "id" is used, a single row will be returned for each id.}
 
 \item{order_by}{A character vector of the column(s) to be used to arrange the data e.g. if the date/time column is used rows will be ordered chronologically.}
 }
@@ -21,7 +21,6 @@ Select the last location for each individual
 }
 \examples{
 \dontrun{
-  collar_data \%>\%
-  filter_last_loc()
+  filter_last_loc(collar_data, ... = id, order_by = dt)
 }
 }
