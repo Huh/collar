@@ -4,7 +4,7 @@
 \alias{filter_date_range}
 \title{Return locations within the specified date range}
 \usage{
-filter_date_range(x, dt_col = dt, start, end)
+filter_date_range(x, dt_col, start, end)
 }
 \arguments{
 \item{x}{A data frame containing collar data with column "dt_col" that can be coerced into class "Date"}
