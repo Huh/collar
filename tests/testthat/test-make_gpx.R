@@ -54,7 +54,7 @@ test_that("Check make_gpx assertions", {
   # no data
   expect_condition(
     make_gpx(),
-    "argument \"x\" is missing, with no default"
+    "argument \"file\" is missing, with no default"
   )
 
   # no column with name
@@ -67,15 +67,7 @@ test_that("Check make_gpx assertions", {
     dplyr::slice(1)
 
   expect_error(
-    make_gpx(dat_na)
-  )
-
-  dat_na <-
-    dplyr::mutate(dat, lat = NA) %>%
-    dplyr::slice(1)
-
-  expect_error(
-    make_gpx(dat_na)
+    make_gpx(file = "./points.gpx", dat_na)
   )
 
 })
