@@ -54,7 +54,7 @@ test_that("Check make_gpx assertions", {
   # no data
   expect_condition(
     make_gpx(),
-    "argument \"file\" is missing, with no default"
+    "argument \"x\" is missing, with no default"
   )
 
   # no column with name
