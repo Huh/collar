@@ -4,22 +4,22 @@
 \alias{make_gpx}
 \title{Save collar locations to disk as a GPX file}
 \usage{
-make_gpx(x, file, lon = lon, lat = lat, date_time, name, desc)
+make_gpx(x, file, lon_col = lon, lat_col = lat, dt_col, name_col, desc_col)
 }
 \arguments{
 \item{x}{a data frame containing collar data with latitude and longitude location data}
 
 \item{file}{the file path where the output GPX file should be saved}
 
-\item{lon}{unquoted name of column containing longitude coordinates}
+\item{lon_col}{unquoted name of column containing longitude coordinates}
 
-\item{lat}{unquoted name of column containing longitude coordinates}
+\item{lat_col}{unquoted name of column containing longitude coordinates}
 
-\item{date_time}{unquoted name of column containing date and time of location. The format of date_time must follow YYYY-MM-DD HH:MM:SS or YYYY-MM-DDTHH:MM:SS.}
+\item{dt_col}{unquoted name of column containing date and time of location. The format of date_time must follow YYYY-MM-DD HH:MM:SS or YYYY-MM-DDTHH:MM:SS.}
 
-\item{name}{unquoted name of column containing the name to be assigned to the GPS location}
+\item{name_col}{unquoted name of column containing the name to be assigned to the GPS location}
 
-\item{desc}{unquoted name of column containing a a description to be assigned to the GPS location}
+\item{desc_col}{unquoted name of column containing a a description to be assigned to the GPS location}
 }
 \value{
 The original data frame passed to the function.

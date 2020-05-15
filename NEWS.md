@@ -1,3 +1,8 @@
+# collar 0.0.2.1
+
+* adds improved functionality to make_gpx
+* minor update to data-download vignette
+
 # collar 0.0.2
 
 * adds Lotek API functions and documentation

@@ -22,22 +22,22 @@ test_that("Check filter_date_range", {
   )
 
   expect_equal(
-    nrow(filter_date_range(dat)),
+    nrow(filter_date_range(dat, dt)),
     nrow(dat)
   )
 
   expect_lt(
-    nrow(filter_date_range(dat, start = "2018-01-01")),
+    nrow(filter_date_range(dat, dt, start = "2018-01-01")),
     nrow(dat)
   )
 
   expect_equal(
-    max(filter_date_range(dat)$dt),
+    max(filter_date_range(dat, dt)$dt),
     max(dat$dt)
   )
 
   expect_s3_class(
-    filter_date_range(dat),
+    filter_date_range(dat, dt),
     "data.frame"
   )
 
@@ -65,7 +65,7 @@ test_that("Check filter_date_range assertions", {
 
   expect_condition(
     filter_date_range(dat, dt_col = "a"),
-    "x does not have all of these name(s): 'a'",
+    "a does not have class 'Date' and can not be coerced using as.Date()",
     fixed = T
   )
 

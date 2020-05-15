@@ -23,7 +23,6 @@ make_gpx <- function(x,
                      name_col,
                      desc_col
 ){
-
   assertthat::assert_that(inherits(x, "data.frame"))
   assertthat::assert_that(assertthat::is.dir(dirname(file)))
 

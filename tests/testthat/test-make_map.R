@@ -53,7 +53,7 @@ test_that("check make_map assertions", {
     dplyr::mutate(dat, lon = NA) %>%
     dplyr::slice(1) %>%
     make_map(),
-    "lon_col contains 1 missing values",
+    "lon contains 1 missing values",
     fixed = T
   )
 
@@ -61,7 +61,7 @@ test_that("check make_map assertions", {
     dplyr::mutate(dat, lat = NA) %>%
     dplyr::slice(1) %>%
     make_map(),
-    "lat_col contains 1 missing values",
+    "lat contains 1 missing values",
     fixed = T
   )
 
