@@ -1,83 +1,203 @@
-#' Scrape data from ATS website
+# 1 - Download Functions --------------------------------------------------
+
+# * 1.x - fetch_ats_positions ---------------------------------------------
+
+#' @title Download GPS Fixes from ATS Website
 #'
-#' @param bttn_nm The name of the button to download data from
-#' @param usr The username associated with the account
-#' @param pwd The password used with the supplied username
-#' @param base_url The URL where the function attempts to gain access. By default this is set to "atsidaq.net" which is the domain used for recent GPS collars. Use of other domains (e.g. "atsdat.net") is supported by specifying a URL value in order to support older Iridium based collars and for future compatibility.
-#' @param rename_fun A function used to rename columns, defaults to adj_col_nms, see details
+#' @description Retrieves GPS data optionally filtered by date, last n,
+#'   or collar.
 #'
-#' @details
-#' The url where the function attempts to gain access is atsidaq.net.
+#' @section Notes:
 #'
-#' To download from a new button name use the developer tools in your browser and record the name of the button as described there. For example, the download all button has name 'ctl00$ContentPlaceHolder1$DownloadAll3'. See the vignette for more details about finding button names.
+#'   Currently filtering by date is broken on the ATS side - using the
+#'   date range filters when downloading data returns an internal server
+#'   error. The functionality is included here in the hopes that it will
+#'   be fixed in the near future, but currently date filters are ignored.
 #'
-#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+#' @return A tibble with information about mortalities, births, etc.
 #'
-#' @return A tibble
+#' @seealso \code{\link{ats_login}} for logging into an ATS account,
+#'   \code{\link{fetch_ats_transmissions}} for downloading transmission
+#'   data, and \code{\link{fetch_ats_events}} for downloading alerts.
+#'
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'   fetch_ats(usr = "my_username", pwd = "secret_code")
-#' }
-fetch_ats <- function(bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll3",
-                      usr,
-                      pwd,
-                      base_url = "atsidaq.net",
-                      rename_fun = adj_col_nms) {
-  if (is.null(bttn_nm)) {
-    warning("Button name NULL, downloading all data")
+#'
+#' ats_login("demo", "PASSWORD09")
+#'
+#' # get all fixes for all collars in this account
+#' fixes <- fetch_ats_positions()
+#' 
+#' # get all fixes for certain collars
+#' 
+#' # get all fixes for all collars in this account
+#' 
+#' # get all fixes for all collars in this account
+#' ats_logout()
+#'
+fetch_ats_positions <- function(collars = NULL, start = NULL, end = NULL, n = NULL) {
+
+  # get filters
+  args <- as.list(environment())
+
+  if (all(unlist(lapply(args, is.null)))) {
+    ats_all_pos()
+  } else {
+    do.call(ats_pos, args)
   }
 
-  #  Connect to webpage
-  pgsession <- rvest::html_session(base_url)
-  httr::stop_for_status(pgsession)
-
-  #  Extract html form
-  pgform <- rvest::html_form(pgsession)[[1]]
-
-  #  Fill in username and password
-  filled_form <- rvest::set_values(
-    pgform,
-    "txt_username" = usr,
-    "txt_password" = pwd
-  )
-
-  # "click" login button
-  dwnld_form <- rvest::submit_form(
-      pgsession,
-      filled_form,
-      submit = "btt_SignIn"
-    ) %>%
-    xml2::read_html(.) %>%
-    rvest::html_form(.)
-
-  if(any(grepl("btt_SignIn", dwnld_form[[1]]))){
-    stop(
-      paste(
-        "Failed to login to",
-        paste0(base_url, ","),
-        "please check credentials and try again"
-      )
-    )
-  }
-
-  # Which button to download data from?
-  if (is.null(bttn_nm)) {
-    bttn_nm <- "ctl00$ContentPlaceHolder1$DownloadAll3"
-  }
-
-  #  "Click" button to download data and then parse the response
-  dat_dwnld <- rvest::submit_form(
-    pgsession,
-    dwnld_form[[1]],
-    submit = bttn_nm
-  )
-
-  httr::stop_for_status(dat_dwnld)
-
-  out <- httr::content(dat_dwnld$response, type = "text/csv") %>%
-    dplyr::rename_all(rename_fun)
-
-  return(out)
 }
+
+# TODO rename this
+ats_pos <- function(collars = NULL, start = NULL, end = NULL, n = NULL) {
+
+  # get login info
+  # function will exit here if login info is invalid
+  if (is.null(collars)) {
+    cookies <- ats_auth_cookies()
+  } else {
+    cookies <- ats_collar_cookies(collars)
+  }
+
+  type <- "004"
+  p1 <- ""
+  p2 <- ""
+
+  # TODO warn for argument collisions (s/e >> n), require collars arg
+  if (!is.null(start) | !is.null(end)) {
+    type <- "001"
+    if (!is.null(start)) {
+      p1 <- format(start, "%m/%d/%Y")
+    }
+    if (!is.null(start)) {
+      p2 <- format(end, "%m/%d/%Y")
+    }
+  } else {
+    if (!is.null(n)) {
+      if (n == 5) {
+        type <- "002"
+      }
+      if (n == 10) {
+        type <- "003"
+      }
+    }
+  }
+
+  resp <- httr::POST(
+    url = ats_base_url,
+    path = "Servidor.ashx",
+    body = list(
+      consulta = "download_txt_collars",
+      type = type,
+      parameter1 = p1,
+      parameter2 = p2
+    ),
+    encode = "form",
+    httr::set_cookies(cookies)
+  )
+
+  # verify successful status
+  assertthat::assert_that(
+    httr::status_code(resp) == 200,
+    msg = paste(
+      "API call failed - device list.",
+      paste("Status:", httr::status_code(resp)),
+      paste("Response:", httr::content(resp)),
+      sep = "\n"
+    )
+  )
+
+  cols <- httr::content(resp) %>%
+    xml2::xml_find_first("//Table") %>%
+    xml2::xml_children() %>%
+    xml2::xml_name()
+
+  names(cols) <- cols
+
+  purrr::map_dfc(
+    cols,
+    ~ httr::content(resp) %>%
+      xml2::xml_find_all(paste0("//", .x)) %>%
+      xml2::xml_text()
+  )
+
+}
+
+ats_all_pos <- function() {
+
+  resp <- httr::GET(
+    url = ats_base_url,
+    path = list("download_all_data", "Download_all_data.aspx?dw=all"),
+    httr::set_cookies(ats_auth_cookies())
+  )
+
+  # verify successful status
+  assertthat::assert_that(
+    httr::status_code(resp) == 200,
+    msg = paste(
+      "API call failed - device list.",
+      paste("Status:", httr::status_code(resp)),
+      paste("Response:", httr::content(resp)),
+      sep = "\n"
+    )
+  )
+
+  resp$content %>% 
+    readBin(what = "character", n = length(loc$content) / 4) %>% 
+    textConnection() %>% 
+    read.csv()
+
+}
+
+fetch_ats_devices <- function(filter = NULL) {
+
+  valor <- purrr::when(
+    tolower(filter),
+    . == "inactive" ~ "no_active",
+    grepl("low", .) ~ "active_low_batt",
+    grepl("mort", .) ~ "active_mortality",
+    grepl("birth", .) ~ "active_birth_triggers",
+    ~ "active"
+  )
+
+  resp <- httr::POST(
+    url = ats_base_url,
+    path = "Servidor.ashx",
+    body = list(
+      consulta = "get_collars_user",
+      valor = valor
+    ),
+    encode = "form",
+    httr::set_cookies(ats_collar_cookies(collar_list))
+  )
+
+  # verify successful status
+  assertthat::assert_that(
+    httr::status_code(resp) == 200,
+    msg = paste(
+      "API call failed - device list.",
+      paste("Status:", httr::status_code(resp)),
+      paste("Response:", httr::content(resp)),
+      sep = "\n"
+    )
+  )
+  
+  devs <- httr::content(resp) %>%
+    xml2::xml_find_all("//collar") %>%
+    xml2::xml_text()
+
+  if (any(is.null(filter), tolower(filter) == "all")) {
+    devs <- c(devs, fetch_ats_devices("inactive"))
+  }
+
+  devs
+
+}
+
+# TODO use retry in all the new stuff
+# TODO write tests
+# TODO try with different credentials
+# TODO disable date filtering
+# TOD add functions for events and transmissions
+# TODO add assert status function or switch to httr::stop_for_status
