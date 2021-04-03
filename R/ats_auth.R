@@ -4,71 +4,30 @@
 
 ats_base_url <- "https://atsidaq.net"
 
-# * 1.2 - ats.env (environment for managing ATS cookies) ------------------
-ats.env <- new.env()
+# 2 - Internal Functions ---------------------------------------------------
 
-# 2 - Internal Functions --------------------------------------------------
+# * 2.1 - check_cookie -----------------------------------------------------
 
-# * 2.1 - ats_auth_cookies ------------------------------------------------
-#   returns authentication cookies from login request
-
-#' @title Format ATS Cookies for \code{httr}
+#' @title Check Cookie
 #'
-#' @return Named vector of cookie values
+#' @description Check that a particular cookie exists for a certain site
 #'
-#' @export
+#' @param url http hostname (base url)
+#' @param cookie name of the cookie to check
 #'
-#' @keywords internal
-#'
-ats_auth_cookies <- function() {
-
-  # exit if user is not logged in
-  assertthat::assert_that(
-    inherits(ats.env$cookies, "data.frame"),
-    msg = paste(
-      "No login information available.",
-      "Use the ats_login function to log in to your ATS account",
-      sep = "\n"
-    )
-  )
-
-  setNames(
-    ats.env$cookies$value,
-    ats.env$cookies$name
-  )
-
-}
-
-# * 2.2 - ats_collar_cookies ----------------------------------------------
-#   returns collar selection cookie in addition to
-#   cookies from ats_auth_cookies
-
-#' @title Format ATS Cookies for \code{httr}
-#'
-#' @return Named vector of cookie values,
-#'   including one for selected collars
+#' @return True if cookie exists, false if not
 #'
 #' @export
 #'
 #' @keywords internal
 #'
-ats_collar_cookies <- function(collars) {
+#' @examples
+#'
+#' check_cookie(ats_base_url, "ARRAffinity")
+#'
+check_cookie <- function(url, cookie) {
 
-  # add leading zeros if needed
-  cc <- paste0("000000", as.character(collars)) %>%
-    substr(nchar(.) - 5, nchar(.))
-
-  # inner xml nodes (collar tags)
-  cc <- sprintf("<collar>%s</collar>", cc)
-
-  # mid-level xml nodes (inner dscgca tags)
-  cc <- sprintf("  <dscgca>\n    %s\n  </dscgca>", cc)
-
-  # outer node
-  cc <- sprintf("<dscgca>\n%s\n</dscgca>", paste0(cc, collapse = "\n"))
-
-  # return standard cookies with collar list appended
-  c(ats_auth_cookies(), cgca = cc)
+  cookie %in% httr::cookies(httr::handle_find(url))$name
 
 }
 
@@ -78,14 +37,14 @@ ats_collar_cookies <- function(collars) {
 
 #' @title Authenticate to ATS Website
 #'
-#' @description Pass credentials to ATS website and save login information.
+#' @description Pass credentials to ATS website and save login information
 #'
 #' @param usr username
 #' @param pwd password
 #'
-#' @return True if login succeeds, false if not.
+#' @return True if login succeeds, false if not
 #'
-#' @seealso \code{\link{ats_logout}} for closing the session.
+#' @seealso \code{\link{ats_logout}} for closing the session
 #'
 #' @export
 #'
@@ -100,44 +59,23 @@ ats_collar_cookies <- function(collars) {
 ats_login <- function(usr, pwd) {
 
   # clear existing login if present
-  if (!is.null(ats.env$cookies)) {
+  if (check_cookie(ats_base_url, "user")) {
     ats_logout()
   }
 
   # log in to ATS website
-  resp <- httr::RETRY(
-    "POST",
-    url = ats_base_url,
+  ats_post(
     path = list("Servidor.ashx"),
     body = list(
       consulta = "login",
       user = usr,
       pass = pwd
     ),
-    encode = "form",
-    quiet = TRUE
+    task = "log in"
   )
 
-  # check that login was successful
-  assertthat::assert_that(
-    httr::status_code(resp) == 200,
-    msg = paste(
-      "Login failed.",
-      paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
-      sep = "\n"
-    )
-  )
-
-  # save cookies from response
-  ats.env$cookies <- httr::cookies(resp)
-
-  # save username for reference
-  ats.env$user <- usr
-
-  # return true if successful
-  inherits(ats.env$cookies, "data.frame") &&
-    "user" %in% ats.env$cookies$name
+  # return true if user cookie exists
+  check_cookie(ats_base_url, "user")
 
 }
 
@@ -145,12 +83,11 @@ ats_login <- function(usr, pwd) {
 
 #' @title Close ATS Session
 #'
-#' @description Logs out of website and removes
-#'   authentication info from memory.
+#' @description Logs out of website
 #'
-#' @return True if log out request is successful, false if log out fails.
+#' @return True if log out request is successful, false if log out fails
 #'
-#' @seealso \code{\link{ats_login}} for starting the session.
+#' @seealso \code{\link{ats_login}} for starting the session
 #'
 #' @export
 #'
@@ -165,33 +102,15 @@ ats_login <- function(usr, pwd) {
 ats_logout <- function() {
 
   # log out of ATS website
-  resp <- httr::RETRY(
-    "POST",
-    url = ats_base_url,
+  ats_post(
     path = list("Servidor.ashx"),
     body = list(
       consulta = "logout"
     ),
-    encode = "form",
-    httr::set_cookies(ats_auth_cookies()),
-    quiet = TRUE
+    task = "log out"
   )
 
-  # clear login info from memory
-  ats.env$cookies <- NULL
-  ats.env$user <- NULL
-
-  # check that log out was successful
-  assertthat::assert_that(
-    httr::status_code(resp) == 200,
-    msg = paste(
-      "The request to log out failed.",
-      paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
-      sep = "\n"
-    )
-  )
-
-  (!inherits(ats.env$cookies, "data.frame"))
+  # return true if user cookie is gone
+  (!check_cookie(ats_base_url, "user"))
 
 }
