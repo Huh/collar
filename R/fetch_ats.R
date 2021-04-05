@@ -1,3 +1,33 @@
+# 1 - Global Objects ------------------------------------------------------
+
+# ats_empty_trans ---------------------------------------------------------
+
+# tibble with zero rows matching ATS transmission file format
+# used to enforce consistency between 4 different possible response formats
+#   (get with data, get without data, post with data, post without data)
+
+ats_empty_trans <- tibble::tibble(
+  CollarSerialNumber = character(0),
+  DateCT = as.POSIXct(NA),
+  DateUTC = as.POSIXct(NA),
+  DateLocal = as.POSIXct(NA),
+  NumberFixes = integer(0),
+  BattVoltage = numeric(0),
+  Mortality = character(0),
+  BreakOff = character(0),
+  GpsOnTime = integer(0),
+  SatOnTime = integer(0),
+  SatErrors = integer(0),
+  GmtOffset = numeric(0),
+  LowBatt = logical(0),
+  Event0 = character(0),
+  Event1 = character(0),
+  Event2 = character(0),
+  Latitude = numeric(0),
+  Longitude = numeric(0),
+  CEPradius_km = integer(0)
+)
+
 # 1 - Internal Functions --------------------------------------------------
 
 # * 1.1 - ats_get ---------------------------------------------------------
@@ -33,7 +63,7 @@ ats_get <- function(path, task = "download data") {
 
   # check internet
   assertthat::assert_that(
-    curl::has_internet,
+    curl::has_internet(),
     msg = "No internet connection available."
   )
 
@@ -46,7 +76,7 @@ ats_get <- function(path, task = "download data") {
   # check path parameter
   assertthat::assert_that(
     !missing(path),
-    assert_that::not_empty(path),
+    assertthat::not_empty(path),
     inherits(path, "list") | inherits(path, "character"),
     msg = "Incorrect path parameter supplied to GET request."
   )
@@ -72,49 +102,103 @@ ats_parse_trans <- function(resp) {
     msg = "Invalid response passed to parsing function."
   )
 
-  if (inherits(resp$content, "raw")) {
+  if (resp$request$method == "GET") {
 
-    # quote unquoted separators and return
-    httr::content(resp, "text", encoding = "UTF-8") %>%
-      textConnection() %>%
-      readLines() %>%
-      magrittr::extract(nchar(.) > 0) %>%
-      repair_lines(15, 12) %>%
-      readr::read_csv(col_types = "ccidcciiidccddi") %>%
-      dplyr::mutate(
-        DateCT = lubridate::as_datetime(
-          DateCT,
-          tz = "America/Menominee",
-          format = "%m/%d/%Y %I:%M:%S %p"
-        ),
-        DateUTC = lubridate::with_tz(DateCT, tz = "UTC"),
-        DateLocal = lubridate::with_tz(DateCT, tz = Sys.timezone())
-      ) %>%
-      dplyr::relocate(DateUTC, DateLocal, .after = DateCT)
+    if (inherits(resp$content, "xml_document")) {
+
+      # api returns html when no new data is available
+      ats_empty_trans
+
+    } else {
+
+      # txt file - quote unquoted separators, reformat events, add dates
+      httr::content(resp, "text", encoding = "UTF-8") %>%
+        textConnection() %>%
+        readLines() %>%
+        {sub("^(([^,]*,){11})(.+)((,[^,]*){3})$", "\\1\"\\3\"\\4", .)} %>%
+        readr::read_csv(col_types = "ccidcciiidccddi") %>%
+        tidyr::separate(
+          Event,
+          into = c("Event0", "Event1", "Event2"),
+          sep = ",",
+          fill = "right"
+        ) %>%
+        dplyr::mutate(
+          DateCT = as.POSIXct(
+            DateCT,
+            tz = "America/Menominee",
+            format = "%m/%d/%Y %I:%M:%S %p"
+          ),
+          LowBatt = dplyr::if_else(LowBatt == "Yes", TRUE, FALSE),
+          Event1 = tidyr::replace_na(Event1, "None"),
+          Event2 = tidyr::replace_na(Event2, "None")
+        ) %>%
+        ats_trans_dates()
+
+    }
 
   } else {
 
-    # api returns html when no new data is available
-    # return empty tibble
-    tibble::tibble(
-      CollarSerialNumber = character(0),
-      DateCT = as.POSIXct(numeric(0)),
-      DateUTC = as.POSIXct(numeric(0)),
-      DateLocal = as.POSIXct(numeric(0)),
-      NumberFixes = integer(0),
-      BattVoltage = numeric(0),
-      Mortality = character(0),
-      BreakOff = character(0),
-      GpsOnTime = integer(0),
-      SatOnTime = integer(0),
-      SatErrors = integer(0),
-      GmtOffset = numeric(0),
-      LowBatt = character(0),
-      Event = character(0),
-      Latitude = numeric(0),
-      Longitude = numeric(0),
-      CEPradius_km = integer(0)
-    )
+    tr_data <- resp %>%
+      ats_parse_xml()
+
+    if (ncol(tr_data) == 0) {
+
+      # no data returned (tibble 0x0)
+      ats_empty_trans
+
+    } else {
+
+      # reformat events, rename columns, add dates
+      tr_data %>%
+        tidyr::separate(
+          ev,
+          into = c("ev0", "ev1", "ev2"),
+          sep = ",",
+          fill = "right"
+        ) %>%
+        tidyr::separate(
+          evc,
+          into = c("evc0", "evc1", "evc2"),
+          sep = ",",
+          fill = "right"
+        ) %>%
+        dplyr::transmute(
+          CollarSerialNumber = collar,
+          DateCT = as.POSIXct(
+            fecha,
+            tz = "America/Menominee"
+          ),
+          NumberFixes = as.integer(number),
+          BattVoltage = as.numeric(battvol),
+          Mortality = morty,
+          BreakOff = breakoff,
+          GpsOnTime = as.integer(gpson),
+          SatOnTime = as.integer(saton),
+          SatErrors = as.integer(saterror),
+          GmtOffset = as.numeric(gmt),
+          LowBatt = as.logical(lowbatt),
+          Event0 = dplyr::case_when(
+            ev0 == "None" ~ "None",
+            TRUE ~ paste(ev0, evc0, sep = "-")
+          ),
+          Event1 = dplyr::case_when(
+            is.na(ev1) ~ "None",
+            ev1 == "None" ~ "None",
+            TRUE ~ paste(ev1, evc1, sep = "-")
+          ),
+          Event2 = dplyr::case_when(
+            is.na(ev2) ~ "None",
+            ev2 == "None" ~ "None",
+            TRUE ~ paste(ev2, evc2, sep = "-")
+          ),
+          Latitude = as.numeric(lat),
+          Longitude = as.numeric(long),
+          CEPradius_km = as.integer(cpe)
+        ) %>%
+        ats_trans_dates()
+
+    }
 
   }
 
@@ -206,7 +290,7 @@ ats_pos_all <- function(new = FALSE) {
 # * 1.6 - ats_pos_filter --------------------------------------------------
 
 # use a POST request to download position data for selected collars
-ats_pos_filter <- function(collars = NULL,
+ats_pos_filter <- function(device_id = NULL,
                            start = NULL,
                            end = NULL,
                            n = NULL) {
@@ -231,12 +315,12 @@ ats_pos_filter <- function(collars = NULL,
 
   # select collars
   purrr::when(
-    collars,
+    device_id,
     # default to all
     is.null(.) ~ fetch_ats_devices(),
-    ~ collars
+    ~ device_id
   ) %>%
-    select_collars()
+    ats_select_collars()
 
   # set defaults
   type <- "004"    # all data
@@ -311,7 +395,7 @@ ats_post <- function(path, body = list(), task = "download data") {
 
   # check internet
   assertthat::assert_that(
-    curl::has_internet,
+    curl::has_internet(),
     msg = "No internet connection available."
   )
 
@@ -323,14 +407,14 @@ ats_post <- function(path, body = list(), task = "download data") {
 
   assertthat::assert_that(
     !missing(path),
-    assert_that::not_empty(path),
+    assertthat::not_empty(path),
     inherits(path, "list") | inherits(path, "character"),
     msg = "Incorrect path parameter supplied to POST request."
   )
 
   assertthat::assert_that(
     !missing(body),
-    assert_that::not_empty(body),
+    assertthat::not_empty(body),
     inherits(body, "list"),
     length(names(body)) == length(body),
     msg = "Incorrect body parameter supplied to POST request."
@@ -348,79 +432,9 @@ ats_post <- function(path, body = list(), task = "download data") {
 
 }
 
-# * 1.8 - count_sep -------------------------------------------------------
+# * 1.8 - ats_select_collars ----------------------------------------------
 
-# function to count the number of commas in a string
-count_sep <- function(x, sep = ",") {
-  lengths(regmatches(x, gregexpr(sep, x)))
-}
-
-# * 1.9 - post_text -------------------------------------------------------
-
-# function to return characters from nth to last separator to end of line
-post_text <- function(x, n, sep = ",") {
-
-  cs <- count_sep(x, sep)
-
-  c_idx <- purrr::map2_int(
-    gregexpr(sep, x),
-    cs - n + 1,
-    ~.x[.y]
-  )
-
-  ll <- nchar(x)
-
-  c_idx[c_idx == ll] <- NA
-
-  out <- x
-
-  if (any(!is.na(c_idx))) {
-    out[!is.na(c_idx)] <- substring(out, c_idx[!is.na(c_idx)] + 1, max(ll))
-  }
-
-  return(out)
-
-}
-
-# * 1.10 - pre_text -------------------------------------------------------
-
-# function to return characters up to and including the nth separator
-pre_text <- function(x, n, sep = ",") {
-
-  c_idx <- sapply(
-    gregexpr(sep, x),
-    `[`,
-    n
-  )
-
-  out <- x
-
-  if (any(!is.na(c_idx))) {
-    out[!is.na(c_idx)] <- substring(out, 1, c_idx[!is.na(c_idx)])
-  }
-
-  return(out)
-
-}
-
-# * 1.11 - repair_lines ---------------------------------------------------
-
-# function to pull out lh columns and rh columns
-#   and quote whatever is in between
-repair_lines <- function(x, n_col, repair_col, sep = ",") {
-
-  pre <- pre_text(x, repair_col - 1, sep)
-  post <- post_text(x, n_col - repair_col, sep)
-  repair <- substring(x, nchar(pre) + 1, nchar(x) - nchar(post) - 1)
-  repair <- paste0("\"", repair, "\"", sep)
-
-  return(paste0(pre, repair, post))
-
-}
-
-# * 1.12 - select_collars -------------------------------------------------
-
-select_collars <- function(device_id) {
+ats_select_collars <- function(device_id) {
 
   # check collars parameter
   assertthat::assert_that(
@@ -443,6 +457,19 @@ select_collars <- function(device_id) {
   )
 
   return(TRUE)
+
+}
+
+# * 1.9 - ats_trans_dates -------------------------------------------------
+
+ats_trans_dates <- function(trans) {
+
+  trans %>%
+    dplyr::mutate(
+      DateUTC = lubridate::with_tz(DateCT, tz = "UTC"),
+      DateLocal = lubridate::with_tz(DateCT, tz = Sys.timezone())
+    ) %>%
+    dplyr::relocate(DateUTC, DateLocal, .after = DateCT)
 
 }
 
@@ -497,9 +524,9 @@ fetch_ats_config <- function() {
 #'   filtered by status
 #'
 #' @param filter A single character value for filtering the results by
-#'   status. If an invalid filter value is provided \code{fetch_ats_devices}
-#'   returns a list of all devices with a warning. Valid filter values
-#'   include:
+#'   status. If an invalid filter value is provided
+#'   \code{fetch_ats_devices} returns a list of all devices with a warning.
+#'   Valid filter values include:
 #'     \itemize{
 #'       \item{All}{Default - a list of all collars}
 #'       \item{Active}{Only active collars}
@@ -784,7 +811,7 @@ fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
 
   } else {
 
-    select_collars(device_id)
+    ats_select_collars(device_id)
 
     ats_post(
       path = "Servidor.ashx",
@@ -793,7 +820,8 @@ fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
       ),
       task = "download transmission data"
     ) %>%
-      ats_parse_xml()
+      ats_parse_trans()
+
   }
 
 }

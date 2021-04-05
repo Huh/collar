@@ -64,15 +64,19 @@ ats_login <- function(usr, pwd) {
   }
 
   # log in to ATS website
-  ats_post(
+  httr::RETRY(
+    "POST",
+    url = ats_base_url,
     path = list("Servidor.ashx"),
     body = list(
       consulta = "login",
       user = usr,
       pass = pwd
     ),
-    task = "log in"
-  )
+    encode = "form",
+    quiet = TRUE
+  ) %>%
+    httr::stop_for_status("log in")
 
   # return true if user cookie exists
   check_cookie(ats_base_url, "user")
@@ -102,13 +106,17 @@ ats_login <- function(usr, pwd) {
 ats_logout <- function() {
 
   # log out of ATS website
-  ats_post(
+  httr::RETRY(
+    "POST",
+    url = ats_base_url,
     path = list("Servidor.ashx"),
     body = list(
       consulta = "logout"
     ),
-    task = "log out"
-  )
+    encode = "form",
+    quiet = TRUE
+  ) %>%
+    httr::stop_for_status("log out")
 
   # return true if user cookie is gone
   (!check_cookie(ats_base_url, "user"))
