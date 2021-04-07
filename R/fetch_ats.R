@@ -84,6 +84,7 @@ ats_empty_trans <- tibble::tibble(
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -95,6 +96,8 @@ ats_empty_trans <- tibble::tibble(
 #'   task = "download event data"
 #' ) %>%
 #'   ats_parse_txt()
+#'
+#' }
 #'
 ats_get <- function(path, task = "download data") {
 
@@ -147,6 +150,7 @@ ats_get <- function(path, task = "download data") {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -163,6 +167,8 @@ ats_get <- function(path, task = "download data") {
 #'   readr::read_csv(col_types = "ciiiiiidddiic_") %>%
 #'   dplyr::rename(JulianDay = Julianday) %>%
 #'   ats_join_trans(trans)
+#'
+#' }
 #'
 ats_join_trans <- function(pos, trans) {
 
@@ -282,6 +288,7 @@ ats_join_trans <- function(pos, trans) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -295,6 +302,8 @@ ats_join_trans <- function(pos, trans) {
 #'   task = "download position data"
 #' ) %>%
 #'   ats_parse_pos(trans)
+#'
+#' }
 #'
 ats_parse_pos <- function(resp, trans) {
 
@@ -379,6 +388,7 @@ ats_parse_pos <- function(resp, trans) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -392,6 +402,8 @@ ats_parse_pos <- function(resp, trans) {
 #'   task = "download transmission data"
 #' ) %>%
 #'   ats_parse_trans()
+#'
+#' }
 #'
 ats_parse_trans <- function(resp) {
 
@@ -528,6 +540,7 @@ ats_parse_trans <- function(resp) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -539,6 +552,8 @@ ats_parse_trans <- function(resp) {
 #'   task = "download event data"
 #' ) %>%
 #'   ats_parse_txt()
+#'
+#' }
 #'
 ats_parse_txt <- function(resp, ...) {
 
@@ -567,6 +582,7 @@ ats_parse_txt <- function(resp, ...) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -574,13 +590,15 @@ ats_parse_txt <- function(resp, ...) {
 #'   path = "Servidor.ashx",
 #'   body = list(
 #'     consulta = "download_txt_collars",
-#'     type = "004"",
+#'     type = "004",
 #'     parameter1 = "",
 #'     parameter2 = ""
 #'   ),
 #'   task = "download position data"
 #' ) %>%
 #'   ats_parse_xml()
+#'
+#' }
 #'
 ats_parse_xml <- function(resp) {
 
@@ -625,6 +643,7 @@ ats_parse_xml <- function(resp) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -638,6 +657,8 @@ ats_parse_xml <- function(resp) {
 #'   task = "download transmission data"
 #' ) %>%
 #'   ats_parse_xml()
+#'
+#' }
 #'
 ats_post <- function(path, body = list(), task = "download data") {
 
@@ -696,12 +717,15 @@ ats_post <- function(path, body = list(), task = "download data") {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
 #' all_collars <- fetch_ats_devices()
 #' some_collars <- sample(all_collars, 5)
 #' ats_select_collars(some_collars)
+#'
+#' }
 #'
 ats_select_collars <- function(device_id) {
 
@@ -744,6 +768,7 @@ ats_select_collars <- function(device_id) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -765,6 +790,8 @@ ats_select_collars <- function(device_id) {
 #'     GmtOffset = as.numeric(gmt) * -1
 #'   ) %>%
 #'   ats_trans_dates()
+#'
+#' }
 #'
 ats_trans_dates <- function(trans) {
 
@@ -793,7 +820,7 @@ ats_trans_dates <- function(trans) {
 #'   \item{Active}{Is collar currently active (logical)}
 #'   \item{Phone Num SMS}{SMS recipient for alerts (character)}
 #'   \item{FTP Url}{URL for retrieving data via ftp (character)}
-#'   \item{RestEndPoint}{Is data available via REST API (logical)
+#'   \item{RestEndPoint}{Is data available via REST API (logical)}
 #' }
 #'
 #' @seealso \code{\link{ats_login}} for logging into an ATS account,
@@ -806,6 +833,7 @@ ats_trans_dates <- function(trans) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -813,6 +841,8 @@ ats_trans_dates <- function(trans) {
 #' collar_details <- fetch_ats_config()
 #'
 #' ats_logout()
+#'
+#' }
 #'
 fetch_ats_config <- function() {
 
@@ -849,12 +879,12 @@ fetch_ats_config <- function() {
 #'   \code{fetch_ats_devices} returns a list of all devices with a warning.
 #'   Valid filter values include:
 #'     \itemize{
-#'       \item{All}{Default - a list of all collars}
-#'       \item{Active}{Only active collars}
-#'       \item{Inactive}{Only inactive collars}
-#'       \item{Low_batt}{Active collars with low battery alerts}
-#'       \item{Mort}{Active collars with mortality alerts}
-#'       \item{Birth}{Active collars with birth event alerts}
+#'       \item{All (Default) - a list of all collars}
+#'       \item{Active - Only active collars}
+#'       \item{Inactive - Only inactive collars}
+#'       \item{Low_batt - Active collars with low battery alerts}
+#'       \item{Mort - Active collars with mortality alerts}
+#'       \item{Birth - Active collars with birth event alerts}
 #'     }
 #'
 #' @return A character vector of device ids
@@ -868,6 +898,7 @@ fetch_ats_config <- function() {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -890,6 +921,8 @@ fetch_ats_config <- function() {
 #' collar_list <- fetch_ats_devices("Birth")
 #'
 #' ats_logout()
+#'
+#' }
 #'
 fetch_ats_devices <- function(filter = "all") {
 
@@ -935,7 +968,7 @@ fetch_ats_devices <- function(filter = "all") {
 #'
 #' @description Retrieves all undownloaded events (a.k.a. alerts)
 #'
-#' @Return A tibble with 8 columns:
+#' @return A tibble with 8 columns:
 #' \describe{
 #'   \item{CollarSerialNumber}{ATS Collar ID (character)}
 #'   \item{DateCT}{Timestamp from server (US Cental time, POSIXct))}
@@ -957,6 +990,7 @@ fetch_ats_devices <- function(filter = "all") {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -964,6 +998,8 @@ fetch_ats_devices <- function(filter = "all") {
 #' alerts <- fetch_ats_events()
 #'
 #' ats_logout()
+#'
+#' }
 #'
 fetch_ats_events <- function() {
 
@@ -1005,7 +1041,7 @@ fetch_ats_events <- function() {
 #' @param device_id A single device id, or a list or vector of device ids,
 #'   or NULL for all devices associated with current account. Overrides
 #'   the new parameter when specified.
-#' @param start_date,end_date Currently ignored (see \link{Notes}).
+#' @param start,end Currently ignored (see \link{Notes}).
 #' @param n A single integer specifying how many fixes to return per
 #'   collar (sorted by recency). Valid values are 5 and 10.
 #' @param new A logical flag. When new = true only data that hasn't been
@@ -1042,6 +1078,7 @@ fetch_ats_events <- function() {
 #'   \item{TransDateUTC}{Transmission timestamp in UTC/GMT (POSIXct)},
 #'   \item{TransDateLocal}{Transmission timestamp in current system time
 #'     zone (POSIXct)}
+#' }
 #'
 #' @seealso \code{\link{ats_login}} for logging into an ATS account,
 #'   \code{\link{fetch_ats_config}} for downloading collar configurations,
@@ -1053,6 +1090,7 @@ fetch_ats_events <- function() {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -1090,6 +1128,8 @@ fetch_ats_events <- function() {
 #' fixes <- fetch_ats_positions("044286", new = TRUE)
 #'
 #' ats_logout()
+#'
+#' }
 #'
 fetch_ats_positions <- function(device_id = NULL,
                                 start = NULL,
@@ -1248,6 +1288,7 @@ fetch_ats_positions <- function(device_id = NULL,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("mary", ".")
 #'
@@ -1262,6 +1303,8 @@ fetch_ats_positions <- function(device_id = NULL,
 #' trans <- fetch_ats_transmissions(device_id = collar_list)
 #'
 #' ats_logout()
+#'
+#' }
 #'
 fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
 

@@ -4,12 +4,16 @@
 \alias{lotek_login}
 \title{Authenticate to Lotek API}
 \usage{
-lotek_login(user, pw)
+lotek_login(usr, pwd, user, pw)
 }
 \arguments{
-\item{user}{username}
+\item{usr}{username}
 
-\item{pw}{password}
+\item{pwd}{password}
+
+\item{user}{deprecated to align with other functions in collar}
+
+\item{pw}{deprecated to align with other functions in collar}
 }
 \value{
 True if login succeeds, false if not.
@@ -22,7 +26,7 @@ Send username and password info to Lotek API
 
 lotek_login("demo", "PASSWORD09")
 
-alerts <- fetch_lotek_devices()
+alerts <- fetch_lotek_alerts()
 
 lotek_logout()
 

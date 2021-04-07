@@ -39,8 +39,6 @@ collar_key.  Only one of start_date and after_data_id may be supplied.}
 
 \item{which_date}{either scts or acquisition, indicates date column to use
 for subsetting}
-
-\item{rename_fun}{A function used to rename columns, defaults to adj_col_nms, see details}
 }
 \value{
 Tibble

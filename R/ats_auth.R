@@ -1,3 +1,5 @@
+`%>%` <- magrittr::`%>%`
+
 # 1 - Global Objects ------------------------------------------------------
 
 # * 1.1 - ats_base_url (base url for ATS website) -------------------------
@@ -22,8 +24,11 @@ ats_base_url <- "https://atsidaq.net"
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #'
 #' check_cookie(ats_base_url, "ARRAffinity")
+#'
+#'}
 #'
 check_cookie <- function(url, cookie) {
 
@@ -49,12 +54,15 @@ check_cookie <- function(url, cookie) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login(usr = "my_username", pwd = "secret_code")
 #'
 #' events <- fetch_ats_events()
 #'
 #' ats_logout()
+#'
+#' }
 #'
 ats_login <- function(usr, pwd) {
 
@@ -96,12 +104,15 @@ ats_login <- function(usr, pwd) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' ats_login("demo", "PASSWORD09")
 #'
 #' fixes <- fetch_ats_positions()
 #'
 #' ats_logout()
+#'
+#'}
 #'
 ats_logout <- function() {
 

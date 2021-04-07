@@ -12,8 +12,6 @@ cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 \item{col_nm}{The unqouted name of any one column in the data frame}
 
 \item{rm_header}{Logical indicating whether to remove header completely, defaults to TRUE}
-
-\item{rename_fun}{A function used to rename columns, defaults to adj_col_nms, see details}
 }
 \value{
 tibble
