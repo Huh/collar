@@ -1,6 +1,40 @@
 # 1 - Global Objects ------------------------------------------------------
 
-# ats_empty_trans ---------------------------------------------------------
+# * 1.1 - ats_empty_pos ---------------------------------------------------
+
+# tibble with zero rows matching ATS position file format
+# used to enforce consistency between 4 different possible response formats
+#   (get with data, get without data, post with data, post without data)
+
+ats_empty_pos <- tibble::tibble(
+  CollarSerialNumber = character(0),
+  Year = integer(0),
+  JulianDay = integer(0),
+  Hour = integer(0),
+  Minute = integer(0),
+  Activity = integer(0),
+  Temperature = integer(0),
+  Latitude = numeric(0),
+  Longitude = numeric(0),
+  HDOP = numeric(0),
+  NumSats = integer(0),
+  FixTime = integer(0),
+  `2D/3D` = integer(0),
+  DateOffset = as.POSIXct(NA),
+  GmtOffset = numeric(0),
+  DateUTC = as.POSIXct(NA),
+  DateLocal = as.POSIXct(NA),
+  VITTemp = integer(0),
+  VITLight = integer(0),
+  VITComm = integer(0),
+  Fawn0Comm = integer(0),
+  Fawn1Comm = integer(0),
+  Fawn2Comm = numeric(0),
+  TransDateUTC = as.POSIXct(NA),
+  TransDateLocal = as.POSIXct(NA)
+)
+
+# * 1.2 - ats_empty_trans -------------------------------------------------
 
 # tibble with zero rows matching ATS transmission file format
 # used to enforce consistency between 4 different possible response formats
@@ -20,27 +54,28 @@ ats_empty_trans <- tibble::tibble(
   SatErrors = integer(0),
   GmtOffset = numeric(0),
   LowBatt = logical(0),
-  Event0 = character(0),
-  Event1 = character(0),
-  Event2 = character(0),
+  Birth = character(0),
+  Fawn0 = character(0),
+  Fawn1 = character(0),
+  Fawn2 = character(0),
   Latitude = numeric(0),
   Longitude = numeric(0),
   CEPradius_km = integer(0)
 )
 
-# 1 - Internal Functions --------------------------------------------------
+# 2 - Internal Functions --------------------------------------------------
 
-# * 1.1 - ats_get ---------------------------------------------------------
+# * 2.1 - ats_get ---------------------------------------------------------
 
-#' @title ATS GET
+#' @title GET
 #'
 #' @description Submit an http GET request to the ATS website
 #'
-#' @param path Character or list for the request path
+#' @param path Character or list for the request path.
 #' @param task Character describing the purpose of the current request.
 #'   If the request fails the message 'Failed to [task]' is displayed.
 #'
-#' @return Response object
+#' @return HTTP response object
 #'
 #' @seealso \code{\link{httr::GET}}
 #'
@@ -49,6 +84,8 @@ ats_empty_trans <- tibble::tibble(
 #' @keywords internal
 #'
 #' @examples
+#'
+#' ats_login("mary", ".")
 #'
 #' ats_get(
 #'   path = list(
@@ -91,10 +128,271 @@ ats_get <- function(path, task = "download data") {
 
 }
 
-# * 1.2 - ats_parse_trans -------------------------------------------------
+# * 2.2 - ats_join_trans --------------------------------------------------
 
-# convert text response to dataframe
-# special handling for transmission data returned as text
+#' @title Join Fixes and Transmissions
+#'
+#' @description Add transmission info to fixes to apply offset and infer
+#'   data substitutions
+#'
+#' @param pos Tibble of position data.
+#' @param trans Tibble of corresponding transmission data.
+#'
+#' @return  A tibble with 25 columns (see \code{\link{ats_fetch_positions}})
+#'
+#' @seealso \code{\link{ats_fetch_positions}}
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' trans <- fetch_ats_transmissions()
+#'
+#' ats_get(
+#'   path = list(
+#'     "download_all_data",
+#'     paste0("Download_all_data.aspx?dw=all")
+#'   ),
+#'   task = "download position data"
+#' ) %>%
+#'   httr::content("text", encoding = "UTF-8") %>%
+#'   readr::read_csv(col_types = "ciiiiiidddiic_") %>%
+#'   dplyr::rename(JulianDay = Julianday) %>%
+#'   ats_join_trans(trans)
+#'
+ats_join_trans <- function(pos, trans) {
+
+  tr_w_fixnumber <- trans %>%
+    dplyr::group_by(CollarSerialNumber) %>%
+    dplyr::mutate(FixNumber = cumsum(NumberFixes)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(
+      CollarSerialNumber, FixNumber, GmtOffset, TransDateUTC = DateUTC,
+      TransDateLocal = DateLocal, Birth, Fawn0:Fawn2
+    )
+
+  pos %>%
+    dplyr::group_by(CollarSerialNumber) %>%
+    dplyr::mutate(FixNumber = dplyr::row_number()) %>%
+    dplyr::left_join(
+      tr_w_fixnumber,
+      by = c("CollarSerialNumber", "FixNumber")
+    ) %>%
+    tidyr::fill(
+      GmtOffset, TransDateUTC, TransDateLocal, Birth, Fawn0:Fawn2,
+      .direction = "up"
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      DateOffset = lubridate::as_datetime(
+        paste(Year, JulianDay, Hour, Minute),
+        format = "%y %j %H %M"
+      ),
+      DateUTC = DateOffset + lubridate::hours(GmtOffset),
+      DateLocal = lubridate::with_tz(DateUTC, tz = Sys.timezone()),
+      DataMode = dplyr::case_when(
+        nchar(`2D/3D`) == 1 ~ "Normal",
+        Birth != "None" ~ "VIT",
+        !all(Fawn0 == "None", Fawn1 == "None", Fawn2 == "None") ~ "Fawn",
+        TRUE ~ "Unknown"
+      ),
+      VITTemp = dplyr::case_when(
+        DataMode != "VIT" ~ NA_integer_,
+        TRUE ~ Temperature
+      ),
+      Temperature = dplyr::case_when(
+        DataMode != "Normal" ~ NA_integer_,
+        TRUE ~ Temperature
+      ),
+      VITLight = dplyr::case_when(
+        DataMode != "VIT" ~ NA_integer_,
+        TRUE ~ FixTime
+      ),
+      FixTime = dplyr::case_when(
+        DataMode %in% c("Fawn", "Normal") ~ FixTime,
+        TRUE ~ NA_integer_
+      ),
+      Fawn2Comm = dplyr::case_when(
+        DataMode != "Fawn" ~ NA_real_,
+        TRUE ~ HDOP
+      ),
+      HDOP = dplyr::case_when(
+        DataMode != "Normal" ~ NA_real_,
+        TRUE ~ HDOP
+      ),
+      Fawn1Comm = dplyr::case_when(
+        DataMode != "Fawn" ~ NA_integer_,
+        TRUE ~ NumSats
+      ),
+      NumSats = dplyr::case_when(
+        DataMode != "Normal" ~ NA_integer_,
+        TRUE ~ NumSats
+      ),
+      Fawn0Comm = dplyr::case_when(
+        DataMode != "Fawn" ~ NA_integer_,
+        TRUE ~ as.integer(`2D/3D`)
+      ),
+      VITComm = dplyr::case_when(
+        DataMode != "VIT" ~ NA_integer_,
+        TRUE ~ as.integer(`2D/3D`)
+      ),
+      `2D/3D` = dplyr::case_when(
+        DataMode != "Normal" ~ NA_integer_,
+        TRUE ~ as.integer(`2D/3D`)
+      )
+    ) %>%
+      dplyr::relocate(DateOffset, .before = GmtOffset) %>%
+      dplyr::relocate(VITTemp, VITLight, VITComm, .after = DateLocal) %>%
+      dplyr::relocate(Fawn0Comm, Fawn1Comm, Fawn2Comm, .after = VITComm)  %>%
+      dplyr::relocate(TransDateUTC, TransDateLocal, .after = Fawn2Comm)  %>%
+      dplyr::select(-c(FixNumber, Birth, Fawn0:Fawn2, DataMode))
+
+}
+
+# * 2.3 - ats_parse_pos ---------------------------------------------------
+
+#' @title Parse Fixes
+#'
+#' @description Convert http response to tibble
+#'
+#' @section Notes:
+#'
+#'   Data can be retrieved either via \code{httr::GET} (for all
+#'   transmissions) or \code{httr::POST} (by collar), and each request
+#'   type can return two different formats depending on whether there is
+#'   data available. This function handles the four different possibilities
+#'   and returns a tibble with the same column names and types no matter
+#'   what. GmtOffset is multiplied by -1 to correct for ATS using
+#'   non-standard syntax. Dates in UTC and current system time zone are
+#'   added. Column substitutions in neolink modes are reversed.
+#'
+#' @param resp HTTP response object
+#' @param trans Tibble of corresponding transmission data
+#'
+#' @return A tibble with 25 columns (see \code{\link{ats_fetch_positions}})
+#'
+#' @seealso \code{\link{ats_fetch_positions}}
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' trans <- fetch_ats_transmissions()
+#'
+#' ats_get(
+#'   path = list(
+#'     "download_all_data",
+#'     paste0("Download_all_data.aspx?dw=all")
+#'   ),
+#'   task = "download position data"
+#' ) %>%
+#'   ats_parse_pos(trans)
+#'
+ats_parse_pos <- function(resp, trans) {
+
+  assertthat::assert_that(
+    inherits(resp, "response"),
+    msg = "Invalid response passed to parsing function."
+  )
+
+  if (resp$request$method == "GET") {
+
+    if (inherits(httr::content(resp), "xml_document")) {
+
+      # api returns html when no new data is available
+      ats_empty_pos
+
+    } else {
+
+      # parse txt file
+      httr::content(resp, "text", encoding = "UTF-8") %>%
+        readr::read_csv(col_types = "ciiiiiidddiic_") %>%
+        dplyr::rename(JulianDay = Julianday) %>%
+        ats_join_trans(trans)
+
+    }
+
+  } else {
+
+    pos_data <- resp %>%
+      ats_parse_xml()
+
+    if (ncol(pos_data) == 0) {
+
+      # no data returned (tibble 0x0)
+      ats_empty_pos
+
+    } else {
+
+      # parse xml file
+      pos_data %>%
+        dplyr::select(
+          CollarSerialNumber = AtsSerialNum, Year, JulianDay, Hour, Minute,
+          Activity, Temperature, Latitude, Longitude, HDOP = Hdop, NumSats,
+          FixTime, `2D/3D` = Dimension
+        ) %>%
+        dplyr::mutate(
+          dplyr::across(c(2:7, 11:12), as.integer),
+          dplyr::across(c(8:9, 10), as.numeric)
+        ) %>%
+        ats_join_trans(trans)
+
+    }
+
+  }
+
+}
+
+# * 2.4 - ats_parse_trans -------------------------------------------------
+
+#' @title Parse Transmissions
+#'
+#' @description Convert http response to tibble
+#'
+#' @section Notes:
+#'
+#'   Data can be retrieved either via \code{httr::GET} (for all
+#'   transmissions) or \code{httr::POST} (by collar), and each request
+#'   type can return two different formats depending on whether there is
+#'   data available. This function handles the four different possibilities
+#'   and returns a tibble with the same column names and types no matter
+#'   what. GmtOffset is multiplied by -1 to correct for ATS using
+#'   non-standard syntax. Dates in UTC and current system time zone are
+#'   added. Neolink events are split into separate columns.
+#'
+#' @param resp HTTP response object
+#'
+#' @return A tibble with 19 columns (see \code{\link{ats_fetch_positions}})
+#'
+#' @seealso \code{\link{ats_fetch_transmissions}}
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' trans <- fetch_ats_transmissions()
+#'
+#' ats_get(
+#'   path = list(
+#'     "download_all_transmission",
+#'     "download_all_transmission.aspx?dw=all"
+#'   ),
+#'   task = "download transmission data"
+#' ) %>%
+#'   ats_parse_trans()
+#'
 ats_parse_trans <- function(resp) {
 
   assertthat::assert_that(
@@ -104,7 +402,7 @@ ats_parse_trans <- function(resp) {
 
   if (resp$request$method == "GET") {
 
-    if (inherits(resp$content, "xml_document")) {
+    if (inherits(httr::content(resp), "xml_document")) {
 
       # api returns html when no new data is available
       ats_empty_trans
@@ -119,7 +417,7 @@ ats_parse_trans <- function(resp) {
         readr::read_csv(col_types = "ccidcciiidccddi") %>%
         tidyr::separate(
           Event,
-          into = c("Event0", "Event1", "Event2"),
+          into = c("Fawn0", "Fawn1", "Fawn2"),
           sep = ",",
           fill = "right"
         ) %>%
@@ -129,10 +427,14 @@ ats_parse_trans <- function(resp) {
             tz = "America/Menominee",
             format = "%m/%d/%Y %I:%M:%S %p"
           ),
+          GmtOffset = GmtOffset * -1,
           LowBatt = dplyr::if_else(LowBatt == "Yes", TRUE, FALSE),
-          Event1 = tidyr::replace_na(Event1, "None"),
-          Event2 = tidyr::replace_na(Event2, "None")
+          Birth = dplyr::if_else(grepl("^Birth", Fawn0), Fawn0, "None"),
+          Fawn0 = dplyr::if_else(grepl("^Birth", Fawn0), "None", Fawn0),
+          Fawn1 = tidyr::replace_na(Fawn1, "None"),
+          Fawn2 = tidyr::replace_na(Fawn2, "None")
         ) %>%
+        dplyr::relocate(Birth, .before = Fawn0) %>%
         ats_trans_dates()
 
     }
@@ -176,21 +478,27 @@ ats_parse_trans <- function(resp) {
           GpsOnTime = as.integer(gpson),
           SatOnTime = as.integer(saton),
           SatErrors = as.integer(saterror),
-          GmtOffset = as.numeric(gmt),
+          GmtOffset = as.numeric(gmt) * -1,
           LowBatt = as.logical(lowbatt),
-          Event0 = dplyr::case_when(
-            ev0 == "None" ~ "None",
-            TRUE ~ paste(ev0, evc0, sep = "-")
+          Birth = dplyr::if_else(
+            grepl("^Birth", ev0),
+            paste(ev0, evc0, sep = "-"),
+            "None"
           ),
-          Event1 = dplyr::case_when(
-            is.na(ev1) ~ "None",
-            ev1 == "None" ~ "None",
-            TRUE ~ paste(ev1, evc1, sep = "-")
+          Fawn0 = dplyr::if_else(
+            grepl("^Birth", ev0) | ev0 == "None",
+            "None",
+            paste(ev0, evc0, sep = "-")
           ),
-          Event2 = dplyr::case_when(
-            is.na(ev2) ~ "None",
-            ev2 == "None" ~ "None",
-            TRUE ~ paste(ev2, evc2, sep = "-")
+          Fawn1 = dplyr::if_else(
+            is.na(ev1) | ev1 == "None",
+            "None",
+            paste(ev1, evc1, sep = "-")
+          ),
+          Fawn2 = dplyr::if_else(
+            is.na(ev2) | ev2 == "None",
+            "None",
+            paste(ev2, evc2, sep = "-")
           ),
           Latitude = as.numeric(lat),
           Longitude = as.numeric(long),
@@ -204,10 +512,35 @@ ats_parse_trans <- function(resp) {
 
 }
 
-# * 1.3 - ats_parse_txt ---------------------------------------------------
+# * 2.5 - ats_parse_txt ---------------------------------------------------
 
-# convert text response to dataframe
-ats_parse_txt <- function(resp) {
+#' @title Parse Text
+#'
+#' @description Convert raw text file in HTTP response to tibble
+#'
+#' @param resp HTTP response object
+#' @param ... Additional arguments passed to \code{readr::read_csv}
+#'
+#' @return A tibble
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' ats_get(
+#'   path = list(
+#'     "download_all_events",
+#'     "download_all_events.aspx?dw=all"
+#'   ),
+#'   task = "download event data"
+#' ) %>%
+#'   ats_parse_txt()
+#'
+ats_parse_txt <- function(resp, ...) {
 
   assertthat::assert_that(
     inherits(resp, "response"),
@@ -215,13 +548,40 @@ ats_parse_txt <- function(resp) {
   )
 
   httr::content(resp, "text", encoding = "UTF-8") %>%
-    readr::read_csv()
+    readr::read_csv(...)
 
 }
 
-# * 1.4 - ats_parse_xml ---------------------------------------------------
+# * 2.6 - ats_parse_xml ---------------------------------------------------
 
-# convert xml response to dataframe
+#' @title Parse XML
+#'
+#' @description Convert raw xml in HTTP response to tibble
+#'
+#' @param resp HTTP response object
+#'
+#' @return A tibble
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' ats_post(
+#'   path = "Servidor.ashx",
+#'   body = list(
+#'     consulta = "download_txt_collars",
+#'     type = "004"",
+#'     parameter1 = "",
+#'     parameter2 = ""
+#'   ),
+#'   task = "download position data"
+#' ) %>%
+#'   ats_parse_xml()
+#'
 ats_parse_xml <- function(resp) {
 
   assertthat::assert_that(
@@ -245,124 +605,9 @@ ats_parse_xml <- function(resp) {
 
 }
 
-# * 1.5 - ats_pos_all -----------------------------------------------------
+# * 2.7 - ats_post --------------------------------------------------------
 
-# use the url to download position data for all collars
-ats_pos_all <- function(new = FALSE) {
-
-  type <- purrr::when(
-    new,
-    isTRUE(.) ~ "new",
-    ~ "all"
-  )
-
-  resp <- ats_get(
-    path = list(
-      "download_all_data",
-      paste0("Download_all_data.aspx?dw=", type)
-    ),
-    task = "download position data"
-  )
-
-  if (inherits(resp$content, "raw")) {
-    ats_parse_txt(resp)
-  } else {
-    tibble::tibble(
-      CollarSerialNumber = integer(0),
-      Year = integer(0),
-      Julianday = integer(0),
-      Hour = integer(0),
-      Minute = integer(0),
-      Activity = integer(0),
-      Temperature = integer(0),
-      Latitude = numeric(0),
-      Longitude = numeric(0),
-      HDOP = numeric(0),
-      NumSats = integer(0),
-      FixTime = integer(0),
-      X2D.3D = integer(0),
-      Date = character(0)
-    )
-  }
-
-}
-
-# * 1.6 - ats_pos_filter --------------------------------------------------
-
-# use a POST request to download position data for selected collars
-ats_pos_filter <- function(device_id = NULL,
-                           start = NULL,
-                           end = NULL,
-                           n = NULL) {
-
-  # check for valid n values
-  assertthat::validate_that(
-    any(is.null(n), n %in% c(5, 10)),
-    msg = paste(
-      "Only 5 and 10 are valid options for last n filters.",
-      "Parameter n will be ignored."
-    )
-  )
-
-  # check for conflicting filters
-  assertthat::validate_that(
-    all(is.null(start), is.null(end)) | is.null(n),
-    msg = paste(
-      "Last 5 and last 10 filters are incompatible with date filters.",
-      "Only date filters will be used, parameter n will be ignored."
-    )
-  )
-
-  # select collars
-  purrr::when(
-    device_id,
-    # default to all
-    is.null(.) ~ fetch_ats_devices(),
-    ~ device_id
-  ) %>%
-    ats_select_collars()
-
-  # set defaults
-  type <- "004"    # all data
-  p1 <- ""         # no start date
-  p2 <- ""         # no end date
-
-  if (!any(is.null(start), is.null(end))) {
-    type <- "001"    # filter by date range
-    if (!is.null(start)) {
-      p1 <- format(start, "%m/%d/%Y")
-    }
-    if (!is.null(start)) {
-      p2 <- format(end, "%m/%d/%Y")
-    }
-  } else {
-    if (!is.null(n)) {
-      type <- purrr::when(
-        n,
-        . == 5 ~ "002",     # last 5
-        . == 10 ~ "003",    # last 10
-        ~ "004"
-      )
-    }
-  }
-
-  ats_post(
-    path = "Servidor.ashx",
-    body = list(
-      consulta = "download_txt_collars",
-      type = type,
-      parameter1 = p1,
-      parameter2 = p2
-    ),
-    task = "download position data"
-  ) %>%
-    ats_parse_xml()
-
-}
-
-# * 1.7 - ats_post --------------------------------------------------------
-
-#' @title ATS POST
+#' @title POST
 #'
 #' @description Submit an http POST request to the ATS website
 #'
@@ -381,13 +626,16 @@ ats_pos_filter <- function(device_id = NULL,
 #'
 #' @examples
 #'
+#' ats_login("mary", ".")
+#'
+#' ats_select_collars("044286")
+#'
 #' ats_post(
 #'   path = "Servidor.ashx",
 #'   body = list(
-#'     consulta = "get_collars_user",
-#'     valor = valor
+#'     consulta = "download_trans_collars"
 #'   ),
-#'   task = "download device list"
+#'   task = "download transmission data"
 #' ) %>%
 #'   ats_parse_xml()
 #'
@@ -432,8 +680,29 @@ ats_post <- function(path, body = list(), task = "download data") {
 
 }
 
-# * 1.8 - ats_select_collars ----------------------------------------------
+# * 2.8 - ats_select_collars ----------------------------------------------
 
+#' @title Select Collars
+#'
+#' @description Submit an http POST request to create a cookie of selected
+#'   collars for subsequent requests
+#'
+#' @param device_id A single device id, or a list or vector of device ids.
+#'
+#' @return Logical, TRUE if successful
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' all_collars <- fetch_ats_devices()
+#' some_collars <- sample(all_collars, 5)
+#' ats_select_collars(some_collars)
+#'
 ats_select_collars <- function(device_id) {
 
   # check collars parameter
@@ -460,8 +729,43 @@ ats_select_collars <- function(device_id) {
 
 }
 
-# * 1.9 - ats_trans_dates -------------------------------------------------
+# * 2.9 - ats_trans_dates -------------------------------------------------
 
+#' @title Transmission Dates
+#'
+#' @description Add date columns to transmission data
+#'
+#' @param trans A tibble of transmission data
+#'
+#' @return A tibble with dates in UTC and local (system) time added
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' ats_login("mary", ".")
+#'
+#' ats_select_collars("044286")
+#'
+#' ats_post(
+#'   path = "Servidor.ashx",
+#'   body = list(
+#'     consulta = "download_trans_collars"
+#'   ),
+#'   task = "download transmission data"
+#' ) %>%
+#'   ats_parse_xml() %>%
+#'   dplyr::mutate(
+#'     DateCT = as.POSIXct(
+#'       fecha,
+#'       tz = "America/Menominee"
+#'     ),
+#'     GmtOffset = as.numeric(gmt) * -1
+#'   ) %>%
+#'   ats_trans_dates()
+#'
 ats_trans_dates <- function(trans) {
 
   trans %>%
@@ -473,16 +777,24 @@ ats_trans_dates <- function(trans) {
 
 }
 
-# 2 - Download Functions --------------------------------------------------
+# 3 - Download Functions --------------------------------------------------
 
-# * 2.1 - fetch_ats_config ------------------------------------------------
+# * 3.1 - fetch_ats_config ------------------------------------------------
 
 #' @title Download Collar Configuration Data from ATS Website
 #'
-#' @description Retrieves configurtion information for all collars in the
+#' @description Retrieves configuration information for all collars in the
 #'   current account
 #'
-#' @return A tibble with configuration information
+#' @return A tibble with 6 columns:
+#' \describe{
+#'   \item{CollarSerialNumber}{ATS Collar ID (character)}
+#'   \item{Email}{Email recipient for alerts (character)}
+#'   \item{Active}{Is collar currently active (logical)}
+#'   \item{Phone Num SMS}{SMS recipient for alerts (character)}
+#'   \item{FTP Url}{URL for retrieving data via ftp (character)}
+#'   \item{RestEndPoint}{Is data available via REST API (logical)
+#' }
 #'
 #' @seealso \code{\link{ats_login}} for logging into an ATS account,
 #'   \code{\link{fetch_ats_positions}} for downloading GPS data,
@@ -512,11 +824,20 @@ fetch_ats_config <- function() {
     ),
     task = "download device configurations"
   ) %>%
-    ats_parse_txt()
+    ats_parse_txt(col_types = "cccccc") %>%
+    dplyr::mutate(
+      CollarSerialNumber = dplyr::if_else(
+        grepl("^00", CollarSerialNumber) & nchar(CollarSerialNumber) == 7,
+        substr(CollarSerialNumber, 2, 7),
+        CollarSerialNumber
+      ),
+      Active = dplyr::if_else(Active == "yes", TRUE, FALSE),
+      RestEndPoint = dplyr::if_else(RestEndPoint == "yes", TRUE, FALSE)
+    )
 
 }
 
-# * 2.2 - fetch_ats_devices -----------------------------------------------
+# * 3.2 - fetch_ats_devices -----------------------------------------------
 
 #' @title Download a List of Devices from ATS Website
 #'
@@ -595,7 +916,7 @@ fetch_ats_devices <- function(filter = "all") {
     xml2::xml_find_all("//collar") %>%
     xml2::xml_text()
 
-  if (all(valor == "active", valor != filter)) {
+  if (all(valor == "active", valor != tolower(filter))) {
     if (tolower(filter) != "all") {
       warning(
         "Unrecognized filter provided, returning all collars."
@@ -608,13 +929,23 @@ fetch_ats_devices <- function(filter = "all") {
 
 }
 
-# * 2.3 - fetch_ats_events ------------------------------------------------
+# * 3.3 - fetch_ats_events ------------------------------------------------
 
 #' @title Download Event Data from ATS Website
 #'
 #' @description Retrieves all undownloaded events (a.k.a. alerts)
 #'
-#' @return A tibble with event information
+#' @Return A tibble with 8 columns:
+#' \describe{
+#'   \item{CollarSerialNumber}{ATS Collar ID (character)}
+#'   \item{DateCT}{Timestamp from server (US Cental time, POSIXct))}
+#'   \item{DateUTC}{Timestamp in UTC/GMT (POSIXct)}
+#'   \item{DateLocal}{Timestamp in current system time zone (POSIXct)}
+#'   \item{Birth}{VIT birth event (character)}
+#'   \item{Fawn0}{Main collar event or neolink slot 0 event (character)}
+#'   \item{Fawn1}{Neolink slot 1 event (character)}
+#'   \item{Fawn2}{Neolink slot 2 event (character)}
+#' }
 #'
 #' @seealso \code{\link{ats_login}} for logging into an ATS account,
 #'   \code{\link{fetch_ats_config}} for downloading collar configurations,
@@ -644,11 +975,20 @@ fetch_ats_events <- function() {
     ),
     task = "download event data"
   ) %>%
-    ats_parse_txt()
+    ats_parse_txt() %>%
+    dplyr::rename(DateCT = DateSent) %>%
+    dplyr::mutate(
+      DateCT = as.POSIXct(
+        DateCT,
+        tz = "America/Menominee",
+        format = "%m/%d/%Y %I:%M:%S %p"
+      )
+    ) %>%
+    ats_trans_dates()
 
 }
 
-# * 2.4 - fetch_ats_positions ---------------------------------------------
+# * 3.4 - fetch_ats_positions ---------------------------------------------
 
 #' @title Download GPS Fixes from ATS Website
 #'
@@ -672,7 +1012,36 @@ fetch_ats_events <- function() {
 #'   previously downloaded is returned. If device_id is specified the flag
 #'   is ignored.
 #'
-#' @return A tibble with information about mortalities, births, etc.
+#' @return A tibble with 25 columns:
+#' \describe{
+#'   \item{CollarSerialNumber}{ATS Collar ID (character)},
+#'   \item{Year}{Two digit year (integer)},
+#'   \item{JulianDay}{Julian day (1:366, integer)},
+#'   \item{Hour}{Hour (integer)},
+#'   \item{Minute}{Minute (integer)},
+#'   \item{Activity}{Activity sensor reading (integer)},
+#'   \item{Temperature}{Ambient temperature (Celsius, integer)},
+#'   \item{Latitude}{Latitude (decimal degrees, numeric)},
+#'   \item{Longitude}{Longitude (decimal degrees, numeric)},
+#'   \item{HDOP}{Horizontal Dilution of Precision (numeric)},
+#'   \item{NumSats}{Number of GPS satellites (integer)},
+#'   \item{FixTime}{GPS Fix Time (integer)},
+#'   \item{`2D/3D`}{GPS fix dimension (integer)},
+#'   \item{DateOffset}{Timestamp from raw data with fixed offset applied
+#'     (POSIXct)},
+#'   \item{GmtOffset}{Offset from GMT in hours, mutliplied by negative one
+#'     to correct for non-standard ATS usage (numeric)},
+#'   \item{DateUTC}{Timestamp in UTC/GMT (POSIXct)},
+#'   \item{DateLocal}{Timestamp in current system time zone (POSIXct)},
+#'   \item{VITTemp}{VIT temperature (Celsius, integer)},
+#'   \item{VITLight}{VIT light sensor reading (integer) (integer)},
+#'   \item{VITComm}{VIT communication count (integer)},
+#'   \item{Fawn0Comm}{Fawn slot 0 communication count (integer)},
+#'   \item{Fawn1Comm}{Fawn slot 1 communication count (integer)},
+#'   \item{Fawn2Comm}{Fawn slot 2 communication count (numeric)},
+#'   \item{TransDateUTC}{Transmission timestamp in UTC/GMT (POSIXct)},
+#'   \item{TransDateLocal}{Transmission timestamp in current system time
+#'     zone (POSIXct)}
 #'
 #' @seealso \code{\link{ats_login}} for logging into an ATS account,
 #'   \code{\link{fetch_ats_config}} for downloading collar configurations,
@@ -712,10 +1081,13 @@ fetch_ats_events <- function() {
 #'
 #' # get fixes in 2019 for certain collars
 #' fixes <- fetch_ats_positions(
-#'   device_id =  = collar_list,
+#'   device_id = collar_list,
 #'   start = as.POSIXct("2019-01-01"),
 #'   end = as.POSIXct("2020-01-01")
 #' )
+#'
+#' # get undownloaded fixes for a single collar
+#' fixes <- fetch_ats_positions("044286", new = TRUE)
 #'
 #' ats_logout()
 #'
@@ -742,14 +1114,93 @@ fetch_ats_positions <- function(device_id = NULL,
   args <- args[names(args) != "new"]
 
   if (all(sapply(args, is.null))) {
-    ats_pos_all(new)
+
+    # get transmission data for determining gmt offset
+    trans <- fetch_ats_transmissions(new = new)
+
+    # get dw parameter for GET request
+    type <- purrr::when(
+      new,
+      isTRUE(.) ~ "new",
+      ~ "all"
+    )
+
+    # send request and parse
+    ats_get(
+      path = list(
+        "download_all_data",
+        paste0("Download_all_data.aspx?dw=", type)
+      ),
+      task = "download position data"
+    ) %>%
+      ats_parse_pos(trans)
+
   } else {
-    do.call(ats_pos_filter, args)
+
+    # check for valid n values
+    assertthat::validate_that(
+      any(is.null(n), n %in% c(5, 10)),
+      msg = paste(
+        "Only 5 and 10 are valid options for last n filters.",
+        "Parameter n will be ignored."
+      )
+    )
+
+    # check for conflicting filters
+    assertthat::validate_that(
+      all(is.null(start), is.null(end)) | is.null(n),
+      msg = paste(
+        "Last 5 and last 10 filters are incompatible with date filters.",
+        "Only date filters will be used, parameter n will be ignored."
+      )
+    )
+
+    # get transmission data for determining gmt offset
+    trans <- fetch_ats_transmissions(device_id)
+
+    # set defaults
+    type <- "004"    # all data
+    p1 <- ""         # no start date
+    p2 <- ""         # no end date
+
+    # adjust request parameters
+    if (!any(is.null(start), is.null(end))) {
+      type <- "001"    # filter by date range
+      if (!is.null(start)) {
+        p1 <- format(start, "%m/%d/%Y")
+      }
+      if (!is.null(start)) {
+        p2 <- format(end, "%m/%d/%Y")
+      }
+    } else {
+      if (!is.null(n)) {
+        type <- purrr::when(
+          n,
+          . == 5 ~ "002",     # last 5
+          . == 10 ~ "003",    # last 10
+          ~ "004"
+        )
+      }
+    }
+
+    # send request and parse
+    ats_post(
+      path = "Servidor.ashx",
+      body = list(
+        consulta = "download_txt_collars",
+        type = type,
+        parameter1 = p1,
+        parameter2 = p2
+      ),
+      task = "download position data"
+    ) %>%
+      ats_parse_pos(trans)
+
   }
 
 }
 
-# * 2.5 - fetch_ats_transmissions -----------------------------------------
+# * 3.5 - fetch_ats_transmissions -----------------------------------------
 
 #' @title Download Transmission Data from ATS Website
 #'
@@ -763,7 +1214,29 @@ fetch_ats_positions <- function(device_id = NULL,
 #'   previously downloaded is returned. If device_id is specified the flag
 #'   is ignored.
 #'
-#' @return A tibble with transmission information
+#' @return A tibble with 20 columns:
+#' \describe{
+#'   \item{CollarSerialNumber}{ATS Collar ID (character)}
+#'   \item{DateCT}{Timestamp from server (US Cental time, POSIXct))}
+#'   \item{DateUTC}{Timestamp in UTC/GMT (POSIXct)}
+#'   \item{DateLocal}{Timestamp in current system time zone (POSIXct)}
+#'   \item{NumberFixes}{Number of fixes transmitted (integer)}
+#'   \item{BattVoltage}{Battery voltage (numeric)}
+#'   \item{Mortality}{Mortality message (character)}
+#'   \item{BreakOff}{Breakoff message (character)}
+#'   \item{GpsOnTime}{GPS module on time (integer)}
+#'   \item{SatOnTime}{Satellite module on time (integer)}
+#'   \item{SatErrors}{Number of satellite errors (integer)}
+#'   \item{GmtOffset}{Offset (in hours) from UTC/GMT (numeric)}
+#'   \item{LowBatt}{Is collar in low battery mode (logical)}
+#'   \item{Birth}{VIT birth event (character)}
+#'   \item{Fawn0}{Neolink slot 0 event (character)}
+#'   \item{Fawn1}{Neolink slot 1 event (character)}
+#'   \item{Fawn2}{Neolink slot 2 event (character)}
+#'   \item{Latitude}{Latitude in decimal degrees (numeric)}
+#'   \item{Longitude}{Latitude in decimal degrees (numeric)}
+#'   \item{CEPradius_km}{Circular Error Probability in km (integer)}
+#' }
 #'
 #' @seealso \code{\link{ats_login}} for logging into an ATS account,
 #'   \code{\link{fetch_ats_config}} for downloading collar configurations,
