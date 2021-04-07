@@ -599,7 +599,8 @@ ats_parse_xml <- function(resp) {
   purrr::map_dfc(
     cols,
     ~ httr::content(resp) %>%
-      xml2::xml_find_all(paste0("//", .x)) %>%
+      xml2::xml_find_all("//Table") %>%
+      xml2::xml_find_first(paste0("//", .x)) %>%
       xml2::xml_text()
   )
 
