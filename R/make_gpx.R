@@ -41,7 +41,7 @@ make_gpx <- function(x,
       )
     ) %>%
     sf::st_as_sf(coords = c(lon_col, lat_col), crs = crs) %>%
-    dplyr::select(name) %>%
+    dplyr::select(.data$name) %>%
     sf::st_write(dsn = file, layer = "waypoints", driver = "GPX", ...)
 
   return(invisible(x))

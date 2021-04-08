@@ -5,7 +5,7 @@
 ################################################################################
 
 # base url for API calls
-lotek_base_url = "https://webservice.lotek.com"
+lotek_base_url <- "https://webservice.lotek.com"
 
 # environment for managing authentication info
 ltk.env <- new.env()
@@ -18,8 +18,10 @@ ltk.env$ltk <- list()
 #' @description Send username and password info to Lotek API
 #'   to log in to a user account.
 #'
-#' @param user username
-#' @param pw password
+#' @param usr username The username associated with the account
+#' @param pwd password The password used with the supplied username
+#' @param user deprecated to align with other functions in collar
+#' @param pw deprecated to align with other functions in collar
 #'
 #' @return True if login succeeds, false if not.
 #'
@@ -31,11 +33,31 @@ ltk.env$ltk <- list()
 #'
 #' lotek_login("demo", "PASSWORD09")
 #'
-#' alerts <- fetch_lotek_devices()
+#' alerts <- fetch_lotek_alerts()
 #'
 #' lotek_logout()
 #'
-lotek_login <- function(user, pw) {
+lotek_login <- function(usr, pwd, user, pw) {
+
+  if (!missing(user)) {
+    warning(paste(
+      "Parameter 'user' is deprecated and will be replaced with",
+      "'usr' in a future version. Please update your code."
+    ))
+    if (missing(usr)) {
+      usr <- user
+    }
+  }
+
+  if (!missing(pw)) {
+    warning(paste(
+      "Parameter 'pw' is deprecated and will be replaced with",
+      "'pwd' in a future version. Please update your code."
+    ))
+    if (missing(pwd)) {
+      pwd <- pw
+    }
+  }
 
   # clear existing login info
   ltk.env$ltk <- list()
@@ -47,8 +69,8 @@ lotek_login <- function(user, pw) {
     path = list("API", "user", "login"),
     body = list(
       grant_type = "password",
-      username = user,
-      Password = pw
+      username = usr,
+      Password = pwd
     ),
     encode = "form",
     quiet = TRUE
@@ -184,7 +206,7 @@ lotek_refresh_token <- function(force_refresh = FALSE) {
 #'
 #' @keywords internal
 #'
-lotek_token = function() {
+lotek_token <- function() {
 
   # exit if user is not logged in
   assertthat::assert_that(
@@ -196,7 +218,7 @@ lotek_token = function() {
     )
   )
 
-  # exit if l
+  # refresh auth token if needed
   lotek_refresh_token()
 
   paste(

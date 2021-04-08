@@ -19,7 +19,7 @@ Use `lotek_login` with your username and password to log in to your Lotek accoun
 
 ```{r}
 library(collar)
-lotek_login(user = "demo", pw = "PASSWORD09")
+lotek_login(usr = "demo", pwd = "PASSWORD09")
 ```
 
 Your login information should last for about an hour. If you experience problems retrieving your data you can always run the same code again to log back in to your account.
@@ -35,7 +35,7 @@ lotek_logout()
 Use `fetch_lotek_alerts` to get a list of alerts from the server. No parameters are required:
 
 ```{r}
-lotek_login(user = "demo", pw = "PASSWORD09")
+lotek_login(usr = "demo", pwd = "PASSWORD09")
 alerts <- fetch_lotek_alerts()
 alerts
 ```

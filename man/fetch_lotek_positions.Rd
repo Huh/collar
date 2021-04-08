@@ -31,7 +31,7 @@ Retrieves GPS data optionally filtered by date or collar.
   return an error if the API call fails. This behavior is intentional and
   due to the fact that failures/errors and successful calls that did not
   return any data are indistinguishable on the client side. If the API
-  response indicate an error (for either reason) an empty tibble is
+  response indicates an error (for either reason) an empty tibble is
   returned with the same columns as a successful download.
 }
 
