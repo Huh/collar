@@ -222,7 +222,7 @@ ats_join_trans <- function(pos, trans) {
         ),
         format = "%y %j %H %M"
       ),
-      DateUTC = .data$DateOffset + lubridate::hours(.data$GmtOffset),
+      DateUTC = .data$DateOffset - lubridate::hours(.data$GmtOffset),
       DateLocal = lubridate::with_tz(.data$DateUTC, tz = Sys.timezone()),
       DataMode = dplyr::case_when(
         nchar(.data$`2D/3D`) == 1 ~ "Normal",
