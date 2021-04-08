@@ -1,3 +1,7 @@
+# collar 0.0.3
+
+* update ATS workflow after website change
+
 # collar 0.0.2
 
 * adds Lotek API functions and documentation
