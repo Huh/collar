@@ -74,6 +74,7 @@ ats_empty_trans <- tibble::tibble(
 #' @param path Character or list for the request path.
 #' @param task Character describing the purpose of the current request.
 #'   If the request fails the message 'Failed to [task]' is displayed.
+#' @param ... Additional options passed to \code{httr::GET}
 #'
 #' @return HTTP response object
 #'
@@ -99,7 +100,7 @@ ats_empty_trans <- tibble::tibble(
 #'
 #' }
 #'
-ats_get <- function(path, task = "download data") {
+ats_get <- function(path, task = "download data", ...) {
 
   # check internet
   assertthat::assert_that(
@@ -125,6 +126,7 @@ ats_get <- function(path, task = "download data") {
     "GET",
     url = ats_base_url,
     path = path,
+    ...,
     quiet = TRUE
   ) %>%
     httr::stop_for_status(task)
@@ -173,6 +175,7 @@ ats_get <- function(path, task = "download data") {
 ats_join_trans <- function(pos, trans) {
 
   tr_w_fixnumber <- trans %>%
+    dplyr::filter(.data$NumberFixes > 0) %>%
     dplyr::group_by(.data$CollarSerialNumber) %>%
     dplyr::mutate(FixNumber = cumsum(.data$NumberFixes)) %>%
     dplyr::ungroup() %>%
@@ -182,9 +185,26 @@ ats_join_trans <- function(pos, trans) {
       .data$Birth, .data$Fawn0:.data$Fawn2
     )
 
+  tr_max <- tr_w_fixnumber %>%
+    dplyr::group_by(.data$CollarSerialNumber) %>%
+    dplyr::summarize(MaxFixNumber = max(.data$FixNumber))
+
   pos %>%
     dplyr::group_by(.data$CollarSerialNumber) %>%
-    dplyr::mutate(FixNumber = dplyr::row_number()) %>%
+    dplyr::arrange(
+      .data$CollarSerialNumber, .data$Year, .data$JulianDay,
+      .data$Hour, .data$Minute
+    ) %>%
+    dplyr::mutate(
+      FixNumber = dplyr::row_number()
+    ) %>%
+    # fix for top n fixes - align fixnumber in pos with trans
+    dplyr::inner_join(tr_max, by = "CollarSerialNumber") %>%
+    dplyr::mutate(
+      FixNumber = .data$FixNumber + .data$MaxFixNumber -
+        max(.data$FixNumber)
+    ) %>%
+    dplyr::select(-.data$MaxFixNumber) %>%
     dplyr::left_join(
       tr_w_fixnumber,
       by = c("CollarSerialNumber", "FixNumber")
@@ -692,6 +712,7 @@ ats_parse_xml <- function(resp) {
 #' @param body Named list of query parameters
 #' @param task Character describing the purpose of the current request.
 #'   If the request fails the message 'Failed to [task]' is displayed.
+#' @param ... Additional options passed to \code{httr::POST}
 #'
 #' @return Response object
 #'
@@ -719,7 +740,7 @@ ats_parse_xml <- function(resp) {
 #'
 #' }
 #'
-ats_post <- function(path, body = list(), task = "download data") {
+ats_post <- function(path, body = list(), task = "download data", ...) {
 
   # check internet
   assertthat::assert_that(
@@ -754,6 +775,7 @@ ats_post <- function(path, body = list(), task = "download data") {
     path = path,
     body = body,
     encode = "form",
+    ...,
     quiet = TRUE
   ) %>%
     httr::stop_for_status(task)
@@ -1290,6 +1312,11 @@ fetch_ats_positions <- function(device_id = NULL,
       }
     }
 
+    # post request only works with collars selected
+    if (!check_cookie(ats_base_url, "cgca")) {
+      ats_select_collars(fetch_ats_devices())
+    }
+
     # send request and parse
     ats_post(
       path = "Servidor.ashx",
@@ -1388,7 +1415,8 @@ fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
         "download_all_transmission",
         paste0("download_all_transmission.aspx?dw=", type)
       ),
-      task = "download transmission data"
+      task = "download transmission data",
+      httr::set_cookies(clear_cookie(ats_base_url, "cgca"))
     ) %>%
       ats_parse_trans()
 
