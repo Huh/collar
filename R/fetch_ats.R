@@ -1312,10 +1312,11 @@ fetch_ats_positions <- function(device_id = NULL,
       }
     }
 
-    # post request only works with collars selected
-    if (!check_cookie(ats_base_url, "cgca")) {
+    if (any(missing(device_id), length(device_id) == 0)) {
+      # post request only works with collars selected
       ats_select_collars(fetch_ats_devices())
     }
+    # otherwise collars are selected in fetch_ats_transmissions
 
     # send request and parse
     ats_post(
@@ -1415,8 +1416,7 @@ fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
         "download_all_transmission",
         paste0("download_all_transmission.aspx?dw=", type)
       ),
-      task = "download transmission data",
-      httr::set_cookies(clear_cookie(ats_base_url, "cgca"))
+      task = "download transmission data"
     ) %>%
       ats_parse_trans()
 

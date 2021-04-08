@@ -37,43 +37,6 @@ check_cookie <- function(url, cookie) {
 
 }
 
-# * 2.2 - clear_cookie ----------------------------------------------------
-
-#' @title Remove Cookie
-#'
-#' @description Remove a certain cookie from a request handle
-#'
-#' @param url http hostname (base url)
-#' @param cookie name of the cookie to remove
-#'
-#' @return named character vector for \code{httr::set_cookies}
-#'
-#' @export
-#'
-#' @keywords internal
-#'
-#' @examples
-#' \dontrun{
-#'
-#' httr::GET(
-#'   url = ats_base_url,
-#'   path = list(
-#'   "download_all_transmission",
-#'   "download_all_transmission.aspx?dw=new"
-#'   ),
-#'   httr::set_cookies(clear_cookie(ats_base_url, "cgca"))
-#' )
-#'
-#' }
-#'
-clear_cookie <- function(url, cookie) {
-
-    cookies <- httr::cookies(httr::handle_find(url)) %>%
-      dplyr::filter(.data$name != cookie) %>%
-      dplyr::pull(.data$value, name = .data$name)
-
-}
-
 # 3 - Visible Functions ---------------------------------------------------
 
 # * 3.1 - ats_login -------------------------------------------------------
