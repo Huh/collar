@@ -4,7 +4,7 @@
 \alias{ats_post}
 \title{POST}
 \usage{
-ats_post(path, body = list(), task = "download data")
+ats_post(path, body = list(), task = "download data", ...)
 }
 \arguments{
 \item{path}{Character or list for the request path}
@@ -13,6 +13,8 @@ ats_post(path, body = list(), task = "download data")
 
 \item{task}{Character describing the purpose of the current request.
 If the request fails the message 'Failed to [task]' is displayed.}
+
+\item{...}{Additional options passed to \code{httr::POST}}
 }
 \value{
 Response object

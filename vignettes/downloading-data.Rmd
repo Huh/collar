@@ -195,10 +195,10 @@ min(fixes$CollarSerialNumber)
 max(fixes$CollarSerialNumber)
 ```
 
-Use the `n` parameter to retrieve the last 5 or last 10 fixes:
+Use the `n` parameter to retrieve the last 5 or last 10 fixes (data is only returned for active collars):
 
 ```{r}
-# download last 10 fixes (all collars)
+# download last 10 fixes (all active collars)
 fixes <- fetch_ats_positions(n = 10)
 nrow(fixes)
 # download last 10 fixes for certain collars
