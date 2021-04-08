@@ -8,6 +8,8 @@ call_vec_api(url, rename_fun = adj_col_nms)
 }
 \arguments{
 \item{url}{a character string representing the url to query}
+
+\item{rename_fun}{Column renaming function}
 }
 \value{
 tibble

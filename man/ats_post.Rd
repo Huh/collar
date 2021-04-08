@@ -40,6 +40,6 @@ ats_post(
 
 }
 \seealso{
-\code{\link{httr::POST}}
+\code{\link[httr]{POST}}
 }
 \keyword{internal}

@@ -1,5 +1,3 @@
-context("test-fetch_lotek.R")
-
 offline <- function() {
   !RCurl::url.exists("www.google.com")
 }
@@ -24,7 +22,7 @@ dt_format <- function(dt_in) {
 }
 
 check_data <- function(x, data_type) {
-  expect_is(x, "tbl_df")
+  expect_s3_class(x, "tbl_df")
   check_names <- switch(
     data_type,
     "alerts" = c(
@@ -106,8 +104,8 @@ test_that("Check lotek data functions", {
 
   # check position function
   dev <- as.character(dl[1,"DeviceID"])
-  end <- lubridate::now(tzone = "GMT") - months(1)
-  st <- end - months(6)
+  st <- lubridate::mdy("1/1/20")
+  end <- lubridate::mdy("2/1/20")
 
   pos <- fetch_lotek_positions(
     start_date = dt_format(st)

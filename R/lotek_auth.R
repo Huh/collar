@@ -18,8 +18,8 @@ ltk.env$ltk <- list()
 #' @description Send username and password info to Lotek API
 #'   to log in to a user account.
 #'
-#' @param usr username
-#' @param pwd password
+#' @param usr username The username associated with the account
+#' @param pwd password The password used with the supplied username
 #' @param user deprecated to align with other functions in collar
 #' @param pw deprecated to align with other functions in collar
 #'

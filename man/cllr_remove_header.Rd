@@ -2,7 +2,7 @@
 % Please edit documentation in R/cllr_remove_header.R
 \name{cllr_remove_header}
 \alias{cllr_remove_header}
-\title{A function to find and remove data headers form collar data based on the latitude column}
+\title{A function to find and remove data headers from collar data based on the latitude column}
 \usage{
 cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 }
@@ -12,12 +12,14 @@ cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 \item{col_nm}{The unqouted name of any one column in the data frame}
 
 \item{rm_header}{Logical indicating whether to remove header completely, defaults to TRUE}
+
+\item{rename_fun}{Column renaming function}
 }
 \value{
 tibble
 }
 \description{
-A function to find and remove data headers form collar data based on the latitude column
+A function to find and remove data headers from collar data based on the latitude column
 }
 \details{
 The argument rm_header is meant to aid in programming scenarios where some files should be left alone and others need the header removed. We are not sure this is actually useful, but thought of the scenario and accommodated it just the same.

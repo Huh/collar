@@ -3,5 +3,3 @@
 ^\.httr-oauth$
 ^doc$
 ^Meta$
-^examples.R
-^temp.R

@@ -77,7 +77,7 @@ ats_empty_trans <- tibble::tibble(
 #'
 #' @return HTTP response object
 #'
-#' @seealso \code{\link{httr::GET}}
+#' @seealso \code{\link[httr]{GET}}
 #'
 #' @export
 #'
@@ -141,9 +141,9 @@ ats_get <- function(path, task = "download data") {
 #' @param pos Tibble of position data.
 #' @param trans Tibble of corresponding transmission data.
 #'
-#' @return  A tibble with 25 columns (see \code{\link{ats_fetch_positions}})
+#' @return  A tibble with 25 columns (see \code{\link{fetch_ats_positions}})
 #'
-#' @seealso \code{\link{ats_fetch_positions}}
+#' @seealso \code{\link{fetch_ats_positions}}
 #'
 #' @export
 #'
@@ -173,89 +173,111 @@ ats_get <- function(path, task = "download data") {
 ats_join_trans <- function(pos, trans) {
 
   tr_w_fixnumber <- trans %>%
-    dplyr::group_by(CollarSerialNumber) %>%
-    dplyr::mutate(FixNumber = cumsum(NumberFixes)) %>%
+    dplyr::group_by(.data$CollarSerialNumber) %>%
+    dplyr::mutate(FixNumber = cumsum(.data$NumberFixes)) %>%
     dplyr::ungroup() %>%
     dplyr::select(
-      CollarSerialNumber, FixNumber, GmtOffset, TransDateUTC = DateUTC,
-      TransDateLocal = DateLocal, Birth, Fawn0:Fawn2
+      .data$CollarSerialNumber, .data$FixNumber, .data$GmtOffset,
+      TransDateUTC = .data$DateUTC, TransDateLocal = .data$DateLocal,
+      .data$Birth, .data$Fawn0:.data$Fawn2
     )
 
   pos %>%
-    dplyr::group_by(CollarSerialNumber) %>%
+    dplyr::group_by(.data$CollarSerialNumber) %>%
     dplyr::mutate(FixNumber = dplyr::row_number()) %>%
     dplyr::left_join(
       tr_w_fixnumber,
       by = c("CollarSerialNumber", "FixNumber")
     ) %>%
     tidyr::fill(
-      GmtOffset, TransDateUTC, TransDateLocal, Birth, Fawn0:Fawn2,
+      .data$GmtOffset, .data$TransDateUTC, .data$TransDateLocal,
+      .data$Birth, .data$Fawn0:.data$Fawn2,
       .direction = "up"
     ) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(
       DateOffset = lubridate::as_datetime(
-        paste(Year, JulianDay, Hour, Minute),
+        paste(
+          .data$Year, .data$JulianDay, .data$Hour, .data$Minute
+        ),
         format = "%y %j %H %M"
       ),
-      DateUTC = DateOffset + lubridate::hours(GmtOffset),
-      DateLocal = lubridate::with_tz(DateUTC, tz = Sys.timezone()),
+      DateUTC = .data$DateOffset + lubridate::hours(.data$GmtOffset),
+      DateLocal = lubridate::with_tz(.data$DateUTC, tz = Sys.timezone()),
       DataMode = dplyr::case_when(
-        nchar(`2D/3D`) == 1 ~ "Normal",
-        Birth != "None" ~ "VIT",
-        !all(Fawn0 == "None", Fawn1 == "None", Fawn2 == "None") ~ "Fawn",
+        nchar(.data$`2D/3D`) == 1 ~ "Normal",
+        .data$Birth != "None" ~ "VIT",
+        !all(
+          .data$Fawn0 == "None",
+          .data$Fawn1 == "None",
+          .data$Fawn2 == "None"
+        ) ~ "Fawn",
         TRUE ~ "Unknown"
       ),
       VITTemp = dplyr::case_when(
-        DataMode != "VIT" ~ NA_integer_,
-        TRUE ~ Temperature
+        .data$DataMode != "VIT" ~ NA_integer_,
+        TRUE ~ .data$Temperature
       ),
       Temperature = dplyr::case_when(
-        DataMode != "Normal" ~ NA_integer_,
-        TRUE ~ Temperature
+        .data$DataMode != "Normal" ~ NA_integer_,
+        TRUE ~ .data$Temperature
       ),
       VITLight = dplyr::case_when(
-        DataMode != "VIT" ~ NA_integer_,
-        TRUE ~ FixTime
+        .data$DataMode != "VIT" ~ NA_integer_,
+        TRUE ~ .data$FixTime
       ),
       FixTime = dplyr::case_when(
-        DataMode %in% c("Fawn", "Normal") ~ FixTime,
+        .data$DataMode %in% c("Fawn", "Normal") ~ .data$FixTime,
         TRUE ~ NA_integer_
       ),
       Fawn2Comm = dplyr::case_when(
-        DataMode != "Fawn" ~ NA_real_,
-        TRUE ~ HDOP
+        .data$DataMode != "Fawn" ~ NA_real_,
+        TRUE ~ .data$HDOP
       ),
       HDOP = dplyr::case_when(
-        DataMode != "Normal" ~ NA_real_,
-        TRUE ~ HDOP
+        .data$DataMode != "Normal" ~ NA_real_,
+        TRUE ~ .data$HDOP
       ),
       Fawn1Comm = dplyr::case_when(
-        DataMode != "Fawn" ~ NA_integer_,
-        TRUE ~ NumSats
+        .data$DataMode != "Fawn" ~ NA_integer_,
+        TRUE ~ .data$NumSats
       ),
       NumSats = dplyr::case_when(
-        DataMode != "Normal" ~ NA_integer_,
-        TRUE ~ NumSats
+        .data$DataMode != "Normal" ~ NA_integer_,
+        TRUE ~ .data$NumSats
       ),
       Fawn0Comm = dplyr::case_when(
-        DataMode != "Fawn" ~ NA_integer_,
-        TRUE ~ as.integer(`2D/3D`)
+        .data$DataMode != "Fawn" ~ NA_integer_,
+        TRUE ~ as.integer(.data$`2D/3D`)
       ),
       VITComm = dplyr::case_when(
-        DataMode != "VIT" ~ NA_integer_,
-        TRUE ~ as.integer(`2D/3D`)
+        .data$DataMode != "VIT" ~ NA_integer_,
+        TRUE ~ as.integer(.data$`2D/3D`)
       ),
       `2D/3D` = dplyr::case_when(
-        DataMode != "Normal" ~ NA_integer_,
-        TRUE ~ as.integer(`2D/3D`)
+        .data$DataMode != "Normal" ~ NA_integer_,
+        TRUE ~ as.integer(.data$`2D/3D`)
       )
     ) %>%
-      dplyr::relocate(DateOffset, .before = GmtOffset) %>%
-      dplyr::relocate(VITTemp, VITLight, VITComm, .after = DateLocal) %>%
-      dplyr::relocate(Fawn0Comm, Fawn1Comm, Fawn2Comm, .after = VITComm)  %>%
-      dplyr::relocate(TransDateUTC, TransDateLocal, .after = Fawn2Comm)  %>%
-      dplyr::select(-c(FixNumber, Birth, Fawn0:Fawn2, DataMode))
+      dplyr::relocate(.data$DateOffset, .before = .data$GmtOffset) %>%
+      dplyr::relocate(
+        .data$VITTemp, .data$VITLight, .data$VITComm,
+        .after = .data$DateLocal
+      ) %>%
+      dplyr::relocate(
+        .data$Fawn0Comm, .data$Fawn1Comm, .data$Fawn2Comm,
+        .after = .data$VITComm
+      )  %>%
+      dplyr::relocate(
+        .data$TransDateUTC, .data$TransDateLocal,
+        .after = .data$Fawn2Comm
+      )  %>%
+      dplyr::select(
+        -c(
+          .data$FixNumber, .data$Birth, .data$Fawn0:.data$Fawn2,
+          .data$DataMode
+        )
+      )
 
 }
 
@@ -279,9 +301,9 @@ ats_join_trans <- function(pos, trans) {
 #' @param resp HTTP response object
 #' @param trans Tibble of corresponding transmission data
 #'
-#' @return A tibble with 25 columns (see \code{\link{ats_fetch_positions}})
+#' @return A tibble with 25 columns (see \code{\link{fetch_ats_positions}})
 #'
-#' @seealso \code{\link{ats_fetch_positions}}
+#' @seealso \code{\link{fetch_ats_positions}}
 #'
 #' @export
 #'
@@ -324,7 +346,7 @@ ats_parse_pos <- function(resp, trans) {
       # parse txt file
       httr::content(resp, "text", encoding = "UTF-8") %>%
         readr::read_csv(col_types = "ciiiiiidddiic_") %>%
-        dplyr::rename(JulianDay = Julianday) %>%
+        dplyr::rename(JulianDay = .data$Julianday) %>%
         ats_join_trans(trans)
 
     }
@@ -344,9 +366,11 @@ ats_parse_pos <- function(resp, trans) {
       # parse xml file
       pos_data %>%
         dplyr::select(
-          CollarSerialNumber = AtsSerialNum, Year, JulianDay, Hour, Minute,
-          Activity, Temperature, Latitude, Longitude, HDOP = Hdop, NumSats,
-          FixTime, `2D/3D` = Dimension
+          CollarSerialNumber = .data$AtsSerialNum, .data$Year,
+          .data$JulianDay, .data$Hour, .data$Minute, .data$Activity,
+          .data$Temperature, .data$Latitude, .data$Longitude,
+          HDOP = .data$Hdop, .data$NumSats, .data$FixTime,
+          `2D/3D` = .data$Dimension
         ) %>%
         dplyr::mutate(
           dplyr::across(c(2:7, 11:12), as.integer),
@@ -379,9 +403,10 @@ ats_parse_pos <- function(resp, trans) {
 #'
 #' @param resp HTTP response object
 #'
-#' @return A tibble with 19 columns (see \code{\link{ats_fetch_positions}})
+#' @return A tibble with 20 columns
+#'   (see \code{\link{fetch_ats_transmissions}})
 #'
-#' @seealso \code{\link{ats_fetch_transmissions}}
+#' @seealso \code{\link{fetch_ats_transmissions}}
 #'
 #' @export
 #'
@@ -425,28 +450,40 @@ ats_parse_trans <- function(resp) {
       httr::content(resp, "text", encoding = "UTF-8") %>%
         textConnection() %>%
         readLines() %>%
-        {sub("^(([^,]*,){11})(.+)((,[^,]*){3})$", "\\1\"\\3\"\\4", .)} %>%
+        {sub(
+          "^(([^,]*,){11})(.+)((,[^,]*){3})$",
+          "\\1\"\\3\"\\4",
+          .
+        )} %>%
         readr::read_csv(col_types = "ccidcciiidccddi") %>%
         tidyr::separate(
-          Event,
+          .data$Event,
           into = c("Fawn0", "Fawn1", "Fawn2"),
           sep = ",",
           fill = "right"
         ) %>%
         dplyr::mutate(
           DateCT = as.POSIXct(
-            DateCT,
+            .data$DateCT,
             tz = "America/Menominee",
             format = "%m/%d/%Y %I:%M:%S %p"
           ),
-          GmtOffset = GmtOffset * -1,
-          LowBatt = dplyr::if_else(LowBatt == "Yes", TRUE, FALSE),
-          Birth = dplyr::if_else(grepl("^Birth", Fawn0), Fawn0, "None"),
-          Fawn0 = dplyr::if_else(grepl("^Birth", Fawn0), "None", Fawn0),
-          Fawn1 = tidyr::replace_na(Fawn1, "None"),
-          Fawn2 = tidyr::replace_na(Fawn2, "None")
+          GmtOffset = .data$GmtOffset * -1,
+          LowBatt = dplyr::if_else(.data$LowBatt == "Yes", TRUE, FALSE),
+          Birth = dplyr::if_else(
+            grepl("^Birth", .data$Fawn0),
+            .data$Fawn0,
+            "None"
+          ),
+          Fawn0 = dplyr::if_else(
+            grepl("^Birth", .data$Fawn0),
+            "None",
+            .data$Fawn0
+          ),
+          Fawn1 = tidyr::replace_na(.data$Fawn1, "None"),
+          Fawn2 = tidyr::replace_na(.data$Fawn2, "None")
         ) %>%
-        dplyr::relocate(Birth, .before = Fawn0) %>%
+        dplyr::relocate(.data$Birth, .before = .data$Fawn0) %>%
         ats_trans_dates()
 
     }
@@ -466,55 +503,61 @@ ats_parse_trans <- function(resp) {
       # reformat events, rename columns, add dates
       tr_data %>%
         tidyr::separate(
-          ev,
+          .data$ev,
           into = c("ev0", "ev1", "ev2"),
           sep = ",",
           fill = "right"
         ) %>%
         tidyr::separate(
-          evc,
+          .data$evc,
           into = c("evc0", "evc1", "evc2"),
           sep = ",",
           fill = "right"
-        ) %>%
+        ) %>% {
+          if ("cpe" %in% names(.)) {
+            .
+          } else {
+            dplyr::mutate(., cpe = NA_character_)
+          }
+        } %>%
         dplyr::transmute(
-          CollarSerialNumber = collar,
+          CollarSerialNumber = .data$collar,
           DateCT = as.POSIXct(
-            fecha,
+            .data$fecha,
             tz = "America/Menominee"
           ),
-          NumberFixes = as.integer(number),
-          BattVoltage = as.numeric(battvol),
-          Mortality = morty,
-          BreakOff = breakoff,
-          GpsOnTime = as.integer(gpson),
-          SatOnTime = as.integer(saton),
-          SatErrors = as.integer(saterror),
-          GmtOffset = as.numeric(gmt) * -1,
-          LowBatt = as.logical(lowbatt),
+          NumberFixes = as.integer(.data$number),
+          BattVoltage = as.numeric(.data$battvol),
+          Mortality = .data$morty,
+          BreakOff = .data$breakoff,
+          GpsOnTime = as.integer(.data$gpson),
+          SatOnTime = as.integer(.data$saton),
+          SatErrors = as.integer(.data$saterror),
+          GmtOffset = as.numeric(.data$gmt) * -1,
+          LowBatt = as.logical(.data$lowbatt),
           Birth = dplyr::if_else(
-            grepl("^Birth", ev0),
-            paste(ev0, evc0, sep = "-"),
+            grepl("^Birth", .data$ev0),
+            paste(.data$ev0, .data$evc0, sep = "-"),
             "None"
           ),
           Fawn0 = dplyr::if_else(
-            grepl("^Birth", ev0) | ev0 == "None",
+            grepl("^Birth", .data$ev0) | .data$ev0 == "None",
             "None",
-            paste(ev0, evc0, sep = "-")
+            paste(.data$ev0, .data$evc0, sep = "-")
           ),
           Fawn1 = dplyr::if_else(
-            is.na(ev1) | ev1 == "None",
+            is.na(.data$ev1) | .data$ev1 == "None",
             "None",
-            paste(ev1, evc1, sep = "-")
+            paste(.data$ev1, .data$evc1, sep = "-")
           ),
           Fawn2 = dplyr::if_else(
-            is.na(ev2) | ev2 == "None",
+            is.na(.data$ev2) | .data$ev2 == "None",
             "None",
-            paste(ev2, evc2, sep = "-")
+            paste(.data$ev2, .data$evc2, sep = "-")
           ),
-          Latitude = as.numeric(lat),
-          Longitude = as.numeric(long),
-          CEPradius_km = as.integer(cpe)
+          Latitude = as.numeric(.data$lat),
+          Longitude = as.numeric(.data$long),
+          CEPradius_km = as.integer(.data$cpe)
         ) %>%
         ats_trans_dates()
 
@@ -608,17 +651,32 @@ ats_parse_xml <- function(resp) {
   )
 
   cols <- httr::content(resp) %>%
-    xml2::xml_find_first("//Table") %>%
+    xml2::xml_find_all("/NewDataSet/Table") %>%
     xml2::xml_children() %>%
-    xml2::xml_name()
+    xml2::xml_name() %>%
+    unique()
 
   names(cols) <- cols
 
+  tr_xml <- httr::content(resp)
+
+  # insert empty nodes if needed
+  purrr::walk(
+    cols,
+    ~{
+      no_data <- xml2::xml_find_all(
+        tr_xml,
+        paste0("/NewDataSet/Table[not(", .x, ")]")
+      )
+      xml2::xml_add_child(no_data, .x)
+    }
+  )
+
+  # parse data
   purrr::map_dfc(
     cols,
-    ~ httr::content(resp) %>%
-      xml2::xml_find_all("//Table") %>%
-      xml2::xml_find_first(paste0("//", .x)) %>%
+    ~ tr_xml %>%
+      xml2::xml_find_all(paste0("//", .x)) %>%
       xml2::xml_text()
   )
 
@@ -637,7 +695,7 @@ ats_parse_xml <- function(resp) {
 #'
 #' @return Response object
 #'
-#' @seealso \code{\link{httr::POST}}
+#' @seealso \code{\link[httr]{POST}}
 #'
 #' @export
 #'
@@ -798,10 +856,13 @@ ats_trans_dates <- function(trans) {
 
   trans %>%
     dplyr::mutate(
-      DateUTC = lubridate::with_tz(DateCT, tz = "UTC"),
-      DateLocal = lubridate::with_tz(DateCT, tz = Sys.timezone())
+      DateUTC = lubridate::with_tz(.data$DateCT, tz = "UTC"),
+      DateLocal = lubridate::with_tz(.data$DateCT, tz = Sys.timezone())
     ) %>%
-    dplyr::relocate(DateUTC, DateLocal, .after = DateCT)
+    dplyr::relocate(
+      .data$DateUTC, .data$DateLocal,
+      .after = .data$DateCT
+    )
 
 }
 
@@ -858,12 +919,17 @@ fetch_ats_config <- function() {
     ats_parse_txt(col_types = "cccccc") %>%
     dplyr::mutate(
       CollarSerialNumber = dplyr::if_else(
-        grepl("^00", CollarSerialNumber) & nchar(CollarSerialNumber) == 7,
-        substr(CollarSerialNumber, 2, 7),
-        CollarSerialNumber
+        grepl("^00", .data$CollarSerialNumber) &
+          nchar(.data$CollarSerialNumber) == 7,
+        substr(.data$CollarSerialNumber, 2, 7),
+        .data$CollarSerialNumber
       ),
-      Active = dplyr::if_else(Active == "yes", TRUE, FALSE),
-      RestEndPoint = dplyr::if_else(RestEndPoint == "yes", TRUE, FALSE)
+      Active = dplyr::if_else(.data$Active == "yes", TRUE, FALSE),
+      RestEndPoint = dplyr::if_else(
+        .data$RestEndPoint == "yes",
+        TRUE,
+        FALSE
+      )
     )
 
 }
@@ -1013,10 +1079,10 @@ fetch_ats_events <- function() {
     task = "download event data"
   ) %>%
     ats_parse_txt() %>%
-    dplyr::rename(DateCT = DateSent) %>%
+    dplyr::rename(DateCT = .data$DateSent) %>%
     dplyr::mutate(
       DateCT = as.POSIXct(
-        DateCT,
+        .data$DateCT,
         tz = "America/Menominee",
         format = "%m/%d/%Y %I:%M:%S %p"
       )
@@ -1042,7 +1108,7 @@ fetch_ats_events <- function() {
 #' @param device_id A single device id, or a list or vector of device ids,
 #'   or NULL for all devices associated with current account. Overrides
 #'   the new parameter when specified.
-#' @param start,end Currently ignored (see \link{Notes}).
+#' @param start,end Currently ignored (see Notes).
 #' @param n A single integer specifying how many fixes to return per
 #'   collar (sorted by recency). Valid values are 5 and 10.
 #' @param new A logical flag. When new = true only data that hasn't been
@@ -1309,7 +1375,7 @@ fetch_ats_positions <- function(device_id = NULL,
 #'
 fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
 
-  if (any(is.null(device_id), length(device_id) == 0)) {
+  if (any(missing(device_id), length(device_id) == 0)) {
 
     type <- purrr::when(
       new,

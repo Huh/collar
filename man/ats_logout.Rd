@@ -15,7 +15,7 @@ Logs out of website
 \examples{
 \dontrun{
 
-ats_login("demo", "PASSWORD09")
+ats_login("mary", ".")
 
 fixes <- fetch_ats_positions()
 

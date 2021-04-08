@@ -1,5 +1,3 @@
-context("test-morph_gps.R")
-
 test_that("Check morph_gps", {
 
   dat <- system.file("extdata/vectronics.csv", package = "collar") %>%

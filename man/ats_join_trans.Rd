@@ -12,7 +12,7 @@ ats_join_trans(pos, trans)
 \item{trans}{Tibble of corresponding transmission data.}
 }
 \value{
-A tibble with 25 columns (see \code{\link{ats_fetch_positions}})
+A tibble with 25 columns (see \code{\link{fetch_ats_positions}})
 }
 \description{
 Add transmission info to fixes to apply offset and infer
@@ -41,6 +41,6 @@ ats_get(
 
 }
 \seealso{
-\code{\link{ats_fetch_positions}}
+\code{\link{fetch_ats_positions}}
 }
 \keyword{internal}

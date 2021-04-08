@@ -1,4 +1,5 @@
 `%>%` <- magrittr::`%>%`
+utils::globalVariables(".")
 
 # 1 - Global Objects ------------------------------------------------------
 
@@ -6,9 +7,9 @@
 
 ats_base_url <- "https://atsidaq.net"
 
-# 2 - Internal Functions ---------------------------------------------------
+# 2 - Internal Functions --------------------------------------------------
 
-# * 2.1 - check_cookie -----------------------------------------------------
+# * 2.1 - check_cookie ----------------------------------------------------
 
 #' @title Check Cookie
 #'
@@ -47,7 +48,7 @@ check_cookie <- function(url, cookie) {
 #' @param usr username
 #' @param pwd password
 #'
-#' @return True if login succeeds, false if not
+#' @return True if login succeeds
 #'
 #' @seealso \code{\link{ats_logout}} for closing the session
 #'
@@ -56,7 +57,7 @@ check_cookie <- function(url, cookie) {
 #' @examples
 #' \dontrun{
 #'
-#' ats_login(usr = "my_username", pwd = "secret_code")
+#' ats_login("mary", ".")
 #'
 #' events <- fetch_ats_events()
 #'
@@ -86,8 +87,14 @@ ats_login <- function(usr, pwd) {
   ) %>%
     httr::stop_for_status("log in")
 
-  # return true if user cookie exists
-  check_cookie(ats_base_url, "user")
+  # check that user cookie exists
+  assertthat::assert_that(
+    check_cookie(ats_base_url, "user"),
+    msg = "Login failed."
+  )
+
+  # return true if login succeeded
+  return(TRUE)
 
 }
 
@@ -106,7 +113,7 @@ ats_login <- function(usr, pwd) {
 #' @examples
 #' \dontrun{
 #'
-#' ats_login("demo", "PASSWORD09")
+#' ats_login("mary", ".")
 #'
 #' fixes <- fetch_ats_positions()
 #'

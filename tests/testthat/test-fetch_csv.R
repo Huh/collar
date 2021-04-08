@@ -1,5 +1,3 @@
-context("test-fetch_csv.R")
-
 test_that("Check assertions", {
   # Error should occur when NULL is passed
   expect_condition(

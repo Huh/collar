@@ -12,7 +12,7 @@ ats_parse_pos(resp, trans)
 \item{trans}{Tibble of corresponding transmission data}
 }
 \value{
-A tibble with 25 columns (see \code{\link{ats_fetch_positions}})
+A tibble with 25 columns (see \code{\link{fetch_ats_positions}})
 }
 \description{
 Convert http response to tibble
@@ -50,6 +50,6 @@ ats_get(
 
 }
 \seealso{
-\code{\link{ats_fetch_positions}}
+\code{\link{fetch_ats_positions}}
 }
 \keyword{internal}

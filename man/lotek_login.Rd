@@ -7,9 +7,9 @@
 lotek_login(usr, pwd, user, pw)
 }
 \arguments{
-\item{usr}{username}
+\item{usr}{username The username associated with the account}
 
-\item{pwd}{password}
+\item{pwd}{password The password used with the supplied username}
 
 \item{user}{deprecated to align with other functions in collar}
 

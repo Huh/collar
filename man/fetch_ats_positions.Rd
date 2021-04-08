@@ -17,14 +17,14 @@ fetch_ats_positions(
 or NULL for all devices associated with current account. Overrides
 the new parameter when specified.}
 
+\item{start, end}{Currently ignored (see Notes).}
+
 \item{n}{A single integer specifying how many fixes to return per
 collar (sorted by recency). Valid values are 5 and 10.}
 
 \item{new}{A logical flag. When new = true only data that hasn't been
 previously downloaded is returned. If device_id is specified the flag
 is ignored.}
-
-\item{start_date, end_date}{Currently ignored (see \link{Notes}).}
 }
 \value{
 A tibble with 25 columns:

@@ -36,6 +36,6 @@ ats_get(
 
 }
 \seealso{
-\code{\link{httr::GET}}
+\code{\link[httr]{GET}}
 }
 \keyword{internal}

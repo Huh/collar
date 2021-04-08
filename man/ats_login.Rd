@@ -12,7 +12,7 @@ ats_login(usr, pwd)
 \item{pwd}{password}
 }
 \value{
-True if login succeeds, false if not
+True if login succeeds
 }
 \description{
 Pass credentials to ATS website and save login information
@@ -20,7 +20,7 @@ Pass credentials to ATS website and save login information
 \examples{
 \dontrun{
 
-ats_login(usr = "my_username", pwd = "secret_code")
+ats_login("mary", ".")
 
 events <- fetch_ats_events()
 

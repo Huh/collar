@@ -10,7 +10,8 @@ ats_parse_trans(resp)
 \item{resp}{HTTP response object}
 }
 \value{
-A tibble with 19 columns (see \code{\link{ats_fetch_positions}})
+A tibble with 20 columns
+  (see \code{\link{fetch_ats_transmissions}})
 }
 \description{
 Convert http response to tibble
@@ -48,6 +49,6 @@ ats_get(
 
 }
 \seealso{
-\code{\link{ats_fetch_transmissions}}
+\code{\link{fetch_ats_transmissions}}
 }
 \keyword{internal}

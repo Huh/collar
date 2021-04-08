@@ -20,6 +20,7 @@ ByteCompile: true
 RoxygenNote: 7.1.1
 Imports:
     assertthat,
+    curl,
     dplyr,
     ggplot2,
     grDevices,
@@ -35,6 +36,7 @@ Imports:
     rvest,
     sf,
     tibble,
+    tidyr,
     xml2,
     lubridate
 Suggests: 
