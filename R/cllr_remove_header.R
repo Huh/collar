@@ -1,9 +1,9 @@
-#' A function to find and remove data headers form collar data based on the latitude column
+#' A function to find and remove data headers from collar data based on the latitude column
 #'
 #' @param x A dataframe containing collar data
 #' @param col_nm The unqouted name of any one column in the data frame
 #' @param rm_header Logical indicating whether to remove header completely, defaults to TRUE
-#' @inheritParams fetch_ats
+#' @param rename_fun Column renaming function
 #'
 #' @details
 #' The argument rm_header is meant to aid in programming scenarios where some files should be left alone and others need the header removed. We are not sure this is actually useful, but thought of the scenario and accommodated it just the same.

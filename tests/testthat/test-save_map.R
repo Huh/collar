@@ -1,5 +1,3 @@
-context("test-save_map.R")
-
 test_that("check save_map", {
 
   data_dir <- system.file("extdata", package = "collar")

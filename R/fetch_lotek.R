@@ -156,7 +156,7 @@ fetch_lotek_devices <- function() {
 #'   return an error if the API call fails. This behavior is intentional and
 #'   due to the fact that failures/errors and successful calls that did not
 #'   return any data are indistinguishable on the client side. If the API
-#'   response indicate an error (for either reason) an empty tibble is
+#'   response indicates an error (for either reason) an empty tibble is
 #'   returned with the same columns as a successful download.
 #'
 #' @param device_id A single device id, or a list or vector of device ids,
@@ -195,9 +195,9 @@ fetch_lotek_devices <- function() {
 #'                                start_date = "2018-01-01 00:00:00",
 #'                                end_date = "2019-01-01 00:00:00")
 #'
-fetch_lotek_positions <- function (device_id = NULL,
-                                   start_date = NULL,
-                                   end_date = NULL) {
+fetch_lotek_positions <- function(device_id = NULL,
+                                  start_date = NULL,
+                                  end_date = NULL) {
 
   # get login info
   # function will exit here if login info is invalid
