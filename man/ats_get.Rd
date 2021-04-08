@@ -4,13 +4,15 @@
 \alias{ats_get}
 \title{GET}
 \usage{
-ats_get(path, task = "download data")
+ats_get(path, task = "download data", ...)
 }
 \arguments{
 \item{path}{Character or list for the request path.}
 
 \item{task}{Character describing the purpose of the current request.
 If the request fails the message 'Failed to [task]' is displayed.}
+
+\item{...}{Additional options passed to \code{httr::GET}}
 }
 \value{
 HTTP response object
