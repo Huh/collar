@@ -830,6 +830,15 @@ ats_select_collars <- function(device_id) {
     task = "select collars"
   )
 
+  # check the cookie that was set
+  cgca <- httr::cookies(httr::handle_find(ats_base_url))
+  cgca <- cgca[cgca$name == "cgca", "value"]
+  # each collar takes up 86 characters, plus 33 for the beginning and end
+  assertthat::assert_that(
+    nchar(cgca) == length(device_id) * 86 + 33,
+    msg = "Selecting collars failed - try selecting fewer collars."
+  )
+
   return(TRUE)
 
 }
