@@ -830,6 +830,11 @@ ats_select_collars <- function(device_id) {
     task = "select collars"
   )
 
+  assertthat::assert_that(
+    check_cookie(ats_base_url, "cgca"),
+    msg = "Selecting collars failed - try selecting fewer collars."
+  )
+
   # check the cookie that was set
   cgca <- httr::cookies(httr::handle_find(ats_base_url))
   cgca <- cgca[cgca$name == "cgca", "value"]
