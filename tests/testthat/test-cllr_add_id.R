@@ -1,5 +1,3 @@
-context("test-cllr_add_id.R")
-
 test_that("Add ID column and values", {
   df <- data.frame(val = 1:3)
 

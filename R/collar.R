@@ -12,7 +12,7 @@
 #'
 #' @import rlang
 #' @import tibble
-#' @importFrom rlang !! !!! :=
+#' @importFrom rlang !! !!! := .data
 #' @importFrom magrittr %>%
 #' @importFrom utils head tail data askYesNo
 "_PACKAGE"

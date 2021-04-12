@@ -1,5 +1,3 @@
-context("test-make_map.R")
-
 test_that("check make_map", {
 
   data_dir <- system.file("extdata", package = "collar")
@@ -49,7 +47,7 @@ test_that("check make_map assertions", {
     make_map(dat, id_col = "a")
   )
 
-  expect_condition(
+  expect_error(
     dplyr::mutate(dat, lon = NA) %>%
     dplyr::slice(1) %>%
     make_map(),
@@ -57,7 +55,7 @@ test_that("check make_map assertions", {
     fixed = T
   )
 
-  expect_condition(
+  expect_error(
     dplyr::mutate(dat, lat = NA) %>%
     dplyr::slice(1) %>%
     make_map(),

@@ -1,4 +1,4 @@
-# collar 0.0.2.1
+# collar 0.0.3
 
 * adds improved functionality to make_gpx
 * minor update to data-download vignette
