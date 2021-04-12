@@ -1,3 +1,7 @@
+# collar 0.0.4
+
+* updates ATS functionality to work with redesigned website
+
 # collar 0.0.3
 
 * adds improved functionality to make_gpx
