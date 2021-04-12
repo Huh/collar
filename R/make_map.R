@@ -1,10 +1,10 @@
 #' Create an interactive html map of animal locations.
 #'
-#' @param x A data frame containing collar data with the columns "id", "lat", "lon" and  "date_time".
-#' @param id_col Quoted name of the ID column that signals the individual identifier.
-#' @param lat_col Quoted name of the latitude column.
-#' @param lon_col Quoted name of the longitude column.
-#' @param dt_col Quoted name of the date/time column with class POSIXct.
+#' @param x A data frame containing collar data with latitude and longitude columns
+#' @param lat_col name of the latitude column
+#' @param lon_col name of the longitude column
+#' @param id_col name of the ID column that signals the individual identifier
+#' @param dt_col name of the date/time column
 #'
 #' @return A leaflet map.
 #' @export
@@ -16,20 +16,22 @@
 #'   make_map()
 #' }
 make_map <- function(x,
-                     id_col = "id",
-                     lon_col = "lon",
-                     lat_col = "lat",
-                     dt_col = "dt"
-                     ) {
+                     lon_col = lon,
+                     lat_col = lat,
+                     id_col,
+                     dt_col
+) {
 
   assertthat::assert_that(inherits(x, "data.frame"))
-  purrr::map(
-    c(lat_col, lon_col, id_col, dt_col),
-    ~assertthat::assert_that(assertthat::has_name(x, .))
-  )
 
-  assertthat::assert_that(assertthat::noNA(x[, lon_col]))
-  assertthat::assert_that(assertthat::noNA(x[, lat_col]))
+  lon <- dplyr::pull(x, {{ lon_col }})
+  lat <- dplyr::pull(x, {{ lat_col }})
+
+  assertthat::assert_that(assertthat::noNA(lon))
+  assertthat::assert_that(assertthat::noNA(lat))
+
+  if(!missing(id_col)) {id <- dplyr::pull(x, {{ id_col }})} else {id <- ""}
+  if(!missing(dt_col)) {d_t <- dplyr::pull(x, {{ dt_col }})} else {d_t <- ""}
 
   if(interactive()){
     if (nrow(x) > 1000)
@@ -42,14 +44,21 @@ make_map <- function(x,
         stop("Canceled by user.")
   }
 
-  content <- paste(
-    sep = "",
-    "<b>ID:</b> ", dplyr::pull(x, id_col), "<br/>",
-    "<b>Date/time:</b> ", dplyr::pull(x, dt_col), "<br/>",
-    "<b>GPS:</b> ", paste(round(dplyr::pull(x, lat_col), 6), round(dplyr::pull(x, lon_col), 6))
-  )
+  content <-
+    glue::glue(
+      '<b>ID:</b> {id}<br/>
+      <b>Date/time:</b> {d_t} <br/>
+      <b>GPS:</b> {paste(round(lat, 6), round(lon, 6))}'
+    )
 
-  x_sf <- sf::st_as_sf(x, coords = c(lon_col, lat_col), crs = 4326)
+  x_sf <-
+    tibble::tibble(
+      lon = lon,
+      lat = lat,
+      id = id,
+      dt = d_t
+    ) %>%
+    sf::st_as_sf(coords = 1:2, crs = 4326)
 
   out <-
     leaflet::leaflet("map") %>%

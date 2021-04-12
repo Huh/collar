@@ -51,22 +51,20 @@ test_that("check make_map assertions", {
     dplyr::mutate(dat, lon = NA) %>%
     dplyr::slice(1) %>%
     make_map(),
-    "x[, lon_col] contains 1 missing values",
-    fixed = TRUE
+    "lon contains 1 missing values",
+    fixed = T
   )
 
   expect_error(
     dplyr::mutate(dat, lat = NA) %>%
     dplyr::slice(1) %>%
     make_map(),
-    "x[, lat_col] contains 1 missing values",
-    fixed = TRUE
+    "lat contains 1 missing values",
+    fixed = T
   )
 
-  dat_large <-
-    dat %>%
-    dplyr::slice(rep(1:dplyr::n(), each = 30))
-
-
+  # dat_large <-
+  #   dat %>%
+  #   dplyr::slice(rep(1:dplyr::n(), each = 30))
 
 })

@@ -1,6 +1,7 @@
 # collar 0.0.3
 
-* update ATS workflow after website change
+* adds improved functionality to make_gpx
+* minor update to data-download vignette
 
 # collar 0.0.2
 

@@ -19,7 +19,7 @@ When creating this package we imagined a simple interface that made it easy for 
 
 ### Companies
 
-At the time of this writing we have tools to download data from Vectronics, ATS, and legacy csv files. We have plans to work on Telonics in the near future and note that an option exists for Lotek via the [CollarScraper](https://github.com/rgzn/CollarScraper) package.
+At the time of this writing we have tools to download data from Vectronics, ATS, Lotek and legacy csv files. 
 
 #### Vectronics
 

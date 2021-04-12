@@ -4,34 +4,22 @@
 \alias{make_gpx}
 \title{Save collar locations to disk as a GPX file}
 \usage{
-make_gpx(
-  x,
-  id_col = "id",
-  lat_col = "lat",
-  lon_col = "lon",
-  dt_col = "dt",
-  file = paste0("./GPS Locations ", format(Sys.time(), "\%Y-\%m-\%d \%H\%M\%S"),
-    ".gpx"),
-  crs = 4326,
-  ...
-)
+make_gpx(x, file, lon_col = lon, lat_col = lat, dt_col, name_col, desc_col)
 }
 \arguments{
-\item{x}{A data frame containing collar data with column "dt" that can be coerced into class "Date"}
+\item{x}{a data frame containing collar data with latitude and longitude location data}
 
-\item{id_col}{Quoted name of the ID column that signals the individual identifier.}
+\item{file}{the file path where the output GPX file should be saved}
 
-\item{lat_col}{Quoted name of the latitude column.}
+\item{lon_col}{unquoted name of column containing longitude coordinates}
 
-\item{lon_col}{Quoted name of the longitude column.}
+\item{lat_col}{unquoted name of column containing longitude coordinates}
 
-\item{dt_col}{Quoted name of the date/time column with class POSIXct.}
+\item{dt_col}{unquoted name of column containing date and time of location. The format of date_time must follow YYYY-MM-DD HH:MM:SS or YYYY-MM-DDTHH:MM:SS.}
 
-\item{file}{The save location and name of the GPX file created.}
+\item{name_col}{unquoted name of column containing the name to be assigned to the GPS location}
 
-\item{crs}{The coordinate reference system associated with the collar data in the supplied data frame.}
-
-\item{...}{Additional arguments to pass to sf::st_write()}
+\item{desc_col}{unquoted name of column containing a a description to be assigned to the GPS location}
 }
 \value{
 The original data frame passed to the function.
@@ -41,6 +29,6 @@ Save collar locations to disk as a GPX file
 }
 \examples{
 \dontrun{
-  make_gpx(collar_data, start = Sys.date() - 30)
+  make_gpx(collar_data)
 }
 }

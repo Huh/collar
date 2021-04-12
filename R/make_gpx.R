@@ -1,48 +1,64 @@
 #' Save collar locations to disk as a GPX file
 #'
-#' @param id_col Quoted name of the ID column that signals the individual identifier.
-#' @param lat_col Quoted name of the latitude column.
-#' @param lon_col Quoted name of the longitude column.
-#' @param dt_col Quoted name of the date/time column with class POSIXct.
-#' @param x A data frame containing collar data with column "dt" that can be coerced into class "Date"
-#' @param file The save location and name of the GPX file created.
-#' @param crs The coordinate reference system associated with the collar data in the supplied data frame.
-#' @param ... Additional arguments to pass to sf::st_write()
+#' @param x a data frame containing collar data with latitude and longitude location data
+#' @param file the file path where the output GPX file should be saved
+#' @param lon_col unquoted name of column containing longitude coordinates
+#' @param lat_col unquoted name of column containing longitude coordinates
+#' @param dt_col unquoted name of column containing date and time of location. The format of date_time must follow YYYY-MM-DD HH:MM:SS or YYYY-MM-DDTHH:MM:SS.
+#' @param name_col unquoted name of column containing the name to be assigned to the GPS location
+#' @param desc_col unquoted name of column containing a a description to be assigned to the GPS location
 #'
 #' @return The original data frame passed to the function.
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'   make_gpx(collar_data, start = Sys.date() - 30)
+#'   make_gpx(collar_data)
 #' }
 make_gpx <- function(x,
-                     id_col = "id",
-                     lat_col = "lat",
-                     lon_col = "lon",
-                     dt_col = "dt",
-                     file = paste0("./GPS Locations ", format(Sys.time(), "%Y-%m-%d %H%M%S"), ".gpx"),
-                     crs = 4326,
-                     ...
+                     file,
+                     lon_col = lon,
+                     lat_col = lat,
+                     dt_col,
+                     name_col,
+                     desc_col
 ){
-  assertthat::assert_that(assertthat::noNA(dplyr::pull(x, lon_col)))
-  assertthat::assert_that(assertthat::noNA(dplyr::pull(x, lat_col)))
-  purrr::map(
-    c(id_col, lat_col, lon_col, dt_col),
-    ~assertthat::assert_that(assertthat::has_name(x, .))
-  )
+  assertthat::assert_that(inherits(x, "data.frame"))
+  assertthat::assert_that(assertthat::is.dir(dirname(file)))
 
+  lat <- dplyr::pull(x, {{ lat_col }})
+  lon <- dplyr::pull(x, {{ lon_col }})
 
-  x %>%
-    dplyr::mutate(
-      name = paste(
-        x[, id_col],
-        format(as.data.frame(x[, dt_col]), "%Y-%m-%d h%H")
-      )
-    ) %>%
-    sf::st_as_sf(coords = c(lon_col, lat_col), crs = crs) %>%
-    dplyr::select(.data$name) %>%
-    sf::st_write(dsn = file, layer = "waypoints", driver = "GPX", ...)
+  assertthat::assert_that(assertthat::noNA(lon))
+  assertthat::assert_that(assertthat::noNA(lat))
+
+  if(missing(dt_col)) {d_t = ""} else {d_t = dplyr::pull(x, {{ dt_col }})}
+  if(missing(name_col)) {nm = ""} else {nm = dplyr::pull(x, {{ name_col }})}
+  if(missing(desc_col)) {dsc = ""} else {dsc = dplyr::pull(x, {{ desc_col }})}
+
+  if(!identical(d_t, "")){
+    assertthat::assert_that(
+      sum(grepl(
+        "^(19[78][0-9]|199[0-9]|20[0-9]{2}|2100)-0*([1-9]|1[0-2])-0*([1-9]|[12][0-9]|3[01])(T| )0*([0-9]|1[0-9]|2[0-4]):0*([0-9]|[1-5][0-9]|60):0*([0-9]|[1-5][0-9]|60)$",
+        d_t
+      )) == length(d_t),
+      msg = "In create_gpx, the format of date_time must follow YYYY-MM-DD HH:MM:SS or YYYY-MM-Dd_tHH:MM:SS."
+    )
+  }
+
+  pre <- '<?xml version="1.0" encoding="utf-8" standalone="yes"?> <gpx version="1.1" creator="Collar R pacakge https://github.com/Huh/collar" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">'
+  post <- '</gpx>'
+
+  glue::glue(
+    '<wpt lat="{lat}" lon="{lon}">
+      <time>{d_t}</time>
+      <name>{nm}</name>
+      <desc>{dsc}</desc>
+    </wpt>'
+  ) %>%
+    c(pre, ., post) %>%
+    paste(collapse = "\n") %>%
+    writeLines(file)
 
   return(invisible(x))
 }

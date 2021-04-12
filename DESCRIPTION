@@ -22,6 +22,7 @@ Imports:
     assertthat,
     curl,
     dplyr,
+    glue,
     ggplot2,
     grDevices,
     htmlwidgets,
