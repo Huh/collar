@@ -1,5 +1,6 @@
-#### ATS Warning
-ATS changed their website, which caused the code in collar to fail. We have a solution and are testing it to make sure it is suitable for general consumption. If you are having trouble with ATS please feel free to reach out to discuss. Thanks, Josh
+## ATS Update
+
+ATS changed their website in February 2021, which caused the code in collar to fail. As of 2021-04-12 the package has been updated to work with the redesigned site, but this change involved significant changes to the functions and their output. If you have scripts that were written using the `fetch_ats...` functions in previous versions of collar those scripts will need to be updated. If you're having trouble with ATS data make sure you're using the latest version of collar using `devtools::install_github("huh/collar")` or `remotes::install_github("huh/collar")`. For more details see the ATS section in `vignette("downloading-data", package = "collar")` or `?ats_login`, `?fetch_ats_positions`, etc. If you're still having trouble let us know by creating an [Issue](https://github.com/Huh/collar/issues).
 
 ## collar
 
@@ -17,7 +18,7 @@ We focus on companies that our collaborators use often and that provide some mea
 
 - Vectronics Aerospace
 - Advanced Telemetry Solutions
-- Lotek (NEW)
+- Lotek
 - Loose csv's
 
 Consistent naming prefixes were used when possible in an effort to enhance the user experience.
