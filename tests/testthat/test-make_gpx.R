@@ -65,15 +65,7 @@ test_that("Check make_gpx assertions", {
     dplyr::slice(1)
 
   expect_error(
-    make_gpx(dat_na)
-  )
-
-  dat_na <-
-    dplyr::mutate(dat, lat = NA) %>%
-    dplyr::slice(1)
-
-  expect_error(
-    make_gpx(dat_na)
+    make_gpx(file = "./points.gpx", dat_na)
   )
 
 })

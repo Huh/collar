@@ -1,3 +1,6 @@
+#### ATS Warning
+ATS changed their website, which caused the code in collar to fail. We have a solution and are testing it to make sure it is suitable for general consumption. If you are having trouble with ATS please feel free to reach out to discuss. Thanks, Josh
+
 ## collar
 
 We developed the collar package to help us automate downloads of data from telemetry collar manufacturer's websites/API's. The project is intended to be easy to use, provide a consistent user interface and encourage the automation of data downloads. Whether or not we achieved any of that is up to you. With this package we hope to encourage the use of data in the field, on your phone, visualization and storing it in databases (not Excel).
