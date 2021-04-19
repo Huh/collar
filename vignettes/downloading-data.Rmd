@@ -140,7 +140,11 @@ Use `ats_login` with your username and password to log in to your ATS account. T
 
 ```{r}
 library(collar)
-ats_login(usr = "mary", pwd = ".")
+# ATS changed the demo password on us
+# This is just a workaround to make the vignette work
+ok <- try(ats_login(usr = "mary", pwd = ".")) == TRUE
+# Normally this would be fine:
+# ats_login(usr = "mary", pwd = ".")
 ```
 
 Your login information is stored in a cookie what will remain active for the duration of your R session. If you experience problems retrieving your data you can always run the same code again to log back in to your account.
@@ -156,9 +160,11 @@ ats_logout()
 Use `fetch_ats_events` to get a list of events (a.k.a. alerts) from the server. No parameters are required:
 
 ```{r}
-ats_login(usr = "mary", pwd = ".")
-alerts <- fetch_ats_events()
-alerts
+ok <- try(ats_login(usr = "mary", pwd = ".")) == TRUE
+if (ok) {
+  alerts <- fetch_ats_events()
+  alerts
+}
 ```
 
 ###### Retrieving A List of Available Devices
@@ -166,15 +172,19 @@ alerts
 As with alerts above, use `fetch_ats_devices` to see a list of devices (collars) associated with your account:
 
 ```{r}
-collars <- fetch_ats_devices()
-collars
+if (ok) {
+  collars <- fetch_ats_devices()
+  collars
+}
 ```
 
 You can also use the `filter` parameter to filter the list of devices. For example to retrieve a list of devices in mortality status:
 
 ```{r}
-collars <- fetch_ats_devices("mort")
-collars
+if (ok) {
+  collars <- fetch_ats_devices("mort")
+  collars
+}
 ```
 
 See `?fetch_ats_devices` for the list of available filters.
@@ -184,26 +194,30 @@ See `?fetch_ats_devices` for the list of available filters.
 GPS data can be retrieved using `fetch_ats_positions`, which provides several parameters to limit the data returned. Running this function without parameters may take a very long time depending on the number of positions being returned. Use the device_id parameter to filter by collar:
 
 ```{r}
-# download position data for collar 44286
-fixes <- fetch_ats_positions(device_id = "044286")
-nrow(fixes)
-# download position data for 3 collars at once
-collars <- c("044286", "044288", "044290")
-fixes <- fetch_ats_positions(device_id = collars)
-nrow(fixes)
-min(fixes$CollarSerialNumber)
-max(fixes$CollarSerialNumber)
+if (ok) {
+  # download position data for collar 44286
+  fixes <- fetch_ats_positions(device_id = "044286")
+  nrow(fixes)
+  # download position data for 3 collars at once
+  collars <- c("044286", "044288", "044290")
+  fixes <- fetch_ats_positions(device_id = collars)
+  nrow(fixes)
+  min(fixes$CollarSerialNumber)
+  max(fixes$CollarSerialNumber)
+}
 ```
 
 Use the `n` parameter to retrieve the last 5 or last 10 fixes (data is only returned for active collars):
 
 ```{r}
-# download last 10 fixes (all active collars)
-fixes <- fetch_ats_positions(n = 10)
-nrow(fixes)
-# download last 10 fixes for certain collars
-fixes <- fetch_ats_positions(device_id = collars, n = 10)
-nrow(fixes)
+if (ok) {
+  # download last 10 fixes (all active collars)
+  fixes <- fetch_ats_positions(n = 10)
+  nrow(fixes)
+  # download last 10 fixes for certain collars
+  fixes <- fetch_ats_positions(device_id = collars, n = 10)
+  nrow(fixes)
+}
 ```
 
 You can also download new data only using `new = TRUE`. Start date and end date parameters are included in collar, but due to an internal server error on the ATS website they're currently ignored. These parameters will be enabled in a future version once the error has been resolved.
@@ -215,12 +229,14 @@ See `?fetch_ats_positions` for more details and a description of the output form
 ATS also allows users to download information about the satellite transmissions that have been sent from ATS collars. This data is used in `ats_fetch_positions` to determine the GMT offset and detect column substitutions. You can access the data yourself using (you guessed it) `fetch_ats_transmissions`. As with `ats_fetch_positions` parameters allow you to filter by collar or include only new data.
 
 ```{r}
-# get undownloaded transmissions for all collars
-trans <- fetch_ats_transmissions(new = TRUE)
-nrow(trans)
-# get all transmissions for certain collars
-trans <- fetch_ats_transmissions(device_id = collars)
-nrow(trans)
+if (ok) {
+  # get undownloaded transmissions for all collars
+  trans <- fetch_ats_transmissions(new = TRUE)
+  nrow(trans)
+  # get all transmissions for certain collars
+  trans <- fetch_ats_transmissions(device_id = collars)
+  nrow(trans)
+}
 ```
 
 As above, don't forget to check out `?fetch_ats_transmissions` for more details and a description of the output format.
@@ -230,7 +246,9 @@ As above, don't forget to check out `?fetch_ats_transmissions` for more details 
 ATS also provides a very limited set of collar configuration information for download. This information is unlikely to be useful in `R`, but it's so there so we included it. The function for retrieving this data is called `fetch_ats_config`:
 
 ```{r}
-head(fetch_ats_config())
+if (ok) {
+  head(fetch_ats_config())
+}
 ats_logout()
 ```
 
