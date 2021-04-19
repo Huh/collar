@@ -107,10 +107,12 @@ test_that("Check ats login function", {
   expect_error(fetch_ats_transmissions())
 
   # test valid login
-  ats_login("mary", ".")
+  ok <- try(ats_login("mary", ".")) == TRUE
 
-  # check that cookie works for retrieving data
-  dl <- fetch_ats_devices()
+  if (ok) {
+    # check that cookie works for retrieving data
+    dl <- fetch_ats_devices()
+  }
 
   # check that logging out revokes access
   ats_logout()
@@ -122,49 +124,53 @@ test_that("Check ATS data functions", {
 
   check_api()
 
-  ats_login("mary", ".")
+  # attempt login
+  ok <- try(ats_login("mary", ".")) == TRUE
 
-  # check data retrieval functions
+  if (ok) {
+    # check data retrieval functions
 
-  # check events
-  events <- fetch_ats_events()
-  check_data(events, "events")
+    # check events
+    events <- fetch_ats_events()
+    check_data(events, "events")
 
-  # check devices
-  dl <- fetch_ats_devices()
-  expect_type(dl, "character")
+    # check devices
+    dl <- fetch_ats_devices()
+    expect_type(dl, "character")
 
-  # check configuration
-  cfg <- fetch_ats_config()
-  check_data(cfg, "config")
+    # check configuration
+    cfg <- fetch_ats_config()
+    check_data(cfg, "config")
 
-  # check transmission function
-  dev <- dl[1]
+    # check transmission function
+    dev <- dl[1]
 
-  trans <- fetch_ats_transmissions(new = TRUE)
-  check_data(trans, "transmissions")
+    trans <- fetch_ats_transmissions(new = TRUE)
+    check_data(trans, "transmissions")
 
-  trans <- fetch_ats_transmissions(new = TRUE)
-  check_data(trans, "transmissions")
-  expect_equal(nrow(trans), 0)
+    trans <- fetch_ats_transmissions(new = TRUE)
+    check_data(trans, "transmissions")
+    expect_equal(nrow(trans), 0)
 
-  trans <- fetch_ats_transmissions(dev)
-  check_data(trans, "transmissions")
-  expect_equal(dev, unique(trans$CollarSerialNumber))
+    trans <- fetch_ats_transmissions(dev)
+    check_data(trans, "transmissions")
+    expect_equal(dev, unique(trans$CollarSerialNumber))
 
-  # check position function
+    # check position function
 
-  pos <- fetch_ats_positions(device_id = dev)
-  check_data(pos, "positions")
-  expect_equal(dev, unique(pos$CollarSerialNumber))
+    pos <- fetch_ats_positions(device_id = dev)
+    check_data(pos, "positions")
+    expect_equal(dev, unique(pos$CollarSerialNumber))
 
-  pos <- fetch_ats_positions(device_id = dev, n = 10)
-  check_data(pos, "positions")
-  expect_equal(nrow(pos), 10)
+    pos <- fetch_ats_positions(device_id = dev, n = 10)
+    check_data(pos, "positions")
+    expect_equal(nrow(pos), 10)
 
-  pos <- fetch_ats_positions(device_id = dev, n = 5)
-  check_data(pos, "positions")
-  expect_equal(nrow(pos), 5)
+    pos <- fetch_ats_positions(device_id = dev, n = 5)
+    check_data(pos, "positions")
+    expect_equal(nrow(pos), 5)
+
+  }
 
   # TODO test start and end dates when available
 
