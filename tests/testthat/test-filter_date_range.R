@@ -1,6 +1,3 @@
-context("test-filter_date_range.R")
-
-
 test_that("Check filter_date_range", {
 
   data_dir <- system.file("extdata", package = "collar")

@@ -134,47 +134,123 @@ The pattern is the same for the remaining data types.
 
 #### ATS
 
-ATS has a typical web portal that, like many companies, requires the user to click endless buttons in order to download data in a reasonable fashion. For this reason, the collar package provides web scraping utilities to interact with the ATS website. Webscraping is a technique that mimics user interactions with a website in order to make something happen, like retrieiving data. Have you ever seen a table of data on a website and thought I would like to have a copy of that? That is the job of webscraping, but in the case of the ATS site we are going to click buttons to get the desired data. Functionality at this point is somewhat limited, but also general, so if you choose to learn how to use the functions then you should be able to accomplish complex tasks.
+###### Authentication
 
-The main function users interact with to download data from ATS is the `fetch_ats` function. This function has 4 arguments. The bttn_nm argument allows the user to control which data is downloaded by specifying the button to "click". The usr and pwd arguments are for authentication. Each user must provide there own credentials for authentication. The base_url argument has a default value of `atsidaq.net`, which should suffice for most all applications. If you navigate to `atsidaq.net` and login you will see the GUI and all of its buttons. Let's start with an example of downloading all the data from a study. 
+Use `ats_login` with your username and password to log in to your ATS account. There's no need to assign the return value of this function to a variable.
 
-```{r eval = F}
-ats_dat <- fetch_ats(usr = Sys.getenv("ats_usr"), pwd = Sys.getenv("ats_pwd"))
+```{r}
+library(collar)
+# ATS changed the demo password on us
+# This is just a workaround to make the vignette work
+ok <- try(ats_login(usr = "mary", pwd = ".")) == TRUE
+# Normally this would be fine:
+# ats_login(usr = "mary", pwd = ".")
 ```
 
-In the above call we are downloading all data from all collars with data stored on the site. The only arguments we have to pass are the username and password. Here I have chosen to store the username and password as environmental variables. To read more about how to do this try [this link](https://cran.r-project.org/web/packages/httr/vignettes/secrets.html). So if all you ever want to do is download all the data and rely on a database to deal with [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) like operations then you are done with the tutorial, but the function can do more. What if you wanted to download all the data passed by the button labelled "Download New Transmissions"? Well we need to pass the name of that button to the function and then we will get that data, but what do we mean by name? When you look at the button in the website you see that it has words on it, but those words are not the name or unique identifying bit of information. What we really need is stored in the HTML that makes up the webpage. My preferred way to get that information in Google Chrome is to right click and choose inspect. This gives me access to the developer tools and consequently the HTML for the site. Another great technique is to use [SelectorGadget](https://cran.r-project.org/web/packages/rvest/vignettes/selectorgadget.html). I won't go into great detail here, but will instead show examples of downloading data using different buttons.
+Your login information is stored in a cookie what will remain active for the duration of your R session. If you experience problems retrieving your data you can always run the same code again to log back in to your account.
 
-Download data using new transmissions button
-```{r eval = F}
-new_trans <- fetch_ats(
-  bttn_nm = "ctl00$ContentPlaceHolder1$DownloadAll2",
-  usr = Sys.getenv("ats_usr"), 
-  pwd = Sys.getenv("ats_pwd")
-)
+To log out use `ats_logout()`. None of the data retrieval functions detailed below will work if you're not logged in.
+
+```{r}
+ats_logout()
 ```
 
-Download data using Download All Events button
+###### Retrieving Events
 
-*Note: At the time of this writing ATS was having a server issue and this request returned a 500 error code meaning an internal server error had occurred.*
+Use `fetch_ats_events` to get a list of events (a.k.a. alerts) from the server. No parameters are required:
 
-```{r eval = F}
-all_events <- fetch_ats(
-  bttn_nm = "ctl00$ContentPlaceHolder1$DownLoadlastEvents",
-  usr = Sys.getenv("ats_usr"), 
-  pwd = Sys.getenv("ats_pwd")
-)
+```{r}
+ok <- try(ats_login(usr = "mary", pwd = ".")) == TRUE
+if (ok) {
+  alerts <- fetch_ats_events()
+  alerts
+}
 ```
 
-Hopefully the pattern is clear, find the button name in the html and insert it into the bttn_nm argument of the function. This pattern applies to all buttons on the page that return data. A few buttons and their names are provided below for reference:
+###### Retrieving A List of Available Devices
 
-1) Download New Data - `ctl00$ContentPlaceHolder1$DownloadAll1`
-2) Download New Transmissions - `ctl00$ContentPlaceHolder1$DownloadAll2`
-3) Download All Data - `ctl00$ContentPlaceHolder1$DownloadAll3`
-4) Download Download All Transmissions - `ctl00$ContentPlaceHolder1$DownloadAll4`
-5) Download All Events - `ctl00$ContentPlaceHolder1$DownLoadlastEvents`
+As with alerts above, use `fetch_ats_devices` to see a list of devices (collars) associated with your account:
 
+```{r}
+if (ok) {
+  collars <- fetch_ats_devices()
+  collars
+}
+```
 
-***
+You can also use the `filter` parameter to filter the list of devices. For example to retrieve a list of devices in mortality status:
+
+```{r}
+if (ok) {
+  collars <- fetch_ats_devices("mort")
+  collars
+}
+```
+
+See `?fetch_ats_devices` for the list of available filters.
+
+###### Retrieving GPS Data
+
+GPS data can be retrieved using `fetch_ats_positions`, which provides several parameters to limit the data returned. Running this function without parameters may take a very long time depending on the number of positions being returned. Use the device_id parameter to filter by collar:
+
+```{r}
+if (ok) {
+  # download position data for collar 44286
+  fixes <- fetch_ats_positions(device_id = "044286")
+  nrow(fixes)
+  # download position data for 3 collars at once
+  collars <- c("044286", "044288", "044290")
+  fixes <- fetch_ats_positions(device_id = collars)
+  nrow(fixes)
+  min(fixes$CollarSerialNumber)
+  max(fixes$CollarSerialNumber)
+}
+```
+
+Use the `n` parameter to retrieve the last 5 or last 10 fixes (data is only returned for active collars):
+
+```{r}
+if (ok) {
+  # download last 10 fixes (all active collars)
+  fixes <- fetch_ats_positions(n = 10)
+  nrow(fixes)
+  # download last 10 fixes for certain collars
+  fixes <- fetch_ats_positions(device_id = collars, n = 10)
+  nrow(fixes)
+}
+```
+
+You can also download new data only using `new = TRUE`. Start date and end date parameters are included in collar, but due to an internal server error on the ATS website they're currently ignored. These parameters will be enabled in a future version once the error has been resolved.
+
+See `?fetch_ats_positions` for more details and a description of the output format.
+
+###### Retrieving Transmission Data
+
+ATS also allows users to download information about the satellite transmissions that have been sent from ATS collars. This data is used in `ats_fetch_positions` to determine the GMT offset and detect column substitutions. You can access the data yourself using (you guessed it) `fetch_ats_transmissions`. As with `ats_fetch_positions` parameters allow you to filter by collar or include only new data.
+
+```{r}
+if (ok) {
+  # get undownloaded transmissions for all collars
+  trans <- fetch_ats_transmissions(new = TRUE)
+  nrow(trans)
+  # get all transmissions for certain collars
+  trans <- fetch_ats_transmissions(device_id = collars)
+  nrow(trans)
+}
+```
+
+As above, don't forget to check out `?fetch_ats_transmissions` for more details and a description of the output format.
+
+###### Retrieving Collar Configuration Details
+
+ATS also provides a very limited set of collar configuration information for download. This information is unlikely to be useful in `R`, but it's so there so we included it. The function for retrieving this data is called `fetch_ats_config`:
+
+```{r}
+if (ok) {
+  head(fetch_ats_config())
+}
+ats_logout()
+```
 
 #### CSV Legacy/Loose Files
 

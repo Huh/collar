@@ -1,5 +1,3 @@
-context("test-cllr_remove_header.R")
-
 test_that("all_cllr_rm_header", {
   fl <- read.csv(
     system.file("extdata", "telonics.csv", package = "collar")

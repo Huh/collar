@@ -4,7 +4,7 @@
 #'
 #' @inheritParams get_keys
 #' @inheritParams build_vec_url
-#' @inheritParams fetch_ats
+#' @inheritParams cllr_remove_header
 #'
 #' @details
 #' This function assumes that the user stores key files for each collar deployed in a single directory and that directory only contains key files. The function will extract all of the keys contained in this directory and attempt to download data for each collar.
@@ -423,7 +423,7 @@ build_vec_urls <- function(base_url = NULL,
 #' A basic call to the Vectronics API
 #'
 #' @param url a character string representing the url to query
-#' @inheritParams fetch_ats
+#' @inheritParams cllr_remove_header
 #'
 #' @keywords internal
 #' @return tibble

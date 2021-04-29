@@ -1,6 +1,4 @@
-context("test-make_gpx.R")
-
- test_that("Check make_gpx", {
+test_that("Check make_gpx", {
 
   data_dir <- system.file("extdata", package = "collar")
 
