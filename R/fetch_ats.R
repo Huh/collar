@@ -1143,7 +1143,10 @@ fetch_ats_events <- function() {
 #'
 #' @param device_id A single device id, or a list or vector of device ids,
 #'   or NULL for all devices associated with current account. Overrides
-#'   the new parameter when specified.
+#'   the new parameter when specified. If the device ids returned by
+#'   \code{fetch_ats_devices} have leading zeros they should be included
+#'   in the \code{device_id} parameter as well
+#'   (e.g. \code{device_id = "012345")}).
 #' @param start,end Currently ignored (see Notes).
 #' @param n A single integer specifying how many fixes to return per
 #'   collar (sorted by recency). Valid values are 5 and 10.
@@ -1360,7 +1363,10 @@ fetch_ats_positions <- function(device_id = NULL,
 #'
 #' @param device_id A single device id, or a list or vector of device ids,
 #'   or NULL for all devices associated with current account. Overrides
-#'   the new parameter when specified.
+#'   the new parameter when specified. If the device ids returned by
+#'   \code{fetch_ats_devices} have leading zeros they should be included
+#'   in the \code{device_id} parameter as well
+#'   (e.g. \code{device_id = "012345")}).
 #' @param new A logical flag. When new = true only data that hasn't been
 #'   previously downloaded is returned. If device_id is specified the flag
 #'   is ignored.
