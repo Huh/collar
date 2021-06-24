@@ -1327,10 +1327,11 @@ fetch_ats_positions <- function(device_id = NULL,
     }
 
     if (any(missing(device_id), length(device_id) == 0)) {
-      # post request only works with collars selected
-      ats_select_collars(fetch_ats_devices())
+      # get all active collars
+      devices = fetch_ats_devices()
+    } else {
+      devices = device_id
     }
-    # otherwise collars are selected in fetch_ats_transmissions
 
     # send request and parse
     ats_post(
@@ -1339,7 +1340,8 @@ fetch_ats_positions <- function(device_id = NULL,
         consulta = "download_txt_collars",
         type = type,
         parameter1 = p1,
-        parameter2 = p2
+        parameter2 = p2,
+        collars = paste0(paste0(devices, "_"), collapse = "")
       ),
       task = "download position data"
     ) %>%
@@ -1436,12 +1438,11 @@ fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
 
   } else {
 
-    ats_select_collars(device_id)
-
     ats_post(
       path = "Servidor.ashx",
       body = list(
-        consulta = "download_trans_collars"
+        consulta = "download_trans_collars",
+        collar = paste0(paste0(device_id, ","), collapse = "")
       ),
       task = "download transmission data"
     ) %>%
