@@ -1143,7 +1143,10 @@ fetch_ats_events <- function() {
 #'
 #' @param device_id A single device id, or a list or vector of device ids,
 #'   or NULL for all devices associated with current account. Overrides
-#'   the new parameter when specified.
+#'   the new parameter when specified. If the device ids returned by
+#'   \code{fetch_ats_devices} have leading zeros they should be included
+#'   in the \code{device_id} parameter as well
+#'   (e.g. \code{device_id = "012345")}).
 #' @param start,end Currently ignored (see Notes).
 #' @param n A single integer specifying how many fixes to return per
 #'   collar (sorted by recency). Valid values are 5 and 10.
@@ -1327,10 +1330,11 @@ fetch_ats_positions <- function(device_id = NULL,
     }
 
     if (any(missing(device_id), length(device_id) == 0)) {
-      # post request only works with collars selected
-      ats_select_collars(fetch_ats_devices())
+      # get all active collars
+      devices = fetch_ats_devices()
+    } else {
+      devices = device_id
     }
-    # otherwise collars are selected in fetch_ats_transmissions
 
     # send request and parse
     ats_post(
@@ -1339,7 +1343,8 @@ fetch_ats_positions <- function(device_id = NULL,
         consulta = "download_txt_collars",
         type = type,
         parameter1 = p1,
-        parameter2 = p2
+        parameter2 = p2,
+        collars = paste0(paste0(devices, "_"), collapse = "")
       ),
       task = "download position data"
     ) %>%
@@ -1358,7 +1363,10 @@ fetch_ats_positions <- function(device_id = NULL,
 #'
 #' @param device_id A single device id, or a list or vector of device ids,
 #'   or NULL for all devices associated with current account. Overrides
-#'   the new parameter when specified.
+#'   the new parameter when specified. If the device ids returned by
+#'   \code{fetch_ats_devices} have leading zeros they should be included
+#'   in the \code{device_id} parameter as well
+#'   (e.g. \code{device_id = "012345")}).
 #' @param new A logical flag. When new = true only data that hasn't been
 #'   previously downloaded is returned. If device_id is specified the flag
 #'   is ignored.
@@ -1436,12 +1444,11 @@ fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
 
   } else {
 
-    ats_select_collars(device_id)
-
     ats_post(
       path = "Servidor.ashx",
       body = list(
-        consulta = "download_trans_collars"
+        consulta = "download_trans_collars",
+        collar = paste0(paste0(device_id, ","), collapse = "")
       ),
       task = "download transmission data"
     ) %>%

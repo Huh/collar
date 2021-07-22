@@ -15,7 +15,10 @@ fetch_ats_positions(
 \arguments{
 \item{device_id}{A single device id, or a list or vector of device ids,
 or NULL for all devices associated with current account. Overrides
-the new parameter when specified.}
+the new parameter when specified. If the device ids returned by
+\code{fetch_ats_devices} have leading zeros they should be included
+in the \code{device_id} parameter as well
+(e.g. \code{device_id = "012345")}).}
 
 \item{start, end}{Currently ignored (see Notes).}
 
