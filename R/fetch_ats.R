@@ -365,7 +365,10 @@ ats_parse_pos <- function(resp, trans) {
 
       # parse txt file
       httr::content(resp, "text", encoding = "UTF-8") %>%
-        readr::read_csv(col_types = "ciiiiiidddiic_") %>%
+        I() %>%
+        readr::read_csv(col_types = "ciiiiicdddiic_") %>%
+        # issue parsing signed int in readr
+        dplyr::mutate(Temperature = as.integer(Temperature)) %>%
         dplyr::rename(JulianDay = .data$Julianday) %>%
         ats_join_trans(trans)
 
@@ -475,6 +478,7 @@ ats_parse_trans <- function(resp) {
           "\\1\"\\3\"\\4",
           .
         )} %>%
+        I() %>%
         readr::read_csv(col_types = "ccidcciiidccddi") %>%
         tidyr::separate(
           .data$Event,
