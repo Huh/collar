@@ -368,7 +368,7 @@ ats_parse_pos <- function(resp, trans) {
         I() %>%
         readr::read_csv(col_types = "ciiiiicdddiic_") %>%
         # issue parsing signed int in readr
-        dplyr::mutate(Temperature = as.integer(Temperature)) %>%
+        dplyr::mutate(Temperature = as.integer(.data$Temperature)) %>%
         dplyr::rename(JulianDay = .data$Julianday) %>%
         ats_join_trans(trans)
 
@@ -1260,32 +1260,34 @@ fetch_ats_positions <- function(device_id = NULL,
   }
 
   # get filters
-  args <- as.list(environment())
-  args <- args[names(args) != "new"]
-
-  if (all(sapply(args, is.null))) {
-
-    # get transmission data for determining gmt offset
-    trans <- fetch_ats_transmissions(new = new)
-
-    # get dw parameter for GET request
-    type <- purrr::when(
-      new,
-      isTRUE(.) ~ "new",
-      ~ "all"
-    )
-
-    # send request and parse
-    ats_get(
-      path = list(
-        "download_all_data",
-        paste0("Download_all_data.aspx?dw=", type)
-      ),
-      task = "download position data"
-    ) %>%
-      ats_parse_pos(trans)
-
-  } else {
+  # deprecated due to changes to
+  #   download_all_data/Download_all_data.aspx endpoint
+  # args <- as.list(environment())
+  # args <- args[names(args) != "new"]
+  #
+  # if (all(sapply(args, is.null))) {
+  #
+  #   # get transmission data for determining gmt offset
+  #   trans <- fetch_ats_transmissions(new = new)
+  #
+  #   # get dw parameter for GET request
+  #   type <- purrr::when(
+  #     new,
+  #     isTRUE(.) ~ "new",
+  #     ~ "all"
+  #   )
+  #
+  #   # send request and parse
+  #   ats_get(
+  #     path = list(
+  #       "download_all_data",
+  #       paste0("Download_all_data.aspx?dw=", type)
+  #     ),
+  #     task = "download position data"
+  #   ) %>%
+  #     ats_parse_pos(trans)
+  #
+  # } else {
 
     # check for valid n values
     assertthat::validate_that(
@@ -1354,7 +1356,7 @@ fetch_ats_positions <- function(device_id = NULL,
     ) %>%
       ats_parse_pos(trans)
 
-  }
+  # }
 
 }
 
