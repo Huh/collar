@@ -4,6 +4,9 @@ test_that("Check make_gpx", {
 
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
 
+  tmp_file <- normalizePath(file.path(tempdir(), "tmp.gpx"), mustWork = FALSE)
+  on.exit(unlink(tmp_file))
+
   dat <-
     tmp %>%
     dplyr::filter(!is.na(longitude)) %>%
@@ -21,12 +24,10 @@ test_that("Check make_gpx", {
   )
 
   # test file produced
-  tmp_dir <- tempdir()
-  tmp_file <- paste0("/", rnorm(1), ".gpx")
-  make_gpx(dat, file = paste0(tmp_dir, tmp_file))
+  make_gpx(dat, file = tmp_file)
 
   testthat::expect_true(
-    file.exists(paste0(tmp_dir, tmp_file))
+    file.exists(tmp_file)
   )
 
 })

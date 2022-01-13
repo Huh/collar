@@ -4,6 +4,9 @@ test_that("check save_map", {
 
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
 
+  tmp_file <- normalizePath(file.path(tempdir(), "tmp.map"), mustWork = FALSE)
+  on.exit(unlink(tmp_file))
+
   dat <-
     tmp %>%
     dplyr::filter(!is.na(longitude)) %>%
@@ -16,18 +19,15 @@ test_that("check save_map", {
       lat_col = latitude
     )
 
-
   expect_error(
     save_map("a")
   )
 
   # test file produced
-  tmp_dir <- tempdir()
-  tmp_file <- "tmp.map"
-  save_map(make_map(dat), file = paste0(tmp_dir, tmp_file))
+  save_map(make_map(dat), file = tmp_file)
 
   testthat::expect_true(
-    file.exists(paste0(tmp_dir, tmp_file))
+    file.exists(tmp_file)
   )
 
 })

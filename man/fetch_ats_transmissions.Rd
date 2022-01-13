@@ -4,7 +4,7 @@
 \alias{fetch_ats_transmissions}
 \title{Download Transmission Data from ATS Website}
 \usage{
-fetch_ats_transmissions(device_id = NULL, new = FALSE)
+fetch_ats_transmissions(device_id = NULL, new = FALSE, chunk_size = 50L)
 }
 \arguments{
 \item{device_id}{A single device id, or a list or vector of device ids,
@@ -14,9 +14,13 @@ the new parameter when specified. If the device ids returned by
 in the \code{device_id} parameter as well
 (e.g. \code{device_id = "012345")}).}
 
-\item{new}{A logical flag. When new = true only data that hasn't been
-previously downloaded is returned. If device_id is specified the flag
-is ignored.}
+\item{new}{Currently ignored due to changes in the ATS website.}
+
+\item{chunk_size}{A single integer (default = 50) specifying how
+many collars are downloaded per HTTP request. In some rare cases
+entire batches may fail (with a warning) due to a few problematic
+collars, in which case you should set chunk_size to 1 to ensure
+that all available data is retrieved.}
 }
 \value{
 A tibble with 20 columns:
@@ -52,15 +56,17 @@ Retrieves all transmissions or undownloaded transmissions,
 
 ats_login("mary", ".")
 
-# get undownloaded transmissions for all collars in this account
-trans <- fetch_ats_transmissions(new = TRUE)
-
 # get all transmissions for all collars in this account
 trans <- fetch_ats_transmissions()
 
 # get all transmissions for specific collars
 collar_list <- sample(fetch_ats_devices(), 10)
 trans <- fetch_ats_transmissions(device_id = collar_list)
+
+# set chunk_size to 1 to ensure you get all available data
+#   if you're experiencing issues, but the download will
+#   take much longer to complete.
+trans <- fetch_ats_transmissions(chunk_size = 1)
 
 ats_logout()
 
