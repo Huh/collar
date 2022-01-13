@@ -376,30 +376,45 @@ ats_parse_pos <- function(resp, trans) {
 
   } else {
 
-    pos_data <- resp %>%
-      ats_parse_xml()
+    if (inherits(httr::content(resp), "raw")) {
 
-    if (ncol(pos_data) == 0) {
-
-      # no data returned (tibble 0x0)
+      # api returns raw(0) when any collars have no fixes
+      warning(paste(
+        "Empty html response - this can occur if there are",
+        "collars with no fix data avilable. You may need",
+        "to set chuck_size = 1 to download all data",
+        "for this account."
+      ))
       ats_empty_pos
 
     } else {
 
-      # parse xml file
-      pos_data %>%
-        dplyr::select(
-          CollarSerialNumber = .data$AtsSerialNum, .data$Year,
-          .data$JulianDay, .data$Hour, .data$Minute, .data$Activity,
-          .data$Temperature, .data$Latitude, .data$Longitude,
-          HDOP = .data$Hdop, .data$NumSats, .data$FixTime,
-          `2D/3D` = .data$Dimension
-        ) %>%
-        dplyr::mutate(
-          dplyr::across(c(2:7, 11:12), as.integer),
-          dplyr::across(c(8:9, 10), as.numeric)
-        ) %>%
-        ats_join_trans(trans)
+      pos_data <- resp %>%
+        ats_parse_xml()
+
+      if (ncol(pos_data) == 0) {
+
+        # no data returned (tibble 0x0)
+        ats_empty_pos
+
+      } else {
+
+        # parse xml file
+        pos_data %>%
+          dplyr::select(
+            CollarSerialNumber = .data$AtsSerialNum, .data$Year,
+            .data$JulianDay, .data$Hour, .data$Minute, .data$Activity,
+            .data$Temperature, .data$Latitude, .data$Longitude,
+            HDOP = .data$Hdop, .data$NumSats, .data$FixTime,
+            `2D/3D` = .data$Dimension
+          ) %>%
+          dplyr::mutate(
+            dplyr::across(c(2:7, 11:12), as.integer),
+            dplyr::across(c(8:9, 10), as.numeric)
+          ) %>%
+          ats_join_trans(trans)
+
+      }
 
     }
 
@@ -1154,9 +1169,12 @@ fetch_ats_events <- function() {
 #' @param start,end Currently ignored (see Notes).
 #' @param n A single integer specifying how many fixes to return per
 #'   collar (sorted by recency). Valid values are 5 and 10.
-#' @param new A logical flag. When new = true only data that hasn't been
-#'   previously downloaded is returned. If device_id is specified the flag
-#'   is ignored.
+#' @param new Currently ignored due to changes in the ATS website.
+#' @param chunk_size A single integer (default = 50) specifying how
+#'   many collars are downloaded per HTTP request. In some rare cases
+#'   entire batches may fail (with a warning) due to a few problematic
+#'   collars, in which case you should set chunk_size to 1 to ensure
+#'   that all available data is retrieved.
 #'
 #' @return A tibble with 25 columns:
 #' \describe{
@@ -1234,8 +1252,13 @@ fetch_ats_events <- function() {
 #'   end = as.POSIXct("2020-01-01")
 #' )
 #'
-#' # get undownloaded fixes for a single collar
-#' fixes <- fetch_ats_positions("044286", new = TRUE)
+#' # get fixes for a single collar
+#' fixes <- fetch_ats_positions("044286")
+#'
+#' # set chunk_size to 1 to ensure you get all available data
+#' #   if you're experiencing issues, but the download will
+#' #   take much longer to complete.
+#' fixes <- fetch_ats_positions(chunk_size = 1)
 #'
 #' ats_logout()
 #'
@@ -1245,7 +1268,8 @@ fetch_ats_positions <- function(device_id = NULL,
                                 start = NULL,
                                 end = NULL,
                                 n = NULL,
-                                new = FALSE) {
+                                new = FALSE,
+                                chunk_size = 50L) {
 
   # check for dates - error on ATS website
   # TODO remove when ATS site is fixed
@@ -1259,104 +1283,108 @@ fetch_ats_positions <- function(device_id = NULL,
     end <- NULL
   }
 
-  # get filters
-  # deprecated due to changes to
-  #   download_all_data/Download_all_data.aspx endpoint
-  # args <- as.list(environment())
-  # args <- args[names(args) != "new"]
-  #
-  # if (all(sapply(args, is.null))) {
-  #
-  #   # get transmission data for determining gmt offset
-  #   trans <- fetch_ats_transmissions(new = new)
-  #
-  #   # get dw parameter for GET request
-  #   type <- purrr::when(
-  #     new,
-  #     isTRUE(.) ~ "new",
-  #     ~ "all"
-  #   )
-  #
-  #   # send request and parse
-  #   ats_get(
-  #     path = list(
-  #       "download_all_data",
-  #       paste0("Download_all_data.aspx?dw=", type)
-  #     ),
-  #     task = "download position data"
-  #   ) %>%
-  #     ats_parse_pos(trans)
-  #
-  # } else {
+  if (isTRUE(new)) {
+    warning(paste(
+      "The new argument is deprecated due to changes in the ATS",
+      "website. Requesting all fixes."
+    ))
+    new <- FALSE
+  }
 
-    # check for valid n values
-    assertthat::validate_that(
-      any(is.null(n), n %in% c(5, 10)),
-      msg = paste(
-        "Only 5 and 10 are valid options for last n filters.",
-        "Parameter n will be ignored."
-      )
+  # check for valid n values
+  assertthat::validate_that(
+    any(is.null(n), n %in% c(5, 10)),
+    msg = paste(
+      "Only 5 and 10 are valid options for last n filters.",
+      "Parameter n will be ignored."
     )
+  )
 
-    # check for conflicting filters
-    assertthat::validate_that(
-      all(is.null(start), is.null(end)) | is.null(n),
-      msg = paste(
-        "Last 5 and last 10 filters are incompatible with date filters.",
-        "Only date filters will be used, parameter n will be ignored."
-      )
+  # check for conflicting filters
+  assertthat::validate_that(
+    all(is.null(start), is.null(end)) | is.null(n),
+    msg = paste(
+      "Last 5 and last 10 filters are incompatible with date filters.",
+      "Only date filters will be used, parameter n will be ignored."
     )
+  )
 
-    # get transmission data for determining gmt offset
-    trans <- fetch_ats_transmissions(device_id)
+  # set defaults
+  type <- "004"    # all data
+  p1 <- ""         # no start date
+  p2 <- ""         # no end date
 
-    # set defaults
-    type <- "004"    # all data
-    p1 <- ""         # no start date
-    p2 <- ""         # no end date
+  # adjust request parameters
+  if (!any(is.null(start), is.null(end))) {
+    type <- "001"    # filter by date range
+    if (!is.null(start)) {
+      p1 <- format(start, "%m/%d/%Y")
+    }
+    if (!is.null(start)) {
+      p2 <- format(end, "%m/%d/%Y")
+    }
+  } else {
+    if (!is.null(n)) {
+      type <- purrr::when(
+        n,
+        . == 5 ~ "002",     # last 5
+        . == 10 ~ "003",    # last 10
+        ~ "004"
+      )
+    }
+  }
 
-    # adjust request parameters
-    if (!any(is.null(start), is.null(end))) {
-      type <- "001"    # filter by date range
-      if (!is.null(start)) {
-        p1 <- format(start, "%m/%d/%Y")
-      }
-      if (!is.null(start)) {
-        p2 <- format(end, "%m/%d/%Y")
-      }
-    } else {
-      if (!is.null(n)) {
-        type <- purrr::when(
-          n,
-          . == 5 ~ "002",     # last 5
-          . == 10 ~ "003",    # last 10
-          ~ "004"
+  if (any(missing(device_id), length(device_id) == 0)) {
+    # get all active collars
+    devices <- fetch_ats_devices()
+  } else {
+    devices <- device_id
+  }
+
+  devices <- split(
+    devices,
+    ceiling(1:length(devices) / chunk_size)
+  )
+
+  # send request and parse
+  purrr::imap_dfr(
+    devices,
+    function(x, y, n) {
+
+      # get transmission data for determining gmt offset
+      trans <- fetch_ats_transmissions(x)
+
+      message(
+        sprintf(
+          "Downloading fixes for batch %s of %i", y, n
+        )
+      )
+
+      resp <- ats_post(
+        path = "Servidor.ashx",
+        body = list(
+          consulta = "download_txt_collars",
+          type = type,
+          parameter1 = p1,
+          parameter2 = p2,
+          collars = paste0(paste0(x, "_"), collapse = "")
+        ),
+        task = "download position data"
+      )
+
+      if (identical(resp, raw(0))) {
+        message(
+          sprintf(
+            "Empty response for batch %s of %i!", y, n
+          )
         )
       }
-    }
 
-    if (any(missing(device_id), length(device_id) == 0)) {
-      # get all active collars
-      devices = fetch_ats_devices()
-    } else {
-      devices = device_id
-    }
+      ats_parse_pos(resp, trans)
 
-    # send request and parse
-    ats_post(
-      path = "Servidor.ashx",
-      body = list(
-        consulta = "download_txt_collars",
-        type = type,
-        parameter1 = p1,
-        parameter2 = p2,
-        collars = paste0(paste0(devices, "_"), collapse = "")
-      ),
-      task = "download position data"
-    ) %>%
-      ats_parse_pos(trans)
-
-  # }
+    },
+    n = length(devices)
+  )
 
 }
 
@@ -1373,9 +1401,12 @@ fetch_ats_positions <- function(device_id = NULL,
 #'   \code{fetch_ats_devices} have leading zeros they should be included
 #'   in the \code{device_id} parameter as well
 #'   (e.g. \code{device_id = "012345")}).
-#' @param new A logical flag. When new = true only data that hasn't been
-#'   previously downloaded is returned. If device_id is specified the flag
-#'   is ignored.
+#' @param new Currently ignored due to changes in the ATS website.
+#' @param chunk_size A single integer (default = 50) specifying how
+#'   many collars are downloaded per HTTP request. In some rare cases
+#'   entire batches may fail (with a warning) due to a few problematic
+#'   collars, in which case you should set chunk_size to 1 to ensure
+#'   that all available data is retrieved.
 #'
 #' @return A tibble with 20 columns:
 #' \describe{
@@ -1415,9 +1446,6 @@ fetch_ats_positions <- function(device_id = NULL,
 #'
 #' ats_login("mary", ".")
 #'
-#' # get undownloaded transmissions for all collars in this account
-#' trans <- fetch_ats_transmissions(new = TRUE)
-#'
 #' # get all transmissions for all collars in this account
 #' trans <- fetch_ats_transmissions()
 #'
@@ -1425,41 +1453,62 @@ fetch_ats_positions <- function(device_id = NULL,
 #' collar_list <- sample(fetch_ats_devices(), 10)
 #' trans <- fetch_ats_transmissions(device_id = collar_list)
 #'
+#' # set chunk_size to 1 to ensure you get all available data
+#' #   if you're experiencing issues, but the download will
+#' #   take much longer to complete.
+#' trans <- fetch_ats_transmissions(chunk_size = 1)
+#'
 #' ats_logout()
 #'
 #' }
 #'
-fetch_ats_transmissions <- function(device_id = NULL, new = FALSE) {
+fetch_ats_transmissions <- function(device_id = NULL,
+                                    new = FALSE,
+                                    chunk_size = 50L) {
+
+  if (isTRUE(new)) {
+    warning(paste(
+      "The new argument is deprecated due to changes in the ATS",
+      "website. Requesting all fixes."
+    ))
+    new <- FALSE
+  }
 
   if (any(missing(device_id), length(device_id) == 0)) {
-
-    type <- purrr::when(
-      new,
-      isTRUE(.) ~ "new",
-      ~ "all"
-    )
-
-    ats_get(
-      path = list(
-        "download_all_transmission",
-        paste0("download_all_transmission.aspx?dw=", type)
-      ),
-      task = "download transmission data"
-    ) %>%
-      ats_parse_trans()
-
+    # get all active collars
+    devices <- fetch_ats_devices()
   } else {
-
-    ats_post(
-      path = "Servidor.ashx",
-      body = list(
-        consulta = "download_trans_collars",
-        collar = paste0(paste0(device_id, ","), collapse = "")
-      ),
-      task = "download transmission data"
-    ) %>%
-      ats_parse_trans()
-
+    devices <- device_id
   }
+
+  devices <- split(
+    devices,
+    ceiling(1:length(devices) / chunk_size)
+  )
+
+  # send request and parse
+  purrr::imap_dfr(
+    devices,
+    function(x, y, n) {
+
+      message(
+        sprintf(
+          "Downloading transmissions for batch %s of %i", y, n
+        )
+      )
+
+      ats_post(
+        path = "Servidor.ashx",
+        body = list(
+          consulta = "download_trans_collars",
+          collar = paste0(paste0(x, ","), collapse = "")
+        ),
+        task = "download transmission data"
+      ) %>%
+        ats_parse_trans()
+
+    },
+    n = length(devices)
+  )
 
 }

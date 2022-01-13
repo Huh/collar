@@ -9,7 +9,8 @@ fetch_ats_positions(
   start = NULL,
   end = NULL,
   n = NULL,
-  new = FALSE
+  new = FALSE,
+  chunk_size = 50L
 )
 }
 \arguments{
@@ -25,9 +26,13 @@ in the \code{device_id} parameter as well
 \item{n}{A single integer specifying how many fixes to return per
 collar (sorted by recency). Valid values are 5 and 10.}
 
-\item{new}{A logical flag. When new = true only data that hasn't been
-previously downloaded is returned. If device_id is specified the flag
-is ignored.}
+\item{new}{Currently ignored due to changes in the ATS website.}
+
+\item{chunk_size}{A single integer (default = 50) specifying how
+many collars are downloaded per HTTP request. In some rare cases
+entire batches may fail (with a warning) due to a few problematic
+collars, in which case you should set chunk_size to 1 to ensure
+that all available data is retrieved.}
 }
 \value{
 A tibble with 25 columns:
@@ -110,8 +115,13 @@ fixes <- fetch_ats_positions(
   end = as.POSIXct("2020-01-01")
 )
 
-# get undownloaded fixes for a single collar
-fixes <- fetch_ats_positions("044286", new = TRUE)
+# get fixes for a single collar
+fixes <- fetch_ats_positions("044286")
+
+# set chunk_size to 1 to ensure you get all available data
+#   if you're experiencing issues, but the download will
+#   take much longer to complete.
+fixes <- fetch_ats_positions(chunk_size = 1)
 
 ats_logout()
 
