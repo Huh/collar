@@ -382,7 +382,7 @@ ats_parse_pos <- function(resp, trans) {
       warning(paste(
         "Empty html response - this can occur if there are",
         "collars with no fix data avilable. You may need",
-        "to set chuck_size = 1 to download all data",
+        "to set chunk_size = 1 to download all data",
         "for this account."
       ))
       ats_empty_pos
