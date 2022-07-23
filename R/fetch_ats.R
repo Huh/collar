@@ -775,7 +775,7 @@ ats_post <- function(path, body = list(), task = "download data", ...) {
 
   # check login
   assertthat::assert_that(
-    check_cookie(ats_base_url, "user"),
+    check_cookie(ats_base_url, "user") || "login" %in% unlist(body),
     msg = "You need to log in first."
   )
 
