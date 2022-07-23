@@ -125,6 +125,11 @@ ats_get <- function(path, task = "download data", ...) {
   httr::RETRY(
     "GET",
     url = ats_base_url,
+    httr::user_agent(paste(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "AppleWebKit/537.36 (KHTML, like Gecko)",
+      "Chrome/103.0.0.0 Safari/537.36"
+    )),
     path = path,
     ...,
     quiet = TRUE
@@ -645,6 +650,7 @@ ats_parse_txt <- function(resp, ...) {
   )
 
   httr::content(resp, "text", encoding = "UTF-8") %>%
+    I() %>%
     readr::read_csv(...)
 
 }
@@ -794,6 +800,11 @@ ats_post <- function(path, body = list(), task = "download data", ...) {
     path = path,
     body = body,
     encode = "form",
+    httr::user_agent(paste(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "AppleWebKit/537.36 (KHTML, like Gecko)",
+      "Chrome/103.0.0.0 Safari/537.36"
+    )),
     ...,
     quiet = TRUE
   ) %>%
@@ -971,7 +982,7 @@ fetch_ats_config <- function() {
     ),
     task = "download device configurations"
   ) %>%
-    ats_parse_txt(col_types = "cccccc") %>%
+    ats_parse_txt(col_types = "ccccccccccc") %>%
     dplyr::mutate(
       CollarSerialNumber = dplyr::if_else(
         grepl("^00", .data$CollarSerialNumber) &
@@ -979,11 +990,9 @@ fetch_ats_config <- function() {
         substr(.data$CollarSerialNumber, 2, 7),
         .data$CollarSerialNumber
       ),
-      Active = dplyr::if_else(.data$Active == "yes", TRUE, FALSE),
-      RestEndPoint = dplyr::if_else(
-        .data$RestEndPoint == "yes",
-        TRUE,
-        FALSE
+      dplyr::across(
+        c(.data$Active, .data$RestEndPoint:.data$`SMS LowBatt`),
+        ~ dplyr::if_else(.x == "yes", TRUE, FALSE)
       )
     )
 

@@ -73,19 +73,15 @@ ats_login <- function(usr, pwd) {
   }
 
   # log in to ATS website
-  httr::RETRY(
-    "POST",
-    url = ats_base_url,
+  ats_post(
     path = list("Servidor.ashx"),
     body = list(
       consulta = "login",
       user = usr,
       pass = pwd
     ),
-    encode = "form",
-    quiet = TRUE
-  ) %>%
-    httr::stop_for_status("log in")
+    task = "log in"
+  )
 
   # check that user cookie exists
   assertthat::assert_that(
