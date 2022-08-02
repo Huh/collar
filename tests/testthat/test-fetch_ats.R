@@ -18,7 +18,12 @@ check_data <- function(x, data_type) {
       "Active",
       "Phone Num SMS",
       "FTP Url",
-      "RestEndPoint"
+      "RestEndPoint",
+      # unclear if these columns are present for all accounts
+      "SMS All",
+      "SMS Mortality",
+      "SMS Birth",
+      "SMS Fawn"
     ),
     "events" = c(
       "CollarSerialNumber",
