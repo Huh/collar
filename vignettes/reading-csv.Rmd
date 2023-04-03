@@ -1,7 +1,5 @@
 ---
 title: "Reading .csv Files"
-author: "Kenneth Loonam"
-date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Reading .csv Files}

@@ -439,25 +439,25 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
 
   message("Downloading Vectronics collar data...")
 
-  pb <- dplyr::progress_estimated(length(url))
+  pb <- progress::progress_bar$new(total = length(url))
 
   resp <- purrr::map(
     url,
     ~{
-      pb$tick()$print()
+      pb$tick()
       httr::GET(.x)
     }
   )
 
   message("Parsing data...")
 
-  pb <- dplyr::progress_estimated(length(resp))
+  pb <- progress::progress_bar$new(total = length(resp))
 
   if(grepl("count?collarkey=", url[1], fixed = TRUE)){
     parse <- purrr::map2_dfr(
       resp, url,
       ~{
-        pb$tick()$print()
+        pb$tick()
         tibble::tibble(
           id = gsub("^.*(v2/collar/)([0-9]*)(/).*$", "\\2", .y),
           type = gsub("^.*(v2/collar/.*/)([A-z]*)(/).*$", "\\2", .y),
@@ -469,7 +469,7 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
     parse <- purrr::map_dfr(
         resp,
         ~{
-          pb$tick()$print()
+          pb$tick()
           jsonlite::fromJSON(
             httr::content(.x, "text"),
             simplifyVector = TRUE

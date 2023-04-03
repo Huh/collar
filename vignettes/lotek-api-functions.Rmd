@@ -1,7 +1,5 @@
 ---
 title: "Lotek API Functions"
-author: "Eric Newkirk"
-date: "4/23/2020"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Lotek API Functions}
@@ -10,7 +8,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 ## Authentication
