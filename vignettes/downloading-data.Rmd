@@ -1,7 +1,5 @@
 ---
 title: "Downloading Data"
-author: "Josh Nowak"
-date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Downloading Data}
