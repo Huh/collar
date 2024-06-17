@@ -4,7 +4,11 @@ test_that("check save_map", {
 
   tmp <- collar::fetch_csv(paste0(data_dir, "/vectronics_2.csv"))
 
-  tmp_file <- normalizePath(file.path(tempdir(), "tmp.map"), mustWork = FALSE)
+  tmp_file <- normalizePath(
+    file.path(tempdir(), "tmp_map.html"),
+    mustWork = FALSE
+  )
+
   on.exit(unlink(tmp_file))
 
   dat <-

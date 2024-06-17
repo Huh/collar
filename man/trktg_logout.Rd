@@ -14,13 +14,13 @@ Removes authentication info from memory and logs out of
   Track Tag website.
 }
 \examples{
-
+\dontrun{
 trktg_login("some_user", "some_users_pw")
 
 fixes <- fetch_trktg_positions()
 
 trktg_logout()
-
+}
 }
 \seealso{
 \code{\link{trktg_login}} for starting the session.

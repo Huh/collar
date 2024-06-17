@@ -67,13 +67,13 @@ trktg_token <- function() {
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' trktg_login("some_user", "some_users_pw")
 #'
 #' fixes <- fetch_trktg_positions()
 #'
 #' trktg_logout()
-#'
+#' }
 trktg_login <- function(usr, pwd) {
 
   # clear existing login info
@@ -161,13 +161,13 @@ trktg_login <- function(usr, pwd) {
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' trktg_login("some_user", "some_users_pw")
 #'
 #' fixes <- fetch_trktg_positions()
 #'
 #' trktg_logout()
-#'
+#' }
 trktg_logout <- function() {
 
   resp <- httr::RETRY(

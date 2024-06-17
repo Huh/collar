@@ -5,15 +5,9 @@
 \alias{fetch_delim}
 \title{Read collar data stored in CSV file(s)}
 \usage{
-fetch_csv(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...)
+fetch_csv(file_path, skip = 0, rename_fun = adj_col_nms, ...)
 
-fetch_delim(
-  file_path,
-  delim = ",",
-  skip = 0,
-  rename_fun = collar:::adj_col_nms,
-  ...
-)
+fetch_delim(file_path, delim = ",", skip = 0, rename_fun = adj_col_nms, ...)
 }
 \arguments{
 \item{file_path}{The full path to one or more csv(s) to read}
