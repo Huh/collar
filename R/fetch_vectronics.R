@@ -471,7 +471,7 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
         ~{
           pb$tick()
           jsonlite::fromJSON(
-            httr::content(.x, "text"),
+            httr::content(.x, type = "text", encoding = "UTF-8"),
             simplifyVector = TRUE
           )
         }
