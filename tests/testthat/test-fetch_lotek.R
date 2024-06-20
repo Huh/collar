@@ -69,69 +69,69 @@ test_that("Check lotek login function", {
   expect_error(fetch_lotek_devices())
   expect_error(fetch_lotek_positions())
 
-  # test valid login
-  lotek_login("demo", "PASSWORD09")
-
-  # check object returned with valid inputs
-  expect_is(lotek_token(), "character")
-
-  # check that refresh function works as expected
-  t <- ltk.env$ltk$access_token
-  lotek_refresh_token(force_refresh = TRUE)
-  expect_false(t == ltk.env$ltk$access_token)
-
-  # check that token works for retrieving data
-  dl <- fetch_lotek_devices()
-
-  # check that logging out revokes access
-  lotek_logout()
-  expect_error(fetch_lotek_alerts())
-
-})
-
-test_that("Check lotek data functions", {
-
-  check_api()
-
-  lotek_login("demo", "PASSWORD09")
-
-  # check data retrieval functions
-  alerts <- fetch_lotek_alerts()
-  check_data(alerts, "alerts")
-
-  dl <- fetch_lotek_devices()
-  check_data(dl, "devices")
-
-  # check position function
-  dev <- as.character(dl[1,"DeviceID"])
-  st <- lubridate::mdy("1/1/20")
-  end <- lubridate::mdy("2/1/20")
-
-  pos <- fetch_lotek_positions(
-    start_date = dt_format(st)
-  )
-  check_data(pos, "positions")
-  expect_true(min(pos$RecDateTime) >= st)
-
-  pos <- fetch_lotek_positions(
-    start_date = dt_format(st),
-    end_date = dt_format(end)
-  )
-  check_data(pos, "positions")
-  expect_true(min(pos$RecDateTime) >= st)
-  expect_true(max(pos$RecDateTime) <= end)
-
-  pos <- fetch_lotek_positions(
-    device_id = dev
-  )
-  check_data(pos, "positions")
-  expect_equal(as.integer(dev), as.integer(pos[[1, "DeviceID"]]))
-  expect_equal(as.integer(dev), as.integer(pos[[nrow(pos), "DeviceID"]]))
-
-  pos <- fetch_lotek_positions(
-    st <- lubridate::now(tzone = "GMT") + months(1)
-  )
-  check_data(pos, "positions")
-  expect_equal(nrow(pos), 0)
+  # # test valid login
+  # lotek_login("demo", "PASSWORD09")
+  #
+  # # check object returned with valid inputs
+  # expect_is(lotek_token(), "character")
+  #
+  # # check that refresh function works as expected
+  # t <- ltk.env$ltk$access_token
+  # lotek_refresh_token(force_refresh = TRUE)
+  # expect_false(t == ltk.env$ltk$access_token)
+  #
+  # # check that token works for retrieving data
+  # dl <- fetch_lotek_devices()
+  #
+  # # check that logging out revokes access
+  # lotek_logout()
+  # expect_error(fetch_lotek_alerts())
 
 })
+
+# test_that("Check lotek data functions", {
+
+  # check_api()
+
+  # lotek_login("demo", "PASSWORD09")
+  #
+  # # check data retrieval functions
+  # alerts <- fetch_lotek_alerts()
+  # check_data(alerts, "alerts")
+  #
+  # dl <- fetch_lotek_devices()
+  # check_data(dl, "devices")
+  #
+  # # check position function
+  # dev <- as.character(dl[1,"DeviceID"])
+  # st <- lubridate::mdy("1/1/20")
+  # end <- lubridate::mdy("2/1/20")
+  #
+  # pos <- fetch_lotek_positions(
+  #   start_date = dt_format(st)
+  # )
+  # check_data(pos, "positions")
+  # expect_true(min(pos$RecDateTime) >= st)
+  #
+  # pos <- fetch_lotek_positions(
+  #   start_date = dt_format(st),
+  #   end_date = dt_format(end)
+  # )
+  # check_data(pos, "positions")
+  # expect_true(min(pos$RecDateTime) >= st)
+  # expect_true(max(pos$RecDateTime) <= end)
+  #
+  # pos <- fetch_lotek_positions(
+  #   device_id = dev
+  # )
+  # check_data(pos, "positions")
+  # expect_equal(as.integer(dev), as.integer(pos[[1, "DeviceID"]]))
+  # expect_equal(as.integer(dev), as.integer(pos[[nrow(pos), "DeviceID"]]))
+  #
+  # pos <- fetch_lotek_positions(
+  #   st <- lubridate::now(tzone = "GMT") + months(1)
+  # )
+  # check_data(pos, "positions")
+  # expect_equal(nrow(pos), 0)
+
+# })

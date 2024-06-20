@@ -19,13 +19,13 @@ Send username and password info to Track Tag website
   to log in to a user account.
 }
 \examples{
-
+\dontrun{
 trktg_login("some_user", "some_users_pw")
 
 fixes <- fetch_trktg_positions()
 
 trktg_logout()
-
+}
 }
 \seealso{
 \code{\link{trktg_logout}} for closing the session.

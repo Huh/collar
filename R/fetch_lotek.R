@@ -18,12 +18,12 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' lotek_login("demo", "PASSWORD09")
 #'
 #' # get all alerts for this account
 #' alerts <- fetch_lotek_alerts()
-#'
+#' }
 fetch_lotek_alerts <- function() {
 
   # get login info
@@ -94,7 +94,7 @@ fetch_lotek_alerts <- function() {
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' lotek_login("demo", "PASSWORD09")
 #'
 #' # get list of collars for this account
@@ -102,7 +102,7 @@ fetch_lotek_alerts <- function() {
 #'
 #' # get fixes for the first collar
 #' fixes <- fetch_lotek_positions(device_id = collars[[1, "DeviceID"]])
-#'
+#' }
 fetch_lotek_devices <- function() {
 
   # get login info
@@ -177,7 +177,7 @@ fetch_lotek_devices <- function() {
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' lotek_login("demo", "PASSWORD09")
 #'
 #' # all fixes for all collars in 2020
@@ -194,7 +194,7 @@ fetch_lotek_devices <- function() {
 #' fixes <- fetch_lotek_positions(device_id = 32763,
 #'                                start_date = "2018-01-01 00:00:00",
 #'                                end_date = "2019-01-01 00:00:00")
-#'
+#' }
 fetch_lotek_positions <- function(device_id = NULL,
                                   start_date = NULL,
                                   end_date = NULL) {

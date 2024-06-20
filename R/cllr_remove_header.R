@@ -63,7 +63,7 @@ cllr_remove_header <- function(x,
     # Find row with column names
     row_loc <- x %>%
       dplyr::slice(1:100) %>%
-      dplyr::select(col_loc) %>%
+      dplyr::select(dplyr::all_of(col_loc)) %>%
       dplyr::summarise(data_start = which(.[, 1] == col_name)) %>%
       dplyr::pull(.)
 

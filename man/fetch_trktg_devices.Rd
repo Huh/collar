@@ -19,7 +19,7 @@ Retrieves a list of devices (transmitters) associated
   with the account currently logged in via \code{trktg_login}.
 }
 \examples{
-
+\dontrun{
 trktg_login("some_user", "some_users_pw")
 
 tt_devices <- fetch_trktg_devices()
@@ -27,7 +27,7 @@ tt_devices <- fetch_trktg_devices()
 tt_fixes <- fetch_trktg_positions(device_id = tt_devices$user_id[1])
 
 trktg_logout()
-
+}
 }
 \seealso{
 \code{\link{fetch_trktg_positions}} for downloading GPS data.

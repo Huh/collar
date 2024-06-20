@@ -72,7 +72,7 @@
 #'
 #'
 #'
-fetch_csv <- function(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ...) {
+fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
   assertthat::assert_that(
     length(file_path) >= 1,
     msg = "file_path argument is empty, please provide a valid path to a file"
@@ -98,7 +98,7 @@ fetch_csv <- function(file_path, skip = 0, rename_fun = collar:::adj_col_nms, ..
 fetch_delim <- function(file_path,
                         delim = ",",
                         skip = 0,
-                        rename_fun = collar:::adj_col_nms,
+                        rename_fun = adj_col_nms,
                         ...) {
   assertthat::assert_that(
     length(file_path) >= 1,

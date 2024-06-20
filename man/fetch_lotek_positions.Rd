@@ -36,7 +36,7 @@ Retrieves GPS data optionally filtered by date or collar.
 }
 
 \examples{
-
+\dontrun{
 lotek_login("demo", "PASSWORD09")
 
 # all fixes for all collars in 2020
@@ -53,7 +53,7 @@ fixes_3_cols <- fetch_lotek_positions(device_id = c(32763, 34023, 42492))
 fixes <- fetch_lotek_positions(device_id = 32763,
                                start_date = "2018-01-01 00:00:00",
                                end_date = "2019-01-01 00:00:00")
-
+}
 }
 \seealso{
 \code{\link{fetch_lotek_alerts}} for downloading alerts such as
