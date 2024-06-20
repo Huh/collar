@@ -14,7 +14,7 @@ Retrieves a list of devices (collars) associated
   with the account currently logged in via lotek_login.
 }
 \examples{
-
+\dontrun{
 lotek_login("demo", "PASSWORD09")
 
 # get list of collars for this account
@@ -22,7 +22,7 @@ collars <- fetch_lotek_devices()
 
 # get fixes for the first collar
 fixes <- fetch_lotek_positions(device_id = collars[[1, "DeviceID"]])
-
+}
 }
 \seealso{
 \code{\link{fetch_lotek_alerts}} for downloading alerts such as

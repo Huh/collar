@@ -73,7 +73,7 @@ trktg_empty_pos <- tibble::tibble(
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' trktg_login("some_user", "some_users_pw")
 #'
 #' # all fixes for all transmitters in 2024
@@ -103,7 +103,7 @@ trktg_empty_pos <- tibble::tibble(
 #' )
 #'
 #' trktg_logout()
-#'
+#' }
 fetch_trktg_positions <- function(device_id = NULL,
                                   start_date = NULL,
                                   end_date = NULL,
@@ -249,7 +249,7 @@ fetch_trktg_positions <- function(device_id = NULL,
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' trktg_login("some_user", "some_users_pw")
 #'
 #' tt_devices <- fetch_trktg_devices()
@@ -257,7 +257,7 @@ fetch_trktg_positions <- function(device_id = NULL,
 #' tt_fixes <- fetch_trktg_positions(device_id = tt_devices$user_id[1])
 #'
 #' trktg_logout()
-#'
+#' }
 fetch_trktg_devices <- function() {
 
   # get login info

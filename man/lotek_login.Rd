@@ -23,13 +23,13 @@ Send username and password info to Lotek API
   to log in to a user account.
 }
 \examples{
-
+\dontrun{
 lotek_login("demo", "PASSWORD09")
 
 alerts <- fetch_lotek_alerts()
 
 lotek_logout()
-
+}
 }
 \seealso{
 \code{\link{lotek_logout}} for closing the session.

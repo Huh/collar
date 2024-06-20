@@ -30,13 +30,13 @@ ltk.env$ltk <- list()
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' lotek_login("demo", "PASSWORD09")
 #'
 #' alerts <- fetch_lotek_alerts()
 #'
 #' lotek_logout()
-#'
+#' }
 lotek_login <- function(usr, pwd, user, pw) {
 
   if (!missing(user)) {
@@ -113,13 +113,13 @@ lotek_login <- function(usr, pwd, user, pw) {
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' lotek_login("demo", "PASSWORD09")
 #'
 #' alerts <- fetch_lotek_devices()
 #'
 #' lotek_logout()
-#'
+#' }
 lotek_logout <- function() {
 
   # at the moment this just removes login info from memory

@@ -1058,13 +1058,13 @@ fetch_ats_config <- function() {
 fetch_ats_devices <- function(filter = "all") {
 
   # get filter parameter
-  valor <- purrr::when(
+  valor <- switch(
     tolower(filter),
-    . == "inactive" ~ "no_active",
-    . == "low_batt" ~ "active_low_batt",
-    . == "mort" ~ "active_mortality",
-    . == "birth" ~ "active_birth_triggers",
-    ~ "active"
+    "inactive" = "no_active",
+    "low_batt" = "active_low_batt",
+    "mort" = "active_mortality",
+    "birth" = "active_birth_triggers",
+    "active"
   )
 
   resp <- ats_post(
@@ -1334,11 +1334,11 @@ fetch_ats_positions <- function(device_id = NULL,
     }
   } else {
     if (!is.null(n)) {
-      type <- purrr::when(
-        n,
-        . == 5 ~ "002",     # last 5
-        . == 10 ~ "003",    # last 10
-        ~ "004"
+      type <- switch(
+        as.character(n),
+        "5" = "002",     # last 5
+        "10" = "003",    # last 10
+        "004"
       )
     }
   }

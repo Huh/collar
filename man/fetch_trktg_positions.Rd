@@ -57,7 +57,7 @@ A tibble or sf object with 21 columns:
 Retrieves GPS data optionally filtered by date or collar.
 }
 \examples{
-
+\dontrun{
 trktg_login("some_user", "some_users_pw")
 
 # all fixes for all transmitters in 2024
@@ -87,7 +87,7 @@ fixes <- fetch_trktg_positions(
 )
 
 trktg_logout()
-
+}
 }
 \seealso{
 \code{\link{fetch_trktg_devices}} for downloading a list of
