@@ -22,13 +22,13 @@ Removes authentication info from memory.
 }
 
 \examples{
-
+\dontrun{
 lotek_login("demo", "PASSWORD09")
 
 alerts <- fetch_lotek_devices()
 
 lotek_logout()
-
+}
 }
 \seealso{
 \code{\link{lotek_login}} for starting the session.

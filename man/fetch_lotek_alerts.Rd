@@ -14,12 +14,12 @@ Retrieves alerts for all devices associated with the account
   currently logged in via lotek_login.
 }
 \examples{
-
+\dontrun{
 lotek_login("demo", "PASSWORD09")
 
 # get all alerts for this account
 alerts <- fetch_lotek_alerts()
-
+}
 }
 \seealso{
 \code{\link{fetch_lotek_devices}} for downloading a list of

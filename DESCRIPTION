@@ -1,6 +1,6 @@
 Package: collar
 Title: Utilities for Accessing and Manipulating GPS Data
-Version: 0.0.4004
+Version: 0.0.4006
 Authors@R: c(
   person("Josh", "Nowak", email = "josh.nowak@speedgoat.io", role = c("aut", "cre")),
   person("Forest", "Hayes", email = "forest.hayes@umontana.edu", role = "aut"),
@@ -17,7 +17,7 @@ BugReports: https://github.com/Huh/collar/issues
 Encoding: UTF-8
 LazyData: true
 ByteCompile: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.1
 Imports:
     assertthat,
     curl,
@@ -30,12 +30,16 @@ Imports:
     jsonlite,
     leaflet,
     magrittr,
+    methods,
+    progress,
     purrr,
     RCurl,
     readr,
     rlang,
     rvest,
     sf,
+    stats,
+    stringr,
     tibble,
     tidyr,
     xml2,

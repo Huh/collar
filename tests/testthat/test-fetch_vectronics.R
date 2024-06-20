@@ -65,7 +65,7 @@ test_that("Check fetch_vectronics", {
 test_that("Check fetch_vectronics assertions", {
   # Provide after_data_id and start_date, which cannot be true
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -91,7 +91,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Bad data type
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -117,7 +117,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Count value not logical
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -143,7 +143,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Bad start_date format
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -169,7 +169,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Multiple start dates
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -198,7 +198,7 @@ test_that("Check fetch_vectronics assertions", {
   tms <- paste(c("0", "24"), c("0", "60"), c("0", "60"), sep = ":")
   dt_tm <- paste(dts, tms, sep = "T")
   dt_tst <- purrr::map(dt_tm,
-    ~ class(collar:::build_vec_url(
+    ~ class(build_vec_url(
         base_url = NULL,
         collar_id = get_id_from_key(
           get_paths(
@@ -225,7 +225,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Bad value for which_date
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -317,7 +317,7 @@ test_that("Check get_keys", {
 test_that("Testing build_vec_url(s) calls", {
   kp <- get_paths(system.file("extdata", package = "collar"))
   expect_is(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -342,7 +342,7 @@ test_that("Testing build_vec_url(s) calls", {
   )
 
   expect_is(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -367,7 +367,7 @@ test_that("Testing build_vec_url(s) calls", {
   )
 
   expect_condition(
-    collar:::build_vec_urls(
+    build_vec_urls(
       base_url = NULL,
       collar_id = rep(get_id_from_key(
         get_paths(
@@ -391,7 +391,7 @@ test_that("Testing build_vec_url(s) calls", {
     "In build_vec_urls, collar_id and collar_key must be the same length"
   )
 
-  multi_urls <- collar:::build_vec_urls(
+  multi_urls <- build_vec_urls(
       base_url = NULL,
       collar_id = rep(get_id_from_key(
         get_paths(
@@ -481,7 +481,7 @@ test_that("Testing build_vec_url(s) calls", {
 test_that("Check fetch_vectronics assertions", {
   # Provide after_data_id and start_date, which cannot be true
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -507,7 +507,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Bad data type
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -533,7 +533,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Count value not logical
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -559,7 +559,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Bad start_date format
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -585,7 +585,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Multiple start dates
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -614,7 +614,7 @@ test_that("Check fetch_vectronics assertions", {
   tms <- paste(c("0", "24"), c("0", "60"), c("0", "60"), sep = ":")
   dt_tm <- paste(dts, tms, sep = "T")
   dt_tst <- purrr::map(dt_tm,
-    ~ class(collar:::build_vec_url(
+    ~ class(build_vec_url(
         base_url = NULL,
         collar_id = get_id_from_key(
           get_paths(
@@ -641,7 +641,7 @@ test_that("Check fetch_vectronics assertions", {
 
   # Bad value for which_date
   expect_condition(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -733,7 +733,7 @@ test_that("Check get_keys", {
 test_that("Testing build_vec_url(s) calls", {
   kp <- get_paths(system.file("extdata", package = "collar"))
   expect_is(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -758,7 +758,7 @@ test_that("Testing build_vec_url(s) calls", {
   )
 
   expect_is(
-    collar:::build_vec_url(
+    build_vec_url(
       base_url = NULL,
       collar_id = get_id_from_key(
         get_paths(
@@ -783,7 +783,7 @@ test_that("Testing build_vec_url(s) calls", {
   )
 
   expect_condition(
-    collar:::build_vec_urls(
+    build_vec_urls(
       base_url = NULL,
       collar_id = rep(get_id_from_key(
         get_paths(
@@ -807,7 +807,7 @@ test_that("Testing build_vec_url(s) calls", {
     "In build_vec_urls, collar_id and collar_key must be the same length"
   )
 
-  multi_urls <- collar:::build_vec_urls(
+  multi_urls <- build_vec_urls(
       base_url = NULL,
       collar_id = rep(get_id_from_key(
         get_paths(
