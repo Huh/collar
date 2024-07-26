@@ -58,7 +58,7 @@ Retrieves GPS data optionally filtered by date or collar.
 }
 \examples{
 \dontrun{
-trktg_login("some_user", "some_users_pw")
+trktg_login("WyoDemo", "WYODEMO2024")
 
 # all fixes for all transmitters in 2024
 fixes <- fetch_trktg_positions(

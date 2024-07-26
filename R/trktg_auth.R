@@ -68,7 +68,7 @@ trktg_token <- function() {
 #'
 #' @examples
 #' \dontrun{
-#' trktg_login("some_user", "some_users_pw")
+#' trktg_login("WyoDemo", "WYODEMO2024")
 #'
 #' fixes <- fetch_trktg_positions()
 #'
@@ -162,7 +162,7 @@ trktg_login <- function(usr, pwd) {
 #'
 #' @examples
 #' \dontrun{
-#' trktg_login("some_user", "some_users_pw")
+#' trktg_login("WyoDemo", "WYODEMO2024")
 #'
 #' fixes <- fetch_trktg_positions()
 #'
