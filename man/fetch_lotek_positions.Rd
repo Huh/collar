@@ -15,7 +15,7 @@ in the output. Must be in the format YYYY-MM-DD HH:MM:SS. If NULL
 Jan 1 1970 is used.}
 
 \item{end_date}{Only fixes at or before end_date are included,
-analagous to start_date above. If NULL current date/time is used.}
+analogous to start_date above. If NULL current date/time is used.}
 }
 \value{
 A tibble containing position data, or an empty tibble in the

@@ -24,14 +24,14 @@ in the output. Must be a POSIX date or date/time object. If NULL
 Jan 1 1970 is used.}
 
 \item{end_date}{Only fixes at or before end_date are included,
-analagous to start_date above. If NULL current date/time is used.}
+analogous to start_date above. If NULL current date/time is used.}
 
 \item{time_zone}{Time zone used to convert date values to \code{POSIX}.}
 
 \item{as_sf}{Boolean indicating if the result should be converted to an
 \code{sf} object.}
 
-\item{sf_crs}{Coordinate referenece system for converting to \code{sf}. Only
+\item{sf_crs}{Coordinate reference system for converting to \code{sf}. Only
 CRS 4326 (WGS84) has been tested, coordinates may not be parsed correctly
 for other systems.}
 }
