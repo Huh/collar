@@ -992,7 +992,7 @@ fetch_ats_config <- function() {
       ),
       dplyr::across(
         c(.data$Active, .data$RestEndPoint:.data$`SMS LowBatt`),
-        ~ dplyr::if_else(.x == "yes", TRUE, FALSE)
+        function(x) dplyr::if_else(x == "yes", TRUE, FALSE)
       )
     )
 

@@ -15,7 +15,7 @@ Removes authentication info from memory and logs out of
 }
 \examples{
 \dontrun{
-trktg_login("some_user", "some_users_pw")
+trktg_login("WyoDemo", "WYODEMO2024")
 
 fixes <- fetch_trktg_positions()
 

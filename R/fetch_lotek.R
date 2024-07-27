@@ -165,7 +165,7 @@ fetch_lotek_devices <- function() {
 #'   in the output. Must be in the format YYYY-MM-DD HH:MM:SS. If NULL
 #'   Jan 1 1970 is used.
 #' @param end_date Only fixes at or before end_date are included,
-#'   analagous to start_date above. If NULL current date/time is used.
+#'   analogous to start_date above. If NULL current date/time is used.
 #'
 #' @return A tibble containing position data, or an empty tibble in the
 #'   same format is no rows are returned.
@@ -203,21 +203,22 @@ fetch_lotek_positions <- function(device_id = NULL,
   # function will exit here if login info is invalid
   tkn <- lotek_token()
 
-  st <- dplyr::if_else(
-    is.null(start_date),
-    "1970-01-01T00:00:00Z",
-    start_date)
+  if (is.null(start_date)) {
+    st <- "1970-01-01T00:00:00Z"
+  } else {
+    st <- start_date
+  }
 
-  end <- dplyr::if_else(
-    is.null(end_date),
-    paste0(
-      gsub(" ", "T", lubridate::now(tzone = "GMT")),
-      "Z"),
-    end_date)
+  if (is.null(end_date)) {
+    end <- paste0(lubridate::today(tzone = "GMT"), "T23:59:59Z")
+  } else {
+    end <- end_date
+  }
 
   dev <- paste0(
     device_id,
-    collapse = ",")
+    collapse = ","
+  )
 
   # send request
   resp <- httr::RETRY(
@@ -279,5 +280,201 @@ fetch_lotek_positions <- function(device_id = NULL,
     )
 
   }
+
+}
+
+#' @title Add Lotek Status
+#'
+#' @description Parses coded values in RxStatus column of API response.
+#'
+#' @section Notes:
+#'
+#'   See Lotek Web Service API User Manual Revision 03 (30 MAY 2024)
+#'
+#' @param lotek_positions A data frame of GPS data matching the format returned
+#'   by \code{\link{fetch_lotek_positions}}.
+#' @param position_type One of 'Litetrack (Standard fix)',
+#'   'Litetrack (Swift fix)', or 'Iridium Track'. Determines how the information
+#'   in the FixType and RxStatus columns is parsed. See API User Manual for
+#'   details. If you have more than one position type in the same account
+#'   separate them before passing into this function (see aexamples).
+#'
+#' @return A tibble containing the original position data with additional
+#'   columns containing fix status information and in some cases the number of
+#'   satellites.
+#'
+#' @seealso \code{\link{fetch_lotek_positions}}
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'
+#' lotek_login("demo", "PASSWORD09")
+#'
+#' # download and parse all data - standard fixes
+#' fixes <- fetch_lotek_positions() |>
+#'   add_lotek_status()
+#'
+#' # download and parse all data - swift fixes
+#' fixes <- fetch_lotek_positions() |>
+#'   add_lotek_status("Litetrack (Swift fix)")
+#'
+#' # download and parse all data - iridium
+#' fixes <- fetch_lotek_positions() |>
+#'   add_lotek_status("Iridium Track")
+#'
+#' # if data contains collars with different position types...
+#' standard_dev <- c(34023, 42492)
+#' swift_dev <- 32763
+#'
+#' # download all, split, add status, and recombine...
+#' fixes <- fetch_lotek_positions()
+#' standard_fixes <- fixes |>
+#'   dplyr::filter(DeviceID %in% standard_dev) |>
+#'   add_lotek_status()
+#' swift_fixes <- fixes |>
+#'   dplyr::filter(DeviceID %in% swift_dev) |>
+#'   add_lotek_status("Litetrack (Swift fix)")
+#' fixes <- standard_fixes |>
+#'   dplyr::bind_rows(swift_fixes)
+#'
+#' # or download separately, add status, and combine
+#' standard_fixes <- fetch_lotek_positions(device_id = standard_dev) |>
+#'   add_lotek_status()
+#' swift_fixes <- fetch_lotek_positions(device_id = swift_dev) |>
+#'   add_lotek_status("Litetrack (Swift fix)")
+#' fixes <- standard_fixes |>
+#'   dplyr::bind_rows(swift_fixes)
+#'
+#' }
+add_lotek_status <- function(lotek_positions,
+                             position_type = c("Litetrack (Standard fix)",
+                                               "Litetrack (Swift fix)",
+                                               "Iridium Track")) {
+
+  pos_type <- match.arg(position_type)
+
+  if (pos_type == "Iridium Track") {
+
+    join_tbl <- tibble::tibble(
+      RxStatus = c(0L, 3L, 4L, 19L, 20L),
+      FixStatus = c(
+        "No satellites", "2D fix", "3D fix",
+        "2D validated fix", "3D validated fix"
+      )
+    )
+
+    out <- lotek_positions %>%
+      dplyr::left_join(join_tbl, by = "RxStatus")
+
+  }
+
+  if (pos_type == "Litetrack (Standard fix)") {
+
+    join_tbl <- tibble::tibble(
+      StatusCode = 0L:7L,
+      FixStatus = c(
+        "No fix", "1_SV KF Solution", "2_SV KF", "3_SV KF",
+        "4 or more SV KF", "2-D least-squares", "3-D least-squares", "DR"
+      )
+    )
+
+    out <- lotek_positions %>%
+      dplyr::mutate(
+        StatusCode = lotek_status_code(.data$RxStatus),
+        NumSats = lotek_num_sats(.data$RxStatus)
+      ) %>%
+      dplyr::left_join(join_tbl, by = "StatusCode")
+
+  }
+
+  if (pos_type == "Litetrack (Swift fix)") {
+
+    ft_join_tbl <- tibble::tibble(
+      FixType = 0L:3L,
+      FixTypeText = c(
+        "Time out", "Standard fix", "Swift fix", "Iridium position"
+      )
+    )
+
+    rx_join_tbl <- tibble::tibble(
+      FixType = c(rep(1L, 8), rep(2L, 3)),
+      StatusCode = c(0L:7L, 0L:2L),
+      FixStatus = c(
+        "No fix", "1_SV KF Solution", "2_SV KF", "3_SV KF",
+        "4 or more SV KF", "2-D least-squares", "3-D least-squares", "DR",
+        "Valid fix", "Not enough satellites", "No ephemeris"
+      )
+    )
+
+    out <- lotek_positions %>%
+      dplyr::mutate(
+        StatusCode = lotek_status_code(.data$RxStatus)
+      ) %>%
+      dplyr::left_join(ft_join_tbl, by = "FixType") %>%
+      dplyr::left_join(rx_join_tbl, by = c("FixType", "StatusCode"))
+
+  }
+
+  out
+
+}
+
+#' @title Parse Lotek Status Code
+#'
+#' @description Converts integers in RxStatus column of API response to integer
+#'   fix status codes.
+#'
+#' @section Notes:
+#'
+#'   See Lotek Web Service API User Manual Revision 03 (30 MAY 2024)
+#'
+#' @param int_values Vector of integers from API response
+#'
+#' @return Vector of integer status codes
+#'
+#' @seealso \code{\link{lotek_num_sats}}
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+lotek_status_code <- function(int_values) {
+
+  vapply(
+    int_values,
+    function(i) sum(as.integer(intToBits(i)[1:3]) * c(1L, 2L, 4L)),
+    FUN.VALUE = integer(1)
+  )
+
+}
+
+#' @title Parse Lotek Number of Satellites
+#'
+#' @description Converts integers in RxStatus column of API response to number
+#'   of satellites.
+#'
+#' @section Notes:
+#'
+#'   See Lotek Web Service API User Manual Revision 03 (30 MAY 2024)
+#'
+#' @param int_values Vector of integers from API response
+#'
+#' @return Intger vector representing number of satellites for each fix
+#'
+#' @seealso \code{\link{lotek_status_code}}
+#'
+#' @export
+#'
+#' @keywords internal
+#'
+lotek_num_sats <- function(int_values) {
+
+  vapply(
+    int_values,
+    function(i) sum(as.integer(intToBits(i)[4:7]) * c(1L, 2L, 4L, 8L)),
+    FUN.VALUE = integer(1)
+  )
 
 }

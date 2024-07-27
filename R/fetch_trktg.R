@@ -42,11 +42,11 @@ trktg_empty_pos <- tibble::tibble(
 #'   in the output. Must be a POSIX date or date/time object. If NULL
 #'   Jan 1 1970 is used.
 #' @param end_date Only fixes at or before end_date are included,
-#'   analagous to start_date above. If NULL current date/time is used.
+#'   analogous to start_date above. If NULL current date/time is used.
 #' @param time_zone Time zone used to convert date values to \code{POSIX}.
 #' @param as_sf Boolean indicating if the result should be converted to an
 #'   \code{sf} object.
-#' @param sf_crs Coordinate referenece system for converting to \code{sf}. Only
+#' @param sf_crs Coordinate reference system for converting to \code{sf}. Only
 #'   CRS 4326 (WGS84) has been tested, coordinates may not be parsed correctly
 #'   for other systems.
 #'
@@ -74,7 +74,7 @@ trktg_empty_pos <- tibble::tibble(
 #'
 #' @examples
 #' \dontrun{
-#' trktg_login("some_user", "some_users_pw")
+#' trktg_login("WyoDemo", "WYODEMO2024")
 #'
 #' # all fixes for all transmitters in 2024
 #' fixes <- fetch_trktg_positions(
@@ -139,19 +139,21 @@ fetch_trktg_positions <- function(device_id = NULL,
 
   }
 
-  body$From <- dplyr::if_else(
-    is.null(start_date),
-    "1/1/1970 00:00",
-    format(start_date, "%m/%d/%Y %R")
-  ) %>%
-    stringr::str_replace_all("0(\\d/)", "\\1")
+  if (is.null(start_date)) {
+    body$From <- "1/1/1970 00:00"
+  } else {
+    body$From <- format(start_date, "%m/%d/%Y %R")
+  }
 
-  body$To <- dplyr::if_else(
-    is.null(end_date),
-    format(Sys.time(), "%m/%d/%Y %R"),
-    format(end_date, "%m/%d/%Y %R")
-  ) %>%
-    stringr::str_replace_all("0(\\d/)", "\\1")
+  body$From <- gsub("0(\\d/)", "\\1", body$From)
+
+  if (is.null(end_date)) {
+    body$To <- format(Sys.time(), "%m/%d/%Y %R")
+  } else {
+    body$To <- format(end_date, "%m/%d/%Y %R")
+  }
+
+  body$To <- gsub("0(\\d/)", "\\1", body$To)
 
   # send request
   resp <- httr::RETRY(
@@ -167,7 +169,7 @@ fetch_trktg_positions <- function(device_id = NULL,
   assertthat::assert_that(
     httr::status_code(resp) == 200,
     msg = paste(
-      "API call failed - device list.",
+      "API call failed - position report.",
       paste("Status:", httr::status_code(resp)),
       paste("Response:", httr::content(resp)),
       sep = "\n"
@@ -219,8 +221,14 @@ fetch_trktg_positions <- function(device_id = NULL,
 
     out <- out %>%
       dplyr::mutate(
-        lng = stringr::str_extract(.data$`Lat/Lng`, "[0-9.-]+$"),
-        lat = stringr::str_extract(.data$`Lat/Lng`, "^[0-9.-]+")
+        lng = regmatches(
+          .data$`Lat/Lng`,
+          regexpr("[0-9.-]+$", .data$`Lat/Lng`)
+        ),
+        lat = regmatches(
+          .data$`Lat/Lng`,
+          regexpr("^[0-9.-]+", .data$`Lat/Lng`)
+        )
       ) %>%
       sf::st_as_sf(coords = c("lng", "lat"), crs = sf_crs)
 
@@ -250,7 +258,7 @@ fetch_trktg_positions <- function(device_id = NULL,
 #'
 #' @examples
 #' \dontrun{
-#' trktg_login("some_user", "some_users_pw")
+#' trktg_login("WyoDemo", "WYODEMO2024")
 #'
 #' tt_devices <- fetch_trktg_devices()
 #'
@@ -292,16 +300,29 @@ fetch_trktg_devices <- function() {
     httr::content() %>%
     xml2::xml_find_all("//label[contains(@for, 'asset')]")
 
+  api_id <- label_nodes %>%
+    xml2::xml_attr("for")
+
+  api_id <- regmatches(api_id, regexpr("\\d{6}", api_id))
+
+  lbl_txt <- label_nodes %>%
+    xml2::xml_text()
+
+  trktg_id <- regmatches(
+    lbl_txt,
+    regexpr("(?<=\\()\\d{9}(?=\\))", lbl_txt, perl = TRUE)
+  )
+
+  user_id <- regmatches(
+    lbl_txt,
+    regexpr("^.+(?= \\(\\d{9}\\))", lbl_txt, perl = TRUE)
+  )
+
+  # return tibble
   tibble::tibble(
-    api_id = label_nodes %>%
-      xml2::xml_attr("for") %>%
-      stringr::str_extract("\\d{6}"),
-    trktg_id = label_nodes %>%
-      xml2::xml_text() %>%
-      stringr::str_extract("(?<=\\()\\d{9}(?=\\))"),
-    user_id = label_nodes %>%
-      xml2::xml_text() %>%
-      stringr::str_extract("^.+(?= \\(\\d{9}\\))")
+    api_id = api_id,
+    trktg_id = trktg_id,
+    user_id = user_id
   )
 
 }
