@@ -20,7 +20,7 @@ Send username and password info to Track Tag website
 }
 \examples{
 \dontrun{
-trktg_login("some_user", "some_users_pw")
+trktg_login("WyoDemo", "WYODEMO2024")
 
 fixes <- fetch_trktg_positions()
 
