@@ -34,8 +34,23 @@ Consistent naming prefixes were used when possible in an effort to enhance the u
 
 ## Installation
 
-This package is not available on CRAN.
+This package is not available on CRAN, but can be installed from GitHub or our SpeedGoat's repository.
 
+#### SpeedGoat Installation
+install.packages("collar", repos = "https://nexus.spdgt.com/repository/spdgt-public/")
+
+User's can add that repo to their .Rprofile to make it available in the future using `usethis::edit_r_profile()`. And then adding the following line to the file:
+
+```R
+options(
+  repos = c(
+    CRAN = "https://cloud.r-project.org", # Just an example, up to the user
+    spdgt = "https://nexus.spdgt.com/repository/spdgt-public/"
+  )
+)
+```
+
+#### GitHub Installation
 *If required*
 `install.packages("devtools")`
 
