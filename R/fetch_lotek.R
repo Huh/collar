@@ -203,17 +203,9 @@ fetch_lotek_positions <- function(device_id = NULL,
   # function will exit here if login info is invalid
   tkn <- lotek_token()
 
-  st <- dplyr::if_else(
-    is.null(start_date),
-    "1970-01-01T00:00:00Z",
-    start_date)
+  st <- start_date %||% "1970-01-01T00:00:00Z"
 
-  end <- dplyr::if_else(
-    is.null(end_date),
-    paste0(
-      gsub(" ", "T", lubridate::now(tzone = "GMT")),
-      "Z"),
-    end_date)
+  end <- end_date %||% paste0(gsub(" ", "T", lubridate::now(tzone = "GMT")),"Z")
 
   dev <- paste0(
     device_id,
