@@ -125,6 +125,28 @@ test_that("Check ats login function", {
 
 })
 
+test_that("ats_logout tolerates a transport error and clears the session", {
+
+  skip_if_not_installed("mockery")
+
+  # Newer R bundles libcurl >= 8.x, which on Windows can fail the logout
+  # request with schannel SEC_E_CONTEXT_EXPIRED on a reused TLS connection
+  # (curl#18029). Simulate that by forcing the logout request to throw.
+  reset <- mockery::mock()
+  mockery::stub(
+    ats_logout,
+    "httr::RETRY",
+    function(...) stop("schannel: SEC_E_CONTEXT_EXPIRED")
+  )
+  mockery::stub(ats_logout, "httr::handle_reset", reset)
+
+  # logout should swallow the error, reset the handle to clear the local
+  # session, and still report success rather than erroring out
+  expect_true(ats_logout())
+  mockery::expect_called(reset, 1)
+
+})
+
 test_that("Check ATS data functions", {
 
   check_api()

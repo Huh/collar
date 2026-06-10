@@ -7,11 +7,22 @@
 ats_logout()
 }
 \value{
-True if log out request is successful, false if log out fails
+\code{TRUE} once the local session has been cleared.
 }
 \description{
-Logs out of website
+Logs out of the ATS website and clears the local session.
 }
+\section{Notes}{
+
+
+  The server-side logout request is best-effort. On Windows, newer versions
+  of libcurl (bundled with R >= 4.5) can fail the request with a schannel
+  \code{SEC_E_CONTEXT_EXPIRED} error on a reused TLS connection (\code{curl}
+  issue 18029) even though the session is closed on the server. That
+  transport error is caught and ignored; the local session is always cleared
+  by resetting the connection handle.
+}
+
 \examples{
 \dontrun{
 
