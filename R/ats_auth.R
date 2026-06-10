@@ -98,9 +98,18 @@ ats_login <- function(usr, pwd) {
 
 #' @title Close ATS Session
 #'
-#' @description Logs out of website
+#' @description Logs out of the ATS website and clears the local session.
 #'
-#' @return True if log out request is successful, false if log out fails
+#' @section Notes:
+#'
+#'   The server-side logout request is best-effort. On Windows, newer versions
+#'   of libcurl (bundled with R >= 4.5) can fail the request with a schannel
+#'   \code{SEC_E_CONTEXT_EXPIRED} error on a reused TLS connection (\code{curl}
+#'   issue 18029) even though the session is closed on the server. That
+#'   transport error is caught and ignored; the local session is always cleared
+#'   by resetting the connection handle.
+#'
+#' @return \code{TRUE} once the local session has been cleared.
 #'
 #' @seealso \code{\link{ats_login}} for starting the session
 #'
@@ -119,18 +128,29 @@ ats_login <- function(usr, pwd) {
 #'
 ats_logout <- function() {
 
-  # log out of ATS website
-  httr::RETRY(
-    "POST",
-    url = ats_base_url,
-    path = list("Servidor.ashx"),
-    body = list(
-      consulta = "logout"
-    ),
-    encode = "form",
-    quiet = TRUE
-  ) %>%
-    httr::stop_for_status("log out")
+  # Best-effort server-side logout. On Windows, newer libcurl (>= 8.x, bundled
+  # with R >= 4.5) can fail this request with schannel SEC_E_CONTEXT_EXPIRED on
+  # a reused TLS connection (curl#18029) even though the server still ends the
+  # session. A transport-layer failure here must not stop us from clearing the
+  # local session below.
+  try(
+    httr::RETRY(
+      "POST",
+      url = ats_base_url,
+      path = list("Servidor.ashx"),
+      body = list(
+        consulta = "logout"
+      ),
+      encode = "form",
+      quiet = TRUE
+    ) %>%
+      httr::stop_for_status("log out"),
+    silent = TRUE
+  )
+
+  # Reset the handle to drop cookies and the stale TLS context, so the local
+  # session is cleared and the next login starts from a fresh connection.
+  httr::handle_reset(ats_base_url)
 
   # return true if user cookie is gone
   (!check_cookie(ats_base_url, "user"))

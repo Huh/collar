@@ -1,3 +1,7 @@
+# collar 0.0.7
+
+* `ats_logout()` no longer errors on Windows when the logout request fails with a schannel `SEC_E_CONTEXT_EXPIRED` error under newer libcurl (bundled with R >= 4.5); the transport error is now caught and the local session is cleared by resetting the connection handle (curl#18029).
+
 # collar 0.0.4
 
 * updates ATS functionality to work with redesigned website
