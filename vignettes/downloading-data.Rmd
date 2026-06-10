@@ -258,7 +258,7 @@ A clean first example uses a file without a problematic header
 ```{r}
 lotek_fpath <- system.file(
   "extdata",
-  "lotek.csv",
+  "lotek.CSV",
   package = "collar",
   mustWork = TRUE
 )
