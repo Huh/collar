@@ -37,10 +37,12 @@ fake_json <- function(x, status = 200L, method = "GET") {
 # path such as "API/user/login" to a function(args) returning a response.
 # Every call is recorded in `calls` for assertions on what was sent.
 http_router <- function(routes) {
-  calls <- list()
+  state <- new.env(parent = emptyenv())
+  state$calls <- list()
   handle <- function(verb, args) {
     path <- paste(unlist(args$path), collapse = "/")
-    calls[[length(calls) + 1]] <<- c(list(verb = verb, path = path), args)
+    call <- c(list(verb = verb, path = path), args)
+    state$calls[[length(state$calls) + 1]] <- call
     route <- routes[[paste(verb, path)]] %||% routes[[path]]
     if (is.null(route)) {
       stop("No mocked route for ", verb, " ", path, call. = FALSE)
@@ -51,7 +53,7 @@ http_router <- function(routes) {
     retry = function(verb, ...) handle(verb, list(...)),
     get = function(...) handle("GET", list(...)),
     post = function(...) handle("POST", list(...)),
-    calls = function() calls
+    calls = function() state$calls
   )
 }
 
