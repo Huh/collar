@@ -4,3 +4,6 @@
 ^doc$
 ^Meta$
 ^LICENSE\.md$
+^\.pre-commit-config\.yaml$
+^\.claude$
+^\.lintr$

@@ -48,5 +48,6 @@ Suggests:
     testthat,
     knitr,
     mockery,
-    rmarkdown
+    rmarkdown,
+    lintr
 VignetteBuilder: knitr
