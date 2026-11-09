@@ -1,17 +1,30 @@
-#' Download data from Vectronics' web service
+#' Download data from the Vectronic web service
 #'
-#' A function to download data from the Vectronics' web service. The function relies on a directory containing collar keys \code{key_dir}. The function will then attempt to download the relevant data using the keys in the \code{key_dir} directory. The user may alter the data downloaded by, for example, downloading data after some arbitrary date, downloading different types of data or after a data id.
+#' A function to download data from the Vectronic web service. The function
+#' relies on a directory containing collar keys \code{key_dir}. The function
+#' will then attempt to download the relevant data using the keys in the
+#' \code{key_dir} directory. The user may alter the data downloaded by, for
+#' example, downloading data after some arbitrary date, downloading different
+#' types of data or after a data id.
 #'
 #' @inheritParams get_keys
 #' @inheritParams build_vec_url
 #' @inheritParams cllr_remove_header
 #'
 #' @details
-#' This function assumes that the user stores key files for each collar deployed in a single directory and that directory only contains key files. The function will extract all of the keys contained in this directory and attempt to download data for each collar.
+#' This function assumes that the user stores key files for each collar deployed
+#' in a single directory and that directory only contains key files. The
+#' function will extract all of the keys contained in this directory and attempt
+#' to download data for each collar.
 #'
-#'  If desired, the user may limit the amount of data downloaded by supplying a data id or start date. In both cases only data after the data id or date will be downloaded. One value of data_id is required for each collar. For start_date, the user has the option of supplying a single value or one for each collar.
+#' If desired, the user may limit the amount of data downloaded by supplying a
+#' data id or start date. In both cases only data after the data id or date will
+#' be downloaded. One value of data_id is required for each collar. For
+#' start_date, the user has the option of supplying a single value or one for
+#' each collar.
 #'
-#'  The type argument allows the user to download different types of information collected by Vectronics collars. The possible options are
+#' The type argument allows the user to download different types of information
+#' collected by Vectronic collars. The possible options are
 #'
 #' \itemize{
 #'   \item "count" returns count of data records, used with values below
@@ -25,7 +38,10 @@
 #'   \item "vit" returns vaginal implant data
 #' }
 #'
-#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+#' Column names are adjusted using a custom function, but the user can pass any
+#' function they want to manipulate column names (e.g. make.names). The default
+#' removes non-ASCII characters, coerces all characters to lower case and
+#' replaces "." with "_".
 #'
 #' @return Tibble
 #' @export
@@ -92,13 +108,14 @@ fetch_vectronics <- function(key_paths,
     which_date = which_date
   )
 
-  call_vec_api(urls)
+  call_vec_api(urls, rename_fun = rename_fun)
 }
 
 #' Extract path(s) to files in a directory
 #'
 #' @param key_dir Path to a directory
-#' @param ext Defaults to keyx, which should be correct for Vectronics key files, but could also be a regular expression used to match any file extension.
+#' @param ext Defaults to keyx, which should be correct for Vectronic key files,
+#'   but could also be a regular expression used to match any file extension.
 #' @param ... other arguments to pass to list.files, see ?list.files
 #'
 #' @return full path to each file matching \code{ext}
@@ -142,7 +159,12 @@ get_paths <- function(key_dir, ext = "keyx$", ...) {
 #' @inheritParams get_keys
 #'
 #' @details
-#' Vectronics includes the collar ID in the XML of the .keyx file.  The get_id_from_key function gives the user the ability to read the ID encoded in the key file. This function was originally intended for internal package use, but is exported to package users in the hope it is helpful for reporting or other purposes. There is no reason to call it within the established package workflow.
+#' Vectronic includes the collar ID in the XML of the .keyx file.  The
+#' get_id_from_key function gives the user the ability to read the ID encoded in
+#' the key file. This function was originally intended for internal package use,
+#' but is exported to package users in the hope it is helpful for reporting or
+#' other purposes. There is no reason to call it within the established package
+#' workflow.
 #'
 #' @return character vector of collar IDs
 #' @export
@@ -155,15 +177,24 @@ get_paths <- function(key_dir, ext = "keyx$", ...) {
 get_id_from_key <- function(key_paths) {
   assertthat::assert_that(
     all(file.exists(key_paths)),
-    msg = "In get_id_from_key, one or more key_paths point to files that do not exist"
+    msg = paste(
+      "In get_id_from_key, one or more key_paths point to files that do not",
+      "exist"
+    )
   )
   assertthat::assert_that(
     all(purrr::map_lgl(key_paths, assertthat::is.readable)),
-    msg = "In get_id_from_key, one or more key_paths point to files that cannot be read, is this a permissions issue?"
+    msg = paste(
+      "In get_id_from_key, one or more key_paths point to files that cannot",
+      "be read, is this a permissions issue?"
+    )
   )
   assertthat::assert_that(
     all(purrr::map_lgl(key_paths, assertthat::has_extension, ext = "keyx")),
-    msg = "In get_id_from_key, one of more key_paths point to files that are not .keyx files"
+    msg = paste(
+      "In get_id_from_key, one of more key_paths point to files that are not",
+      ".keyx files"
+    )
   )
 
   purrr::map_chr(
@@ -176,7 +207,12 @@ get_id_from_key <- function(key_paths) {
 
 #' Extract alphanumeric key from key files
 #'
-#' The key is needed to call the Vectronics API and given the length of the key copy and paste errors seems likely.  The functions here help users access the keys in a programmatic fashion. We don't anticipate much need for users to use this function as it was originally intended to be internal to the package, but if listing keys is needed for reporting purposes or otherwise the function is made available.
+#' The key is needed to call the Vectronic API and given the length of the key
+#' copy and paste errors seems likely.  The functions here help users access the
+#' keys in a programmatic fashion. We don't anticipate much need for users to
+#' use this function as it was originally intended to be internal to the
+#' package, but if listing keys is needed for reporting purposes or otherwise
+#' the function is made available.
 #'
 #' @param key_paths The full path to one or more key files
 #' @family get
@@ -210,11 +246,17 @@ get_keys <- function(key_paths) {
   )
   assertthat::assert_that(
     all(purrr::map_lgl(key_paths, assertthat::has_extension, ext = "keyx")),
-    msg = "In get_keys, one or more files in key_paths do not have extension .keyx"
+    msg = paste(
+      "In get_keys, one or more files in key_paths do not have extension",
+      ".keyx"
+    )
   )
   assertthat::assert_that(
     all(purrr::map_lgl(key_paths, assertthat::is.readable)),
-    msg = "In get_keys, one or more files in key_paths are not readable, is this a permissions issue?"
+    msg = paste(
+      "In get_keys, one or more files in key_paths are not readable, is this",
+      "a permissions issue?"
+    )
   )
 
   purrr::map_chr(key_paths,
@@ -289,16 +331,25 @@ build_vec_url <- function(base_url = NULL,
     is.null(x) | is.null(y)
   }
   assertthat::on_failure(one_null) <- function(call, env) {
-    "The Vectronics API cannot accept both the after_data_id and start_date arguments at the same time.  Please change one or both to NULL."
+    paste(
+      "The Vectronic API cannot accept both the after_data_id and start_date",
+      "arguments at the same time.  Please change one or both to NULL."
+    )
   }
   assertthat::assert_that(one_null(after_data_id, start_date))
   assertthat::assert_that(
     assertthat::is.string(collar_id),
-    msg = "In build_vec_url, collar_id must be a length one character vector, did you pass more than one collar_id?"
+    msg = paste(
+      "In build_vec_url, collar_id must be a length one character vector,",
+      "did you pass more than one collar_id?"
+    )
   )
   assertthat::assert_that(
     assertthat::is.string(collar_key),
-    msg = "In build_vec_url, collar_key must be a length one character vector, did you pass more than one collar_key?"
+    msg = paste(
+      "In build_vec_url, collar_key must be a length one character vector,",
+      "did you pass more than one collar_key?"
+    )
   )
   assertthat::assert_that(
     type %in% c("gps", "act", "mit", "mor", "prx", "sep", "trap", "vit"),
@@ -316,17 +367,28 @@ build_vec_url <- function(base_url = NULL,
       "but count must be TRUE or FALSE"
     )
   )
-  if(!is.null(start_date)){
+  if (!is.null(start_date)) {
     assertthat::assert_that(
       assertthat::is.string(start_date),
-      msg = "In build_vec_url, start_date must be a length one character vector, did you pass more than one start_date?"
+      msg = paste(
+        "In build_vec_url, start_date must be a length one character vector,",
+        "did you pass more than one start_date?"
+      )
     )
     assertthat::assert_that(
       grepl(
-        "^(19[78][0-9]|199[0-9]|20[0-9]{2}|2100)-0*([1-9]|1[0-2])-0*([1-9]|[12][0-9]|3[01])(T)0*([0-9]|1[0-9]|2[0-4]):0*([0-9]|[1-5][0-9]|60):0*([0-9]|[1-5][0-9]|60)$",
+        paste0(
+          "^(19[78][0-9]|199[0-9]|20[0-9]{2}|2100)",          # year
+          "-0*([1-9]|1[0-2])-0*([1-9]|[12][0-9]|3[01])",      # -month-day
+          "(T)0*([0-9]|1[0-9]|2[0-4])",                       # Thour
+          ":0*([0-9]|[1-5][0-9]|60):0*([0-9]|[1-5][0-9]|60)$" # :min:sec
+        ),
         start_date
       ),
-      msg = "In build_vec_url, the format of start_date must follow YYYY-MM-DDTHH:MM:SS, don't forget the T in the middle"
+      msg = paste(
+        "In build_vec_url, the format of start_date must follow",
+        "YYYY-MM-DDTHH:MM:SS, don't forget the T in the middle"
+      )
     )
     assertthat::assert_that(
       which_date %in% c("scts", "acquisition"),
@@ -344,7 +406,7 @@ build_vec_url <- function(base_url = NULL,
   }
 
   # Modify url conditional on count variable to simplify user interaction
-  if(count){
+  if (count) {
     url <- httr::modify_url(
       base_url,
       path = list(
@@ -357,7 +419,7 @@ build_vec_url <- function(base_url = NULL,
         "collarkey" = collar_key
       )
     )
-  }else{
+  } else {
     url <- httr::modify_url(
       base_url,
       path = list(
@@ -420,7 +482,7 @@ build_vec_urls <- function(base_url = NULL,
   )
 }
 
-#' A basic call to the Vectronics API
+#' A basic call to the Vectronic API
 #'
 #' @param url a character string representing the url to query
 #' @inheritParams cllr_remove_header
@@ -430,15 +492,19 @@ build_vec_urls <- function(base_url = NULL,
 call_vec_api <- function(url, rename_fun = adj_col_nms) {
   assertthat::assert_that(
     RCurl::url.exists("www.google.com"),
-    msg = "Are you connected to the internet? You must have an internet connection to call the API"
+    msg = paste(
+      "Are you connected to the internet? You must have an internet",
+      "connection to call the API"
+    )
   )
-
-
 
   st_time <- Sys.time()
 
-  message("Downloading Vectronics collar data...")
+  message("Downloading Vectronic collar data...")
 
+  # pb is ticked inside the purrr formula lambdas below, which codetools
+  # cannot see into.
+  # nolint next: object_usage_linter.
   pb <- progress::progress_bar$new(total = length(url))
 
   resp <- purrr::map(
@@ -453,36 +519,35 @@ call_vec_api <- function(url, rename_fun = adj_col_nms) {
 
   pb <- progress::progress_bar$new(total = length(resp))
 
-  if(grepl("count?collarkey=", url[1], fixed = TRUE)){
+  if (grepl("count?collarkey=", url[1], fixed = TRUE)) {
     parse <- purrr::map2_dfr(
       resp, url,
       ~{
         pb$tick()
         tibble::tibble(
-          id = gsub("^.*(v2/collar/)([0-9]*)(/).*$", "\\2", .y),
-          type = gsub("^.*(v2/collar/.*/)([A-z]*)(/).*$", "\\2", .y),
+          id = sub("^.*/collar/([0-9]+)/.*$", "\\1", .y),
+          type = sub("^.*/collar/[0-9]+/([A-Za-z]+)/.*$", "\\1", .y),
           count = httr::content(.x)
         )
       }
     )
-  }else{
+  } else {
     parse <- purrr::map_dfr(
-        resp,
-        ~{
-          pb$tick()
-          jsonlite::fromJSON(
-            httr::content(.x, type = "text", encoding = "UTF-8"),
-            simplifyVector = TRUE
-          )
-        }
-      ) %>%
+      resp,
+      ~{
+        pb$tick()
+        jsonlite::fromJSON(
+          httr::content(.x, type = "text", encoding = "UTF-8"),
+          simplifyVector = TRUE
+        )
+      }
+    ) %>%
       tibble::as_tibble() %>%
       dplyr::rename_all(rename_fun)
   }
 
-  difftime(Sys.time(), st_time, units = "mins") %>%
-    as.numeric() %>%
-    round(2) %>%
-    message("Done. Elapsed time: ", .data, " minutes")
-  return(parse)
+  elapsed <- round(as.numeric(difftime(Sys.time(), st_time, units = "mins")), 2)
+  message("Done. Elapsed time: ", elapsed, " minutes")
+
+  parse
 }

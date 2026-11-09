@@ -1,6 +1,8 @@
 # collar (development version)
 
+* Documentation now uses the manufacturer's correct name, Vectronic, rather than "Vectronics" (#63). Function names are unchanged.
 * `fetch_ats_positions()` and `fetch_ats_transmissions()` now default to `chunk_size = 20`, because the ATS website stopped returning all data for batches larger than about 20 collars (#89).
+* `fetch_vectronics()` now passes `rename_fun` through instead of ignoring it, returns the collar ID and data type (not the full request URL, which contained the collar key) when `count = TRUE`, and prints a readable elapsed-time message.
 
 # collar 0.0.7
 

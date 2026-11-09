@@ -16,7 +16,12 @@ character vector of collar IDs
 Extract collar ID from key files
 }
 \details{
-Vectronics includes the collar ID in the XML of the .keyx file.  The get_id_from_key function gives the user the ability to read the ID encoded in the key file. This function was originally intended for internal package use, but is exported to package users in the hope it is helpful for reporting or other purposes. There is no reason to call it within the established package workflow.
+Vectronic includes the collar ID in the XML of the .keyx file.  The
+get_id_from_key function gives the user the ability to read the ID encoded in
+the key file. This function was originally intended for internal package use,
+but is exported to package users in the hope it is helpful for reporting or
+other purposes. There is no reason to call it within the established package
+workflow.
 }
 \examples{
 get_id_from_key(
