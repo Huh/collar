@@ -1,14 +1,22 @@
-#' A function to find and remove data headers from collar data based on the latitude column
+#' A function to find and remove data headers from collar data based on the
+#' latitude column
 #'
 #' @param x A dataframe containing collar data
 #' @param col_nm The unqouted name of any one column in the data frame
-#' @param rm_header Logical indicating whether to remove header completely, defaults to TRUE
+#' @param rm_header Logical indicating whether to remove header completely,
+#'   defaults to TRUE
 #' @param rename_fun Column renaming function
 #'
 #' @details
-#' The argument rm_header is meant to aid in programming scenarios where some files should be left alone and others need the header removed. We are not sure this is actually useful, but thought of the scenario and accommodated it just the same.
+#' The argument rm_header is meant to aid in programming scenarios where some
+#' files should be left alone and others need the header removed. We are not
+#' sure this is actually useful, but thought of the scenario and accommodated it
+#' just the same.
 #'
-#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+#' Column names are adjusted using a custom function, but the user can pass any
+#' function they want to manipulate column names (e.g. make.names). The default
+#' removes non-ASCII characters, coerces all characters to lower case and
+#' replaces "." with "_".
 #'
 #' @export
 #' @return tibble
@@ -27,10 +35,13 @@ cllr_remove_header <- function(x,
                                rm_header = TRUE,
                                rename_fun = adj_col_nms) {
   is_unquo <- function(x) {
-    class(try(class(x), silent = T)) == "try-error"
+    class(try(class(x), silent = TRUE)) == "try-error"
   }
   assertthat::on_failure(is_unquo) <- function(call, env) {
-    paste0("Column ", deparse(call$x), " must be unquoted. If special characters or spaces exist use back ticks (`A B`).")
+    paste0(
+      "Column ", deparse(call$x), " must be unquoted. If special characters ",
+      "or spaces exist use back ticks (`A B`)."
+    )
   }
   assertthat::assert_that(is_unquo(col_nm))
   assertthat::assert_that(
@@ -52,7 +63,7 @@ cllr_remove_header <- function(x,
   col_name <- rlang::as_name(rlang::enquo(col_nm))
 
   if (!rm_header) {
-    return(x)
+    x
   } else {
     # Find column containing 'lat_col'
     col_loc <- x %>%

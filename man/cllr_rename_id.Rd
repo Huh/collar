@@ -9,13 +9,18 @@ cllr_rename_id(x, id_col)
 \arguments{
 \item{x}{object inherting from data.frame}
 
-\item{id_col}{unquoted name of column containing unique identifier for each individual}
+\item{id_col}{unquoted name of column containing unique identifier for each
+individual}
 }
 \value{
 data.frame
 }
 \description{
-The purpose of cllr_rename_id is to provide a simple utility to change a column name to conform to this package's expectation that individual identifiers are stored in a column called id. If your data does not have unique identifiers for each animal cllr_add_id will create that column and insert provided values.
+The purpose of cllr_rename_id is to provide a simple utility to
+  change a column name to conform to this package's expectation that
+  individual identifiers are stored in a column called id. If your data does
+  not have unique identifiers for each animal cllr_add_id will create that
+  column and insert provided values.
 }
 \examples{
 # Unquoted input when renaming id column

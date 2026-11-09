@@ -13,14 +13,11 @@
 #'   collar::save_map()
 #' }
 
-save_map <- function(
-                     x,
-                     file = "./map.html"
-                     ) {
+save_map <- function(x, file = "./map.html") {
 
   assertthat::assert_that(inherits(x, "leaflet"))
 
   htmlwidgets::saveWidget(x, file = file)
 
-  return(invisible(x))
+  invisible(x)
 }

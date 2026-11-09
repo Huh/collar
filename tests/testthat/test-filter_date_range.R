@@ -63,7 +63,7 @@ test_that("Check filter_date_range assertions", {
   expect_condition(
     filter_date_range(dat, dt_col = "a"),
     "a does not have class 'Date' and can not be coerced using as.Date()",
-    fixed = T
+    fixed = TRUE
   )
 
   expect_error(

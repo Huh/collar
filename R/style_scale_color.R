@@ -6,33 +6,34 @@
 #' @param palette Character name of palette in cllr_palettes
 #' @param discrete Boolean; Is the color aesthetic discrete or not?
 #' @param reverse Boolean; Should the colors be reversed?
-#' @param ... Additional arguments which can be passed to ggplot2::disrete_scale()
-#'            or ggplot2::scale_color_gradientn(), used when discrete is
-#'            true or false, respectively
+#' @param ... Additional arguments which can be passed to
+#'   ggplot2::discrete_scale() or ggplot2::scale_color_gradientn(), used when
+#'   discrete is true or false, respectively
 #'
 #' @details There are four color schemes to choose from:
 #'          1) "main" = simple colors, duckhunt; "NULL" value
 #'          2) "duckhunt" = palette from duckhunt
 #'          3) "cblind" = color blind palette
 #'          4) "gray" = gray scale if you're boring
-#'          If discrete = F, will pick gradient between discrete colors
+#'          If discrete = FALSE, will pick gradient between discrete colors
 #'
 #' @return An object of class "ggproto", for use in ggplot2::ggplot
 #' @export
 #'
 #' @examples
 #' # Create a scatterplot
-#' ggplot2::ggplot(iris, ggplot2::aes(Sepal.Width,Sepal.Length, color=Species)) +
-#'   ggplot2::geom_point(size=5) +
+#' ggplot2::ggplot(
+#'   iris,
+#'   ggplot2::aes(Sepal.Width, Sepal.Length, color = Species)
+#' ) +
+#'   ggplot2::geom_point(size = 5) +
 #'   style_scale_color()
-style_scale_color <- function(palette = "main", discrete = T,
-                              reverse = F, ...) {
+style_scale_color <- function(palette = "main", discrete = TRUE,
+                              reverse = FALSE, ...) {
   pal <- cllr_pal(palette = palette, reverse = reverse)
 
   if (discrete) {
-    ggplot2::discrete_scale("color", paste0("cllr_", palette),
-      palette = pal, ...
-    )
+    ggplot2::discrete_scale("color", palette = pal, ...)
   } else {
     ggplot2::scale_color_gradientn(colors = pal(256), ...)
   }
@@ -95,10 +96,10 @@ cllr_palettes <- list(
 #'
 #' @inheritParams style_scale_color
 #'
-cllr_pal <- function(palette = "main", reverse = F, ...) {
+cllr_pal <- function(palette = "main", reverse = FALSE, ...) {
   pal <- cllr_palettes[[palette]]
 
-  if(reverse){
+  if (reverse) {
     pal <- rev(pal)
   }
 

@@ -28,12 +28,12 @@ each column is named. The fetch_csv function just needs the file path:
 ```{r}
 ex_a <- fetch_csv(
   file_path = system.file(
-  "extdata",
-  "csv_vingette_data",
-  "ex_a.csv",
-  package = "collar",
-  mustWork = TRUE
-)
+    "extdata",
+    "csv_vingette_data",
+    "ex_a.csv",
+    package = "collar",
+    mustWork = TRUE
+  )
 )
 ```
 
@@ -70,19 +70,22 @@ use the rename_fun argument to pass a function that renames the columns.
 
 # will throw error for missing names, then applies function to name columns
 ex_b <- fetch_csv(
-  file_path = get_paths(system.file(
-    "extdata",
-    "csv_vingette_data",
-    "ex_b",
-    package = "collar",
-    mustWork = TRUE), 
-  ext = "csv$"),
-  rename_fun = function(x){ 
-      # pass function to rename cols
-      out <- as.character(1:length(x))
-      out[c(1,2,3,9,10)] <- c("id", "date", "time", "lat", "long")
-      return(out)
-    }
+  file_path = get_paths(
+    system.file(
+      "extdata",
+      "csv_vingette_data",
+      "ex_b",
+      package = "collar",
+      mustWork = TRUE
+    ),
+    ext = "csv$"
+  ),
+  rename_fun = function(x) {
+    # pass function to rename cols
+    out <- as.character(seq_along(x))
+    out[c(1, 2, 3, 9, 10)] <- c("id", "date", "time", "lat", "long")
+    out
+  }
 )
 
 ```
@@ -161,7 +164,7 @@ After throwing a warning about duplicated names, fetch_csv assigned unique names
 to each column. Now we need to drop the useless rows before the actual data starts:
 
 ```{r}
-c <- c[3:27,]
+c <- c[3:27, ]
 ```
 
 Combine the date and time into a single column:

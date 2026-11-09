@@ -9,9 +9,12 @@ filter_last_loc(x, ..., order_by)
 \arguments{
 \item{x}{A data frame containing collar data.}
 
-\item{...}{unquoted column name(s) to be used as a grouping variable e.g. if "id" is used, a single row will be returned for each id.}
+\item{...}{unquoted column name(s) to be used as a grouping variable e.g. if
+"id" is used, a single row will be returned for each id.}
 
-\item{order_by}{A character vector of the column(s) to be used to arrange the data e.g. if the date/time column is used rows will be ordered chronologically.}
+\item{order_by}{A character vector of the column(s) to be used to arrange the
+data e.g. if the date/time column is used rows will be ordered
+chronologically.}
 }
 \value{
 A data frame with the last location for each individual.

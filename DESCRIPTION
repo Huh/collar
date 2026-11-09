@@ -15,6 +15,7 @@ License: MIT + file LICENSE
 URL: https://github.com/Huh/collar
 BugReports: https://github.com/Huh/collar/issues
 Encoding: UTF-8
+Config/spdgt/r-minor: 4.5
 LazyData: true
 ByteCompile: true
 RoxygenNote: 7.3.3
@@ -48,5 +49,6 @@ Suggests:
     knitr,
     mockery,
     rmarkdown,
-    lintr
+    lintr,
+    withr
 VignetteBuilder: knitr

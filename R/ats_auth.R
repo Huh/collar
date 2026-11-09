@@ -90,7 +90,7 @@ ats_login <- function(usr, pwd) {
   )
 
   # return true if login succeeded
-  return(TRUE)
+  TRUE
 
 }
 
