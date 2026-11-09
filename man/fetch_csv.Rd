@@ -28,7 +28,10 @@ a tibble
 Read collar data stored in CSV file(s)
 }
 \details{
-Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+Column names are adjusted using a custom function, but the user can pass any
+function they want to manipulate column names (e.g. make.names). The default
+removes non-ASCII characters, coerces all characters to lower case and
+replaces "." with "_".
 }
 \examples{
 #  Define file path
@@ -47,10 +50,11 @@ ltk <- fetch_csv(fls[1])
 # Read first two files
 all_ltk <- fetch_csv(fls[1:2])
 
-# You might get into trouble if too many formats are contained in the same directory,
-#  this will fail because column types are different. You could specify col_types
-#  argument and pass it to readr::read_csv, but because different manufacturers use
-#  different column names this won't work (col_types is not vectorized).
+# You might get into trouble if too many formats are contained in the same
+# directory, this will fail because column types are different. You could
+# specify the col_types argument and pass it to readr::read_csv, but
+# because different manufacturers use different column names this won't
+# work (col_types is not vectorized).
 \dontrun{
 all_fls <- fetch_csv(fls)
 }

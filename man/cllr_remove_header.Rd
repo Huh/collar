@@ -2,7 +2,8 @@
 % Please edit documentation in R/cllr_remove_header.R
 \name{cllr_remove_header}
 \alias{cllr_remove_header}
-\title{A function to find and remove data headers from collar data based on the latitude column}
+\title{A function to find and remove data headers from collar data based on the
+latitude column}
 \usage{
 cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 }
@@ -11,7 +12,8 @@ cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 
 \item{col_nm}{The unqouted name of any one column in the data frame}
 
-\item{rm_header}{Logical indicating whether to remove header completely, defaults to TRUE}
+\item{rm_header}{Logical indicating whether to remove header completely,
+defaults to TRUE}
 
 \item{rename_fun}{Column renaming function}
 }
@@ -19,12 +21,19 @@ cllr_remove_header(x, col_nm, rm_header = TRUE, rename_fun = adj_col_nms)
 tibble
 }
 \description{
-A function to find and remove data headers from collar data based on the latitude column
+A function to find and remove data headers from collar data based on the
+latitude column
 }
 \details{
-The argument rm_header is meant to aid in programming scenarios where some files should be left alone and others need the header removed. We are not sure this is actually useful, but thought of the scenario and accommodated it just the same.
+The argument rm_header is meant to aid in programming scenarios where some
+files should be left alone and others need the header removed. We are not
+sure this is actually useful, but thought of the scenario and accommodated it
+just the same.
 
-Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+Column names are adjusted using a custom function, but the user can pass any
+function they want to manipulate column names (e.g. make.names). The default
+removes non-ASCII characters, coerces all characters to lower case and
+replaces "." with "_".
 }
 \examples{
 ugly_file <- read.csv(

@@ -24,7 +24,7 @@ test_that("Check assertions", {
   # Successfully read and return csv
   tmp_dir <- tempdir()
   df <- data.frame(Val = c(2, 3))
-  write.csv(df, file = file.path(tmp_dir, "mycsv.csv"), row.names = F)
+  write.csv(df, file = file.path(tmp_dir, "mycsv.csv"), row.names = FALSE)
   expect_s3_class(
     fetch_csv(file.path(tmp_dir, "mycsv.csv")),
     "data.frame"
@@ -41,7 +41,7 @@ test_that("Read single csv", {
 
   df <- data.frame(Val = c(2, 3))
 
-  write.csv(df, file = file.path(tmp_dir, "mycsv.csv"), row.names = F)
+  write.csv(df, file = file.path(tmp_dir, "mycsv.csv"), row.names = FALSE)
 
   expect_s3_class(
     fetch_csv(file.path(tmp_dir, "mycsv.csv")),
@@ -60,8 +60,8 @@ test_that("Read multiple csv files", {
 
   df <- data.frame(Val = c(2, 3))
 
-  write.csv(df, file = file.path(tmp_dir, "mycsv1.csv"), row.names = F)
-  write.csv(df, file = file.path(tmp_dir, "mycsv2.csv"), row.names = F)
+  write.csv(df, file = file.path(tmp_dir, "mycsv1.csv"), row.names = FALSE)
+  write.csv(df, file = file.path(tmp_dir, "mycsv2.csv"), row.names = FALSE)
 
   fls <- paste(tmp_dir, c("mycsv1.csv", "mycsv2.csv"), sep = "/")
 
@@ -89,7 +89,7 @@ test_that("Check features of read_csv work", {
 
   df <- data.frame(Val = c(" ab ", "cd", "Missing"))
 
-  write.csv(df, file = file.path(tmp_dir, "readr.csv"), row.names = F)
+  write.csv(df, file = file.path(tmp_dir, "readr.csv"), row.names = FALSE)
 
   rd <- fetch_csv(
     file.path(tmp_dir, "readr.csv"),

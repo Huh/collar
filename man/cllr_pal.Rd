@@ -4,16 +4,16 @@
 \alias{cllr_pal}
 \title{Access Palettes}
 \usage{
-cllr_pal(palette = "main", reverse = F, ...)
+cllr_pal(palette = "main", reverse = FALSE, ...)
 }
 \arguments{
 \item{palette}{Character name of palette in cllr_palettes}
 
 \item{reverse}{Boolean; Should the colors be reversed?}
 
-\item{...}{Additional arguments which can be passed to ggplot2::disrete_scale()
-or ggplot2::scale_color_gradientn(), used when discrete is
-true or false, respectively}
+\item{...}{Additional arguments which can be passed to
+ggplot2::discrete_scale() or ggplot2::scale_color_gradientn(), used when
+discrete is true or false, respectively}
 }
 \description{
 Access any of the color palettes available

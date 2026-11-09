@@ -4,7 +4,7 @@
 \alias{style_scale_fill}
 \title{Fill Scale Constructor for ggplot}
 \usage{
-style_scale_fill(palette = "main", discrete = T, reverse = F, ...)
+style_scale_fill(palette = "main", discrete = TRUE, reverse = FALSE, ...)
 }
 \arguments{
 \item{palette}{Character name of palette in cllr_palettes}
@@ -13,9 +13,9 @@ style_scale_fill(palette = "main", discrete = T, reverse = F, ...)
 
 \item{reverse}{Boolean; Should the colors be reversed?}
 
-\item{...}{Additional arguments which can be passed to ggplot2::disrete_scale()
-or ggplot2::scale_color_gradientn(), used when discrete is
-true or false, respectively}
+\item{...}{Additional arguments which can be passed to
+ggplot2::discrete_scale() or ggplot2::scale_fill_gradientn(), used when
+discrete is true or false, respectively}
 }
 \value{
 An object of class "ggproto", for use in ggplot2::ggplot
@@ -30,12 +30,17 @@ There are four color schemes to choose from:
          2) "duckhunt" = palette from duckhunt
          3) "cblind" = color blind palette
          4) "gray" = gray scale if you're boring
-         If discrete = F, will pick gradient between discrete colors
+         If discrete = FALSE, will pick gradient between discrete colors
 }
 \examples{
 # Create a bar graph with continuous color palette, duckhunt
-ggplot2::ggplot(ggplot2::mpg, ggplot2::aes(manufacturer, fill = manufacturer)) +
+ggplot2::ggplot(
+  ggplot2::mpg,
+  ggplot2::aes(manufacturer, fill = manufacturer)
+) +
   ggplot2::geom_bar() +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
+  ) +
   style_scale_fill(palette = "duckhunt", guide = "none")
 }

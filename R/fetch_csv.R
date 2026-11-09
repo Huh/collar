@@ -8,7 +8,10 @@
 #' @param ... Other parameters to pass to readr::read_csv
 #'
 #' @details
-#' Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+#' Column names are adjusted using a custom function, but the user can pass any
+#' function they want to manipulate column names (e.g. make.names). The default
+#' removes non-ASCII characters, coerces all characters to lower case and
+#' replaces "." with "_".
 #'
 #' @seealso cllr_remove_header
 #'
@@ -33,10 +36,11 @@
 #' # Read first two files
 #' all_ltk <- fetch_csv(fls[1:2])
 #'
-#' # You might get into trouble if too many formats are contained in the same directory,
-#' #  this will fail because column types are different. You could specify col_types
-#' #  argument and pass it to readr::read_csv, but because different manufacturers use
-#' #  different column names this won't work (col_types is not vectorized).
+#' # You might get into trouble if too many formats are contained in the same
+#' # directory, this will fail because column types are different. You could
+#' # specify the col_types argument and pass it to readr::read_csv, but
+#' # because different manufacturers use different column names this won't
+#' # work (col_types is not vectorized).
 #' \dontrun{
 #' all_fls <- fetch_csv(fls)
 #' }
@@ -83,7 +87,10 @@ fetch_csv <- function(file_path, skip = 0, rename_fun = adj_col_nms, ...) {
   )
   assertthat::assert_that(
     all(purrr::map_lgl(file_path, assertthat::is.readable)),
-    msg = "One or more files described in file_path are not readable, could this be a permissions issue?"
+    msg = paste(
+      "One or more files described in file_path are not readable, could",
+      "this be a permissions issue?"
+    )
   )
 
   suppressMessages(
@@ -110,7 +117,10 @@ fetch_delim <- function(file_path,
   )
   assertthat::assert_that(
     all(purrr::map_lgl(file_path, assertthat::is.readable)),
-    msg = "One or more files described in file_path are not readable, could this be a permissions issue?"
+    msg = paste(
+      "One or more files described in file_path are not readable, could",
+      "this be a permissions issue?"
+    )
   )
 
   suppressMessages(
@@ -121,6 +131,6 @@ fetch_delim <- function(file_path,
       skip = skip,
       ...
     ) %>%
-    dplyr::rename_all(rename_fun)
+      dplyr::rename_all(rename_fun)
   )
 }

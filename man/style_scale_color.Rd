@@ -4,7 +4,7 @@
 \alias{style_scale_color}
 \title{Color Scale Constructor for ggplot}
 \usage{
-style_scale_color(palette = "main", discrete = T, reverse = F, ...)
+style_scale_color(palette = "main", discrete = TRUE, reverse = FALSE, ...)
 }
 \arguments{
 \item{palette}{Character name of palette in cllr_palettes}
@@ -13,9 +13,9 @@ style_scale_color(palette = "main", discrete = T, reverse = F, ...)
 
 \item{reverse}{Boolean; Should the colors be reversed?}
 
-\item{...}{Additional arguments which can be passed to ggplot2::disrete_scale()
-or ggplot2::scale_color_gradientn(), used when discrete is
-true or false, respectively}
+\item{...}{Additional arguments which can be passed to
+ggplot2::discrete_scale() or ggplot2::scale_color_gradientn(), used when
+discrete is true or false, respectively}
 }
 \value{
 An object of class "ggproto", for use in ggplot2::ggplot
@@ -30,11 +30,14 @@ There are four color schemes to choose from:
          2) "duckhunt" = palette from duckhunt
          3) "cblind" = color blind palette
          4) "gray" = gray scale if you're boring
-         If discrete = F, will pick gradient between discrete colors
+         If discrete = FALSE, will pick gradient between discrete colors
 }
 \examples{
 # Create a scatterplot
-ggplot2::ggplot(iris, ggplot2::aes(Sepal.Width,Sepal.Length, color=Species)) +
-  ggplot2::geom_point(size=5) +
+ggplot2::ggplot(
+  iris,
+  ggplot2::aes(Sepal.Width, Sepal.Length, color = Species)
+) +
+  ggplot2::geom_point(size = 5) +
   style_scale_color()
 }

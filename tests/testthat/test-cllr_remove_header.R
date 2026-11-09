@@ -21,14 +21,14 @@ test_that("all_cllr_rm_header", {
 
   expect_condition(
     collar::cllr_remove_header(fl, "GPS Latitude", rm_header = TRUE),
-    "Column col_nm must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
-    fixed = T
+    "Column col_nm must be unquoted. If special characters or spaces exist",
+    fixed = TRUE
   )
 
   expect_condition(
     collar::cllr_remove_header(fl, `GPS Latitude`, rm_header = "ABC"),
-    "Function cllr_remove_header called with rm_header set to ABC, but rm_header must be TRUE or FALSE",
-    fixed = T
+    "called with rm_header set to ABC, but rm_header must be TRUE or FALSE",
+    fixed = TRUE
   )
 
   expect_condition(

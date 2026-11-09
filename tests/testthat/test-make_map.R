@@ -40,7 +40,7 @@ test_that("check make_map assertions", {
   expect_condition(
     make_map("a"),
     "x does not inherit from class data.frame",
-    fixed = T
+    fixed = TRUE
   )
 
   expect_error(
@@ -49,22 +49,18 @@ test_that("check make_map assertions", {
 
   expect_error(
     dplyr::mutate(dat, lon = NA) %>%
-    dplyr::slice(1) %>%
-    make_map(),
+      dplyr::slice(1) %>%
+      make_map(),
     "lon contains 1 missing values",
-    fixed = T
+    fixed = TRUE
   )
 
   expect_error(
     dplyr::mutate(dat, lat = NA) %>%
-    dplyr::slice(1) %>%
-    make_map(),
+      dplyr::slice(1) %>%
+      make_map(),
     "lat contains 1 missing values",
-    fixed = T
+    fixed = TRUE
   )
-
-  # dat_large <-
-  #   dat %>%
-  #   dplyr::slice(rep(1:dplyr::n(), each = 30))
 
 })
