@@ -24,7 +24,7 @@ Send username and password info to Lotek API
 }
 \examples{
 \dontrun{
-lotek_login("demo", "PASSWORD09")
+lotek_login("your_username", "your_password")
 
 alerts <- fetch_lotek_alerts()
 

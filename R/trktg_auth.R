@@ -10,9 +10,9 @@
 
 trktg_base_url <- "https://www.tracktagllc.com"
 
-# * 1.2 - trktg.env (environment for managing authentication info) --------
+# * 1.2 - trktg_env (environment for managing authentication info) --------
 
-trktg.env <- new.env()
+trktg_env <- new.env()
 
 # 2 - Internal Functions --------------------------------------------------
 
@@ -36,7 +36,7 @@ trktg.env <- new.env()
 trktg_token <- function() {
 
   assertthat::assert_that(
-    "rvt" %in% ls(envir = trktg.env),
+    "rvt" %in% ls(envir = trktg_env),
     msg = paste(
       "No login information available.",
       "Use the trktg_login function to log in to your Track Tag account",
@@ -44,7 +44,7 @@ trktg_token <- function() {
     )
   )
 
-  trktg.env$rvt
+  trktg_env$rvt
 
 }
 
@@ -68,7 +68,7 @@ trktg_token <- function() {
 #'
 #' @examples
 #' \dontrun{
-#' trktg_login("some_user", "some_users_pw")
+#' trktg_login("your_username", "your_password")
 #'
 #' fixes <- fetch_trktg_positions()
 #'
@@ -77,7 +77,7 @@ trktg_token <- function() {
 trktg_login <- function(usr, pwd) {
 
   # clear existing login info
-  suppressWarnings(rm(rvt, envir = trktg.env))
+  suppressWarnings(rm(rvt, envir = trktg_env))
 
   # use get request to obtain request verification token
   resp <- httr::RETRY(
@@ -92,7 +92,7 @@ trktg_login <- function(usr, pwd) {
     msg = paste(
       "Unable to access track tag website.",
       paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
+      paste("Response:", httr::content(resp, "text", encoding = "UTF-8")),
       sep = "\n"
     )
   )
@@ -135,15 +135,15 @@ trktg_login <- function(usr, pwd) {
     msg = paste(
       "Login failed.",
       paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
+      paste("Response:", httr::content(resp, "text", encoding = "UTF-8")),
       sep = "\n"
     )
   )
 
-  trktg.env$rvt <- rvt
+  trktg_env$rvt <- rvt
 
   # return true if successful
-  "rvt" %in% ls(envir = trktg.env)
+  "rvt" %in% ls(envir = trktg_env)
 
 }
 
@@ -162,7 +162,7 @@ trktg_login <- function(usr, pwd) {
 #'
 #' @examples
 #' \dontrun{
-#' trktg_login("some_user", "some_users_pw")
+#' trktg_login("your_username", "your_password")
 #'
 #' fixes <- fetch_trktg_positions()
 #'
@@ -176,8 +176,8 @@ trktg_logout <- function() {
     path = list("account", "logoff")
   )
 
-  suppressWarnings(rm("rvt", envir = trktg.env))
+  suppressWarnings(rm("rvt", envir = trktg_env))
 
-  length(ls(envir = trktg.env)) == 0 && httr::status_code(resp) == 200
+  length(ls(envir = trktg_env)) == 0 && httr::status_code(resp) == 200
 
 }

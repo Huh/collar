@@ -19,7 +19,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' lotek_login("demo", "PASSWORD09")
+#' lotek_login("your_username", "your_password")
 #'
 #' # get all alerts for this account
 #' alerts <- fetch_lotek_alerts()
@@ -47,7 +47,7 @@ fetch_lotek_alerts <- function() {
     msg = paste(
       "API call failed - alerts.",
       paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
+      paste("Response:", httr::content(resp, "text", encoding = "UTF-8")),
       sep = "\n"
     )
   )
@@ -55,7 +55,7 @@ fetch_lotek_alerts <- function() {
   # combine lists into tibble
   tbl_out <- purrr::map_dfr(
     httr::content(resp),
-    ~ purrr::map(.x, function(y) ifelse(is.null(y), NA, y)) %>%
+    ~ purrr::map(.x, function(y) if (is.null(y)) NA else y) %>%
       tibble::as_tibble()
   )
 
@@ -95,7 +95,7 @@ fetch_lotek_alerts <- function() {
 #'
 #' @examples
 #' \dontrun{
-#' lotek_login("demo", "PASSWORD09")
+#' lotek_login("your_username", "your_password")
 #'
 #' # get list of collars for this account
 #' collars <- fetch_lotek_devices()
@@ -126,7 +126,7 @@ fetch_lotek_devices <- function() {
     msg = paste(
       "API call failed - device list.",
       paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
+      paste("Response:", httr::content(resp, "text", encoding = "UTF-8")),
       sep = "\n"
     )
   )
@@ -165,7 +165,7 @@ fetch_lotek_devices <- function() {
 #'   in the output. Must be in the format YYYY-MM-DD HH:MM:SS. If NULL
 #'   Jan 1 1970 is used.
 #' @param end_date Only fixes at or before end_date are included,
-#'   analagous to start_date above. If NULL current date/time is used.
+#'   analogous to start_date above. If NULL current date/time is used.
 #'
 #' @return A tibble containing position data, or an empty tibble in the
 #'   same format is no rows are returned.
@@ -178,7 +178,7 @@ fetch_lotek_devices <- function() {
 #'
 #' @examples
 #' \dontrun{
-#' lotek_login("demo", "PASSWORD09")
+#' lotek_login("your_username", "your_password")
 #'
 #' # all fixes for all collars in 2020
 #' fixes <- fetch_lotek_positions(start_date = "2020-01-01 00:00:00",
@@ -205,11 +205,13 @@ fetch_lotek_positions <- function(device_id = NULL,
 
   st <- start_date %||% "1970-01-01T00:00:00Z"
 
-  end <- end_date %||% paste0(gsub(" ", "T", lubridate::now(tzone = "GMT")),"Z")
+  end <- end_date %||%
+    paste0(gsub(" ", "T", lubridate::now(tzone = "GMT")), "Z")
 
   dev <- paste0(
     device_id,
-    collapse = ",")
+    collapse = ","
+  )
 
   # send request
   resp <- httr::RETRY(
@@ -272,4 +274,153 @@ fetch_lotek_positions <- function(device_id = NULL,
 
   }
 
+}
+
+#' @title Add Lotek Status
+#'
+#' @description Parses coded values in RxStatus column of API response.
+#'
+#' @section Notes:
+#'
+#'   See Lotek Web Service API User Manual Revision 03 (30 MAY 2024)
+#'
+#' @param lotek_positions A data frame of GPS data matching the format returned
+#'   by \code{\link{fetch_lotek_positions}}.
+#' @param position_type One of 'Litetrack (Standard fix)',
+#'   'Litetrack (Swift fix)', or 'Iridium Track'. Determines how the information
+#'   in the FixType and RxStatus columns is parsed. See API User Manual for
+#'   details. If you have more than one position type in the same account
+#'   separate them before passing into this function (see examples).
+#'
+#' @return A tibble containing the original position data with additional
+#'   columns containing fix status information and in some cases the number of
+#'   satellites.
+#'
+#' @seealso \code{\link{fetch_lotek_positions}}
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'
+#' lotek_login("your_username", "your_password")
+#'
+#' # download and parse all data - standard fixes
+#' fixes <- fetch_lotek_positions() %>%
+#'   add_lotek_status()
+#'
+#' # download and parse all data - swift fixes
+#' fixes <- fetch_lotek_positions() %>%
+#'   add_lotek_status("Litetrack (Swift fix)")
+#'
+#' # download and parse all data - iridium
+#' fixes <- fetch_lotek_positions() %>%
+#'   add_lotek_status("Iridium Track")
+#'
+#' # if data contains collars with different position types...
+#' standard_dev <- c(34023, 42492)
+#' swift_dev <- 32763
+#'
+#' # download all, split, add status, and recombine...
+#' fixes <- fetch_lotek_positions()
+#' standard_fixes <- fixes %>%
+#'   dplyr::filter(DeviceID %in% standard_dev) %>%
+#'   add_lotek_status()
+#' swift_fixes <- fixes %>%
+#'   dplyr::filter(DeviceID %in% swift_dev) %>%
+#'   add_lotek_status("Litetrack (Swift fix)")
+#' fixes <- standard_fixes %>%
+#'   dplyr::bind_rows(swift_fixes)
+#'
+#' # or download separately, add status, and combine
+#' standard_fixes <- fetch_lotek_positions(device_id = standard_dev) %>%
+#'   add_lotek_status()
+#' swift_fixes <- fetch_lotek_positions(device_id = swift_dev) %>%
+#'   add_lotek_status("Litetrack (Swift fix)")
+#' fixes <- standard_fixes %>%
+#'   dplyr::bind_rows(swift_fixes)
+#'
+#' }
+add_lotek_status <- function(lotek_positions,
+                             position_type = c("Litetrack (Standard fix)",
+                                               "Litetrack (Swift fix)",
+                                               "Iridium Track")) {
+
+  pos_type <- match.arg(position_type)
+
+  if (pos_type == "Iridium Track") {
+
+    join_tbl <- tibble::tibble(
+      RxStatus = c(0L, 3L, 4L, 19L, 20L),
+      FixStatus = c(
+        "No satellites", "2D fix", "3D fix",
+        "2D validated fix", "3D validated fix"
+      )
+    )
+
+    out <- lotek_positions %>%
+      dplyr::left_join(join_tbl, by = "RxStatus")
+
+  }
+
+  if (pos_type == "Litetrack (Standard fix)") {
+
+    join_tbl <- tibble::tibble(
+      StatusCode = 0L:7L,
+      FixStatus = c(
+        "No fix", "1_SV KF Solution", "2_SV KF", "3_SV KF",
+        "4 or more SV KF", "2-D least-squares", "3-D least-squares", "DR"
+      )
+    )
+
+    out <- lotek_positions %>%
+      dplyr::mutate(
+        StatusCode = lotek_status_code(.data$RxStatus),
+        NumSats = lotek_num_sats(.data$RxStatus)
+      ) %>%
+      dplyr::left_join(join_tbl, by = "StatusCode")
+
+  }
+
+  if (pos_type == "Litetrack (Swift fix)") {
+
+    ft_join_tbl <- tibble::tibble(
+      FixType = 0L:3L,
+      FixTypeText = c(
+        "Time out", "Standard fix", "Swift fix", "Iridium position"
+      )
+    )
+
+    rx_join_tbl <- tibble::tibble(
+      FixType = c(rep(1L, 8), rep(2L, 3)),
+      StatusCode = c(0L:7L, 0L:2L),
+      FixStatus = c(
+        "No fix", "1_SV KF Solution", "2_SV KF", "3_SV KF",
+        "4 or more SV KF", "2-D least-squares", "3-D least-squares", "DR",
+        "Valid fix", "Not enough satellites", "No ephemeris"
+      )
+    )
+
+    out <- lotek_positions %>%
+      dplyr::mutate(
+        StatusCode = lotek_status_code(.data$RxStatus)
+      ) %>%
+      dplyr::left_join(ft_join_tbl, by = "FixType") %>%
+      dplyr::left_join(rx_join_tbl, by = c("FixType", "StatusCode"))
+
+  }
+
+  out
+
+}
+
+# RxStatus packs two fields into one integer (Lotek Web Service API User
+# Manual, Revision 03, 30 May 2024): bits 0-2 hold the fix status code and
+# bits 3-6 the number of satellites. NA stays NA.
+lotek_status_code <- function(int_values) {
+  bitwAnd(as.integer(int_values), 7L)
+}
+
+lotek_num_sats <- function(int_values) {
+  bitwAnd(bitwShiftR(as.integer(int_values), 3L), 15L)
 }

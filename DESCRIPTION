@@ -39,7 +39,6 @@ Imports:
     rvest,
     sf,
     stats,
-    stringr,
     tibble,
     tidyr,
     xml2,
