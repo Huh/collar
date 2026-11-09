@@ -8,10 +8,10 @@
 lotek_base_url <- "https://webservice.lotek.com"
 
 # environment for managing authentication info
-ltk.env <- new.env()
+ltk_env <- new.env()
 
 # list where authentication info is stored
-ltk.env$ltk <- list()
+ltk_env$ltk <- list()
 
 #' @title Authenticate to Lotek API
 #'
@@ -31,7 +31,7 @@ ltk.env$ltk <- list()
 #'
 #' @examples
 #' \dontrun{
-#' lotek_login("demo", "PASSWORD09")
+#' lotek_login("your_username", "your_password")
 #'
 #' alerts <- fetch_lotek_alerts()
 #'
@@ -60,7 +60,7 @@ lotek_login <- function(usr, pwd, user, pw) {
   }
 
   # clear existing login info
-  ltk.env$ltk <- list()
+  ltk_env$ltk <- list()
 
   # call API
   resp <- httr::RETRY(
@@ -82,16 +82,16 @@ lotek_login <- function(usr, pwd, user, pw) {
     msg = paste(
       "Login failed.",
       paste("Status:", httr::status_code(resp)),
-      paste("Response:", httr::content(resp)),
+      paste("Response:", httr::content(resp, "text", encoding = "UTF-8")),
       sep = "\n"
     )
   )
 
   # convert json to list object
-  ltk.env$ltk <- httr::content(resp)
+  ltk_env$ltk <- httr::content(resp)
 
   # return true if successful
-  as.logical(length(ltk.env$ltk))
+  as.logical(length(ltk_env$ltk))
 
 }
 
@@ -114,7 +114,7 @@ lotek_login <- function(usr, pwd, user, pw) {
 #'
 #' @examples
 #' \dontrun{
-#' lotek_login("demo", "PASSWORD09")
+#' lotek_login("your_username", "your_password")
 #'
 #' alerts <- fetch_lotek_devices()
 #'
@@ -123,9 +123,9 @@ lotek_login <- function(usr, pwd, user, pw) {
 lotek_logout <- function() {
 
   # at the moment this just removes login info from memory
-  ltk.env$ltk <- list()
+  ltk_env$ltk <- list()
 
-  (length(ltk.env$ltk) == 0)
+  (length(ltk_env$ltk) == 0)
 
 }
 
@@ -153,7 +153,7 @@ lotek_logout <- function() {
 lotek_refresh_token <- function(force_refresh = FALSE) {
 
   # get token expiration and current time
-  exp_date <- lubridate::dmy_hms(ltk.env$ltk$.expires)
+  exp_date <- lubridate::dmy_hms(ltk_env$ltk$.expires)
   now_date <- lubridate::now(tzone = "GMT")
 
   # check expiration and force paramter
@@ -166,15 +166,15 @@ lotek_refresh_token <- function(force_refresh = FALSE) {
       path = list("API", "user", "login"),
       body = list(
         grant_type = "refresh_token",
-        username = ltk.env$ltk$userName,
-        refresh_token = ltk.env$ltk$refresh_token
+        username = ltk_env$ltk$userName,
+        refresh_token = ltk_env$ltk$refresh_token
       ),
       encode = "form",
       quiet = TRUE
     )
 
     # clear previous tokens
-    ltk.env$ltk <- list()
+    ltk_env$ltk <- list()
 
     # verify successful status
     assertthat::assert_that(
@@ -183,18 +183,18 @@ lotek_refresh_token <- function(force_refresh = FALSE) {
         "Login info expired and attempt to refresh failed.",
         "Try using the lotek_login function to log back in.",
         paste("Status:", httr::status_code(resp)),
-        paste("Response:", httr::content(resp)),
+        paste("Response:", httr::content(resp, "text", encoding = "UTF-8")),
         sep = "\n"
       )
     )
 
     # convert json to list object
-    ltk.env$ltk <- httr::content(resp)
+    ltk_env$ltk <- httr::content(resp)
 
   }
 
   # return true if valid tokens exist
-  as.logical(length(ltk.env$ltk))
+  as.logical(length(ltk_env$ltk))
 
 }
 
@@ -210,7 +210,7 @@ lotek_token <- function() {
 
   # exit if user is not logged in
   assertthat::assert_that(
-    length(ltk.env$ltk) > 0,
+    length(ltk_env$ltk) > 0,
     msg = paste(
       "No login information available.",
       "Use the lotek_login function to log in to your Lotek account",
@@ -222,8 +222,8 @@ lotek_token <- function() {
   lotek_refresh_token()
 
   paste(
-    ltk.env$ltk$token_type,
-    ltk.env$ltk$access_token
+    ltk_env$ltk$token_type,
+    ltk_env$ltk$access_token
   )
 
 }

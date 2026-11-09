@@ -15,9 +15,11 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 Use `lotek_login` with your username and password to log in to your Lotek account. There's no need to assign the return value of this function to a variable.
 
+Lotek used to offer a public demo account, which earlier versions of this vignette used. It no longer accepts logins, so the examples below need your own credentials.
+
 ```{r}
 library(collar)
-lotek_login(usr = "demo", pwd = "PASSWORD09")
+lotek_login(usr = "your_username", pwd = "your_password")
 ```
 
 Your login information should last for about an hour. If you experience problems retrieving your data you can always run the same code again to log back in to your account.
@@ -33,7 +35,7 @@ lotek_logout()
 Use `fetch_lotek_alerts` to get a list of alerts from the server. No parameters are required:
 
 ```{r}
-lotek_login(usr = "demo", pwd = "PASSWORD09")
+lotek_login(usr = "your_username", pwd = "your_password")
 alerts <- fetch_lotek_alerts()
 alerts
 ```
@@ -54,8 +56,9 @@ Position data can be retrieved the same way with `fetch_lotek_positions`, but yo
 ```{r}
 # download position data for 2019 (all collars)
 fixes <- fetch_lotek_positions(
-  start_date = "2019-01-01 00:00:00", 
-  end_date = "2020-01-01 00:00:00")
+  start_date = "2019-01-01 00:00:00",
+  end_date = "2020-01-01 00:00:00"
+)
 nrow(fixes)
 min(fixes$RecDateTime)
 max(fixes$RecDateTime)
@@ -83,8 +86,9 @@ And of course you can combine date and device filters:
 # download position data for collar 32763 in 2017
 fixes <- fetch_lotek_positions(
   device_id = 32763,
-  start_date = "2017-01-01 00:00:00", 
-  end_date = "2018-01-01 00:00:00")
+  start_date = "2017-01-01 00:00:00",
+  end_date = "2018-01-01 00:00:00"
+)
 nrow(fixes)
 ```
 
@@ -95,8 +99,29 @@ Errors are suppressed if no data is available. Instead an empty tibble is return
 # empty result because no data satisfies the criteria
 fixes <- fetch_lotek_positions(
   device_id = 32763,
-  start_date = "2019-01-01 00:00:00", 
-  end_date = "2020-01-01 00:00:00")
+  start_date = "2019-01-01 00:00:00",
+  end_date = "2020-01-01 00:00:00"
+)
 nrow(fixes)
+```
+
+## Adding Fix Status
+
+Lotek encodes each fix's status (and, for standard Litetrack fixes, the number of satellites) in the integer `RxStatus` column. `add_lotek_status` decodes it into readable columns. How the codes are read depends on the collar's position type, so pass the one that matches your devices:
+
+```{r}
+fixes <- fetch_lotek_positions()
+
+# Litetrack standard fixes (the default): adds StatusCode, NumSats, FixStatus
+standard <- add_lotek_status(fixes)
+
+# Litetrack Swift fixes: adds StatusCode, FixTypeText, FixStatus
+swift <- add_lotek_status(fixes, "Litetrack (Swift fix)")
+
+# Iridium collars: adds FixStatus
+iridium <- add_lotek_status(fixes, "Iridium Track")
+
 lotek_logout()
 ```
+
+If one account holds collars of different position types, filter the positions by `DeviceID` and call `add_lotek_status` on each group separately.

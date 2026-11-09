@@ -23,7 +23,7 @@ Removes authentication info from memory.
 
 \examples{
 \dontrun{
-lotek_login("demo", "PASSWORD09")
+lotek_login("your_username", "your_password")
 
 alerts <- fetch_lotek_devices()
 

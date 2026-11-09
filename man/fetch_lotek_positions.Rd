@@ -15,7 +15,7 @@ in the output. Must be in the format YYYY-MM-DD HH:MM:SS. If NULL
 Jan 1 1970 is used.}
 
 \item{end_date}{Only fixes at or before end_date are included,
-analagous to start_date above. If NULL current date/time is used.}
+analogous to start_date above. If NULL current date/time is used.}
 }
 \value{
 A tibble containing position data, or an empty tibble in the
@@ -37,7 +37,7 @@ Retrieves GPS data optionally filtered by date or collar.
 
 \examples{
 \dontrun{
-lotek_login("demo", "PASSWORD09")
+lotek_login("your_username", "your_password")
 
 # all fixes for all collars in 2020
 fixes <- fetch_lotek_positions(start_date = "2020-01-01 00:00:00",

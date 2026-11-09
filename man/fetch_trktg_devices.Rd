@@ -20,7 +20,7 @@ Retrieves a list of devices (transmitters) associated
 }
 \examples{
 \dontrun{
-trktg_login("some_user", "some_users_pw")
+trktg_login("your_username", "your_password")
 
 tt_devices <- fetch_trktg_devices()
 
