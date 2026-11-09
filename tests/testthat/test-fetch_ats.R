@@ -4,12 +4,12 @@ offline <- function() {
 
 check_api <- function() {
   if (offline()) {
-    skip("API not available - no internet")
+    testthat::skip("API not available - no internet")
   }
 }
 
 check_data <- function(x, data_type) {
-  expect_s3_class(x, "tbl_df")
+  testthat::expect_s3_class(x, "tbl_df")
   check_names <- switch(
     data_type,
     "config" = c(
@@ -85,7 +85,7 @@ check_data <- function(x, data_type) {
       "CEPradius_km"
     )
   )
-  expect_true(
+  testthat::expect_true(
     all(
       rlang::has_name(x, check_names)
     )
@@ -201,4 +201,9 @@ test_that("Check ATS data functions", {
 
   # TODO test start and end dates when available
 
+})
+
+test_that("ATS fetchers default to 20 collars per request (#89)", {
+  expect_identical(formals(fetch_ats_positions)$chunk_size, 20L)
+  expect_identical(formals(fetch_ats_transmissions)$chunk_size, 20L)
 })

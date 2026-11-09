@@ -1,3 +1,7 @@
+# collar (development version)
+
+* `fetch_ats_positions()` and `fetch_ats_transmissions()` now default to `chunk_size = 20`, because the ATS website stopped returning all data for batches larger than about 20 collars (#89).
+
 # collar 0.0.7
 
 * `ats_logout()` no longer errors on Windows when the logout request fails with a schannel `SEC_E_CONTEXT_EXPIRED` error under newer libcurl (bundled with R >= 4.5); the transport error is now caught and the local session is cleared by resetting the connection handle (curl#18029).

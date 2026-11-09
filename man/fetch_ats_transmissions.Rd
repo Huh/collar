@@ -4,7 +4,7 @@
 \alias{fetch_ats_transmissions}
 \title{Download Transmission Data from ATS Website}
 \usage{
-fetch_ats_transmissions(device_id = NULL, new = FALSE, chunk_size = 50L)
+fetch_ats_transmissions(device_id = NULL, new = FALSE, chunk_size = 20L)
 }
 \arguments{
 \item{device_id}{A single device id, or a list or vector of device ids,
@@ -16,11 +16,12 @@ in the \code{device_id} parameter as well
 
 \item{new}{Currently ignored due to changes in the ATS website.}
 
-\item{chunk_size}{A single integer (default = 50) specifying how
-many collars are downloaded per HTTP request. In some rare cases
-entire batches may fail (with a warning) due to a few problematic
-collars, in which case you should set chunk_size to 1 to ensure
-that all available data is retrieved.}
+\item{chunk_size}{A single integer (default = 20) specifying how
+many collars are downloaded per HTTP request. The ATS website does
+not return all data for larger batches, so values above 20 are not
+recommended. In some rare cases entire batches may fail (with a
+warning) due to a few problematic collars, in which case you should
+set chunk_size to 1 to ensure that all available data is retrieved.}
 }
 \value{
 A tibble with 20 columns:

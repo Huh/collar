@@ -284,25 +284,25 @@ ats_join_trans <- function(pos, trans) {
         TRUE ~ as.integer(.data$`2D/3D`)
       )
     ) %>%
-      dplyr::relocate(.data$DateOffset, .before = .data$GmtOffset) %>%
-      dplyr::relocate(
-        .data$VITTemp, .data$VITLight, .data$VITComm,
-        .after = .data$DateLocal
-      ) %>%
-      dplyr::relocate(
-        .data$Fawn0Comm, .data$Fawn1Comm, .data$Fawn2Comm,
-        .after = .data$VITComm
-      )  %>%
-      dplyr::relocate(
-        .data$TransDateUTC, .data$TransDateLocal,
-        .after = .data$Fawn2Comm
-      )  %>%
-      dplyr::select(
-        -c(
-          .data$FixNumber, .data$Birth, .data$Fawn0:.data$Fawn2,
-          .data$DataMode
-        )
+    dplyr::relocate(.data$DateOffset, .before = .data$GmtOffset) %>%
+    dplyr::relocate(
+      .data$VITTemp, .data$VITLight, .data$VITComm,
+      .after = .data$DateLocal
+    ) %>%
+    dplyr::relocate(
+      .data$Fawn0Comm, .data$Fawn1Comm, .data$Fawn2Comm,
+      .after = .data$VITComm
+    ) %>%
+    dplyr::relocate(
+      .data$TransDateUTC, .data$TransDateLocal,
+      .after = .data$Fawn2Comm
+    ) %>%
+    dplyr::select(
+      -c(
+        .data$FixNumber, .data$Birth, .data$Fawn0:.data$Fawn2,
+        .data$DataMode
       )
+    )
 
 }
 
@@ -493,11 +493,13 @@ ats_parse_trans <- function(resp) {
       httr::content(resp, "text", encoding = "UTF-8") %>%
         textConnection() %>%
         readLines() %>%
-        {sub(
-          "^(([^,]*,){11})(.+)((,[^,]*){3})$",
-          "\\1\"\\3\"\\4",
-          .
-        )} %>%
+        {
+          sub(
+            "^(([^,]*,){11})(.+)((,[^,]*){3})$",
+            "\\1\"\\3\"\\4",
+            .
+          )
+        } %>%
         I() %>%
         readr::read_csv(col_types = "ccidcciiidccddi") %>%
         tidyr::separate(
@@ -557,7 +559,8 @@ ats_parse_trans <- function(resp) {
           into = c("evc0", "evc1", "evc2"),
           sep = ",",
           fill = "right"
-        ) %>% {
+        ) %>%
+        {
           if ("cpe" %in% names(.)) {
             .
           } else {
@@ -703,7 +706,9 @@ ats_parse_xml <- function(resp) {
 
   names(cols) <- cols
 
-  tr_xml <- httr::content(resp)
+  # tr_xml is used inside the purrr formula lambdas below, which codetools
+  # cannot see into.
+  tr_xml <- httr::content(resp) # nolint: object_usage_linter.
 
   # insert empty nodes if needed
   purrr::walk(
@@ -874,7 +879,7 @@ ats_select_collars <- function(device_id) {
     msg = "Selecting collars failed - try selecting fewer collars."
   )
 
-  return(TRUE)
+  TRUE
 
 }
 
@@ -1179,11 +1184,12 @@ fetch_ats_events <- function() {
 #' @param n A single integer specifying how many fixes to return per
 #'   collar (sorted by recency). Valid values are 5 and 10.
 #' @param new Currently ignored due to changes in the ATS website.
-#' @param chunk_size A single integer (default = 50) specifying how
-#'   many collars are downloaded per HTTP request. In some rare cases
-#'   entire batches may fail (with a warning) due to a few problematic
-#'   collars, in which case you should set chunk_size to 1 to ensure
-#'   that all available data is retrieved.
+#' @param chunk_size A single integer (default = 20) specifying how
+#'   many collars are downloaded per HTTP request. The ATS website does
+#'   not return all data for larger batches, so values above 20 are not
+#'   recommended. In some rare cases entire batches may fail (with a
+#'   warning) due to a few problematic collars, in which case you should
+#'   set chunk_size to 1 to ensure that all available data is retrieved.
 #'
 #' @return A tibble with 25 columns:
 #' \describe{
@@ -1278,11 +1284,11 @@ fetch_ats_positions <- function(device_id = NULL,
                                 end = NULL,
                                 n = NULL,
                                 new = FALSE,
-                                chunk_size = 50L) {
+                                chunk_size = 20L) {
 
   # check for dates - error on ATS website
   # TODO remove when ATS site is fixed
-  if (!(is.null(start) & is.null(end))) {
+  if (!(is.null(start) && is.null(end))) {
     warning(paste(
       "Filtering by date is currently unavailable due to an error",
       "on the ATS website. Start date and end date parameters",
@@ -1352,7 +1358,7 @@ fetch_ats_positions <- function(device_id = NULL,
 
   devices <- split(
     devices,
-    ceiling(1:length(devices) / chunk_size)
+    ceiling(seq_along(devices) / chunk_size)
   )
 
   # send request and parse
@@ -1411,11 +1417,12 @@ fetch_ats_positions <- function(device_id = NULL,
 #'   in the \code{device_id} parameter as well
 #'   (e.g. \code{device_id = "012345")}).
 #' @param new Currently ignored due to changes in the ATS website.
-#' @param chunk_size A single integer (default = 50) specifying how
-#'   many collars are downloaded per HTTP request. In some rare cases
-#'   entire batches may fail (with a warning) due to a few problematic
-#'   collars, in which case you should set chunk_size to 1 to ensure
-#'   that all available data is retrieved.
+#' @param chunk_size A single integer (default = 20) specifying how
+#'   many collars are downloaded per HTTP request. The ATS website does
+#'   not return all data for larger batches, so values above 20 are not
+#'   recommended. In some rare cases entire batches may fail (with a
+#'   warning) due to a few problematic collars, in which case you should
+#'   set chunk_size to 1 to ensure that all available data is retrieved.
 #'
 #' @return A tibble with 20 columns:
 #' \describe{
@@ -1473,7 +1480,7 @@ fetch_ats_positions <- function(device_id = NULL,
 #'
 fetch_ats_transmissions <- function(device_id = NULL,
                                     new = FALSE,
-                                    chunk_size = 50L) {
+                                    chunk_size = 20L) {
 
   if (isTRUE(new)) {
     warning(paste(
@@ -1492,7 +1499,7 @@ fetch_ats_transmissions <- function(device_id = NULL,
 
   devices <- split(
     devices,
-    ceiling(1:length(devices) / chunk_size)
+    ceiling(seq_along(devices) / chunk_size)
   )
 
   # send request and parse
