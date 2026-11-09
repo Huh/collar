@@ -140,3 +140,157 @@ test_that("add_lotek_status labels each position type (#87)", {
   )
   expect_identical(ird$FixStatus, c("2D fix", "3D validated fix", NA))
 })
+
+lotek_token_json <- function(expires = "Mon, 01 Jan 2100 00:00:00 GMT",
+                             access = "abc") {
+  list(
+    access_token = access,
+    token_type = "bearer",
+    refresh_token = "refresh123",
+    userName = "usr",
+    .expires = expires
+  )
+}
+
+lotek_position_json <- list(
+  list(
+    ChannelStatus = "A", UploadTimeStamp = "2026-11-01T10:05:00",
+    Latitude = 44.5, Longitude = -110.5, Altitude = 2100, ECEFx = 1L,
+    ECEFy = 2L, ECEFz = 3L, RxStatus = 86L, PDOP = 1.2, MainV = 3.6,
+    BkUpV = 3.5, Temperature = 12, FixDuration = 30L,
+    bHasTempVoltage = TRUE, DevName = "Elk 12", DeltaTime = 0,
+    FixType = 1L, CEPRadius = 0L, CRC = 0L, DeviceID = 32763L,
+    RecDateTime = "2026-11-01T10:00:00"
+  )
+)
+
+# fake_response(), fake_json() and http_router() come from
+# helper-mock-http.R, which testthat loads but lintr does not.
+# nolint start: object_usage_linter.
+mock_lotek <- function(env = parent.frame(), login_status = 200L,
+                       refresh_status = 200L, positions_status = 200L,
+                       expires = "Mon, 01 Jan 2100 00:00:00 GMT") {
+  router <- http_router(list(
+    "POST API/user/login" = function(args) {
+      if (identical(args$body$grant_type, "refresh_token")) {
+        if (refresh_status != 200L) {
+          return(fake_json(list(error = "expired"), status = refresh_status))
+        }
+        return(fake_json(lotek_token_json(access = "refreshed")))
+      }
+      if (login_status != 200L) {
+        return(fake_json(
+          list(error = "invalid_grant", error_description = "bad password"),
+          status = login_status
+        ))
+      }
+      fake_json(lotek_token_json(expires = expires))
+    },
+    "GET API/alerts" = function(args) {
+      fake_json(list(list(
+        nDeviceID = 32763L, strAlertType = "Mortality",
+        dtTimestamp = "2026-11-01T10:00:00", dtTimestampCancel = NULL,
+        strVirtualFenceType = "", strReleaseCodeOrTransmitterID = "",
+        latitude = 44.5, longitude = -110.5
+      )))
+    },
+    "GET API/devices" = function(args) {
+      fake_json(list(list(
+        nDeviceID = 32763L, strSpecialID = "A1",
+        dtCreated = "2020-01-01T00:00:00", strSatellite = "Iridium"
+      )))
+    },
+    "GET API/positions/findByDate" = function(args) {
+      if (positions_status != 200L) {
+        return(fake_json(list(), status = positions_status))
+      }
+      fake_json(lotek_position_json)
+    }
+  ))
+  local_mocked_bindings(RETRY = router$retry, .package = "httr", .env = env)
+  withr::defer(lotek_logout(), envir = env)
+  router
+}
+# nolint end
+
+test_that("lotek_login stores the token and lotek_token formats it", {
+  router <- mock_lotek()
+  expect_true(lotek_login("usr", "pwd"))
+  expect_identical(lotek_token(), "bearer abc")
+  expect_identical(router$calls()[[1]]$body$Password, "pwd")
+  expect_true(lotek_logout())
+  expect_error(lotek_token(), "No login information available")
+})
+
+test_that("lotek_login reports the server's message on failure (#80)", {
+  mock_lotek(login_status = 400L)
+  expect_error(lotek_login("usr", "bad"), "Login failed.*bad password")
+})
+
+test_that("lotek_login still accepts the deprecated user and pw arguments", {
+  router <- mock_lotek()
+  warns <- capture_warnings(lotek_login(user = "usr", pw = "pwd"))
+  expect_length(warns, 2)
+  expect_match(warns[1], "'user'")
+  expect_match(warns[2], "'pw'")
+  expect_identical(router$calls()[[1]]$body$username, "usr")
+})
+
+test_that("an expired token is refreshed, and a failed refresh errors", {
+  router <- mock_lotek(expires = "Thu, 01 Jan 2015 00:00:00 GMT")
+  lotek_login("usr", "pwd")
+  expect_identical(lotek_token(), "bearer refreshed")
+  expect_identical(
+    router$calls()[[2]]$body$refresh_token,
+    "refresh123"
+  )
+
+  mock_lotek(refresh_status = 401L)
+  lotek_login("usr", "pwd")
+  expect_error(lotek_refresh_token(force_refresh = TRUE), "refresh failed")
+})
+
+test_that("fetch_lotek_alerts and fetch_lotek_devices rename and type", {
+  mock_lotek()
+  lotek_login("usr", "pwd")
+
+  alerts <- fetch_lotek_alerts()
+  check_data(alerts, "alerts")
+  expect_s3_class(alerts$AlertDate, "POSIXct")
+  expect_true(is.na(alerts$CancelDate))
+
+  dev <- fetch_lotek_devices()
+  check_data(dev, "devices")
+  expect_identical(dev$SpecialID, "A1")
+  expect_s3_class(dev$Created, "POSIXct")
+})
+
+test_that("fetch_lotek_positions builds the query and parses fixes", {
+  router <- mock_lotek()
+  lotek_login("usr", "pwd")
+
+  pos <- fetch_lotek_positions(
+    device_id = c(1, 2),
+    start_date = "2026-01-01T00:00:00Z",
+    end_date = "2026-02-01T00:00:00Z"
+  )
+  query <- router$calls()[[length(router$calls())]]$query
+  expect_identical(query$deviceID, "1,2")
+  expect_identical(query$from, "2026-01-01T00:00:00Z")
+  expect_identical(query$to, "2026-02-01T00:00:00Z")
+  expect_s3_class(pos$RecDateTime, "POSIXct")
+  expect_true(pos$HasTempVoltage)
+  expect_identical(add_lotek_status(pos)$FixStatus, "3-D least-squares")
+
+  fetch_lotek_positions()
+  query <- router$calls()[[length(router$calls())]]$query
+  expect_identical(query$from, "1970-01-01T00:00:00Z")
+})
+
+test_that("fetch_lotek_positions returns an empty typed tibble on no data", {
+  mock_lotek(positions_status = 404L)
+  lotek_login("usr", "pwd")
+  pos <- fetch_lotek_positions()
+  expect_identical(nrow(pos), 0L)
+  expect_s3_class(pos$RecDateTime, "POSIXct")
+})

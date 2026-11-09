@@ -17,19 +17,19 @@ test_that("Check morph_gps", {
   expect_condition(
     morph_gps(),
     "argument \"x\" is missing, with no default",
-    fixed = T
+    fixed = TRUE
   )
 
   expect_condition(
     morph_gps(x = "A"),
     "x is not a data frame",
-    fixed = T
+    fixed = TRUE
   )
 
   expect_condition(
     morph_gps(x = dat, id_col = "id"),
-    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
-    fixed = T
+    "Column id_col must be unquoted. If special characters or spaces exist",
+    fixed = TRUE
   )
 
   expect_s3_class(
@@ -58,7 +58,7 @@ test_that("Check morph_gps assertions", {
   )
 
   # not a data frame
-    expect_condition(
+  expect_condition(
     morph_gps("a"),
     "x is not a data frame"
   )
@@ -87,8 +87,8 @@ test_that("Check morph_gps assertions", {
       lon_col = longitude,
       lat_col = latitude
     ),
-    "Column id_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
-    fixed = T
+    "Column id_col must be unquoted. If special characters or spaces exist",
+    fixed = TRUE
   )
 
   expect_condition(
@@ -100,8 +100,8 @@ test_that("Check morph_gps assertions", {
       lon_col = longitude,
       lat_col = latitude
     ),
-    "Column dt_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
-    fixed = T
+    "Column dt_col must be unquoted. If special characters or spaces exist",
+    fixed = TRUE
   )
 
 
@@ -114,8 +114,8 @@ test_that("Check morph_gps assertions", {
       lon_col = NULL,
       lat_col = latitude
     ),
-    "Column lon_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
-    fixed = T
+    "Column lon_col must be unquoted. If special characters or spaces exist",
+    fixed = TRUE
   )
 
   expect_condition(
@@ -127,8 +127,8 @@ test_that("Check morph_gps assertions", {
       lon_col = longitude,
       lat_col = NULL
     ),
-    "Column lat_col must be unquoted. If special characters or spaces exist use back ticks (`A B`).",
-    fixed = T
+    "Column lat_col must be unquoted. If special characters or spaces exist",
+    fixed = TRUE
   )
 
 })

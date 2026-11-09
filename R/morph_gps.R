@@ -1,13 +1,21 @@
 #' Standardize GPS data to collar format
 #'
-#' @param x data.frame of GPS data with at least columns ID, Latitude, Longitude and Date-Time.
-#' @param id_col Unquoted name of the ID column that signals the unique identifier for this collar.
-#' @param dt_col Unquoted name of the date time column that represents the acquisition time.
-#' @param dt_format character string giving a date-time format as used by strptime.
-#' @param lon_col Unquoted name of the column containing Longitude location information.  See Details.
-#' @param lat_col Unquoted name of the column containing Latitude location information.  See Details.
-#' @param meta Key-value pairs supplied as a named list specifying new columns and values to be added to data.  See Details.
-#' @param extra Unquoted column names of those columns beyond id, datetime, lon and lat that you wish to retain in the data set.
+#' @param x data.frame of GPS data with at least columns ID, Latitude, Longitude
+#'   and Date-Time.
+#' @param id_col Unquoted name of the ID column that signals the unique
+#'   identifier for this collar.
+#' @param dt_col Unquoted name of the date time column that represents the
+#'   acquisition time.
+#' @param dt_format character string giving a date-time format as used by
+#'   strptime.
+#' @param lon_col Unquoted name of the column containing Longitude location
+#'   information.  See Details.
+#' @param lat_col Unquoted name of the column containing Latitude location
+#'   information.  See Details.
+#' @param meta Key-value pairs supplied as a named list specifying new columns
+#'   and values to be added to data.  See Details.
+#' @param extra Unquoted column names of those columns beyond id, datetime, lon
+#'   and lat that you wish to retain in the data set.
 #'
 #' @details stuff
 #'
@@ -16,8 +24,7 @@
 #'
 #' @examples
 #' 2+2
-morph_gps <- function(
-                      x,
+morph_gps <- function(x,
                       id_col = NULL,
                       dt_col = NULL,
                       dt_format = "%Y-%m-%d %H:%M:%S",
@@ -35,11 +42,14 @@ morph_gps <- function(
   assertthat::assert_that(length(names(meta)) == length(meta))
 
   is_unquo <- function(x) {
-    class(try(class(x), silent = T)) == "try-error"
+    class(try(class(x), silent = TRUE)) == "try-error"
   }
 
   assertthat::on_failure(is_unquo) <- function(call, env) {
-    paste0("Column ", deparse(call$x), " must be unquoted. If special characters or spaces exist use back ticks (`A B`).")
+    paste0(
+      "Column ", deparse(call$x), " must be unquoted. If special characters ",
+      "or spaces exist use back ticks (`A B`)."
+    )
   }
 
   # check unquo
@@ -47,11 +57,6 @@ morph_gps <- function(
   assertthat::assert_that(is_unquo(dt_col))
   assertthat::assert_that(is_unquo(lat_col))
   assertthat::assert_that(is_unquo(lon_col))
-  # extras <- enquos(extra)
-  # print(extras)
-  # if(!is.null(extras)){
-  #   assertthat::assert_that(is_unquo(extra))
-  # }
 
   idc <- enquo(id_col)
   dtc <- enquo(dt_col)

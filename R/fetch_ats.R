@@ -185,9 +185,9 @@ ats_join_trans <- function(pos, trans) {
     dplyr::mutate(FixNumber = cumsum(.data$NumberFixes)) %>%
     dplyr::ungroup() %>%
     dplyr::select(
-      .data$CollarSerialNumber, .data$FixNumber, .data$GmtOffset,
-      TransDateUTC = .data$DateUTC, TransDateLocal = .data$DateLocal,
-      .data$Birth, .data$Fawn0:.data$Fawn2
+      "CollarSerialNumber", "FixNumber", "GmtOffset",
+      TransDateUTC = "DateUTC", TransDateLocal = "DateLocal",
+      "Birth", "Fawn0":"Fawn2"
     )
 
   tr_max <- tr_w_fixnumber %>%
@@ -209,14 +209,14 @@ ats_join_trans <- function(pos, trans) {
       FixNumber = .data$FixNumber + .data$MaxFixNumber -
         max(.data$FixNumber)
     ) %>%
-    dplyr::select(-.data$MaxFixNumber) %>%
+    dplyr::select(-"MaxFixNumber") %>%
     dplyr::left_join(
       tr_w_fixnumber,
       by = c("CollarSerialNumber", "FixNumber")
     ) %>%
     tidyr::fill(
-      .data$GmtOffset, .data$TransDateUTC, .data$TransDateLocal,
-      .data$Birth, .data$Fawn0:.data$Fawn2,
+      "GmtOffset", "TransDateUTC", "TransDateLocal",
+      "Birth", "Fawn0":"Fawn2",
       .direction = "up"
     ) %>%
     dplyr::ungroup() %>%
@@ -284,23 +284,23 @@ ats_join_trans <- function(pos, trans) {
         TRUE ~ as.integer(.data$`2D/3D`)
       )
     ) %>%
-    dplyr::relocate(.data$DateOffset, .before = .data$GmtOffset) %>%
+    dplyr::relocate("DateOffset", .before = "GmtOffset") %>%
     dplyr::relocate(
-      .data$VITTemp, .data$VITLight, .data$VITComm,
-      .after = .data$DateLocal
+      "VITTemp", "VITLight", "VITComm",
+      .after = "DateLocal"
     ) %>%
     dplyr::relocate(
-      .data$Fawn0Comm, .data$Fawn1Comm, .data$Fawn2Comm,
-      .after = .data$VITComm
+      "Fawn0Comm", "Fawn1Comm", "Fawn2Comm",
+      .after = "VITComm"
     ) %>%
     dplyr::relocate(
-      .data$TransDateUTC, .data$TransDateLocal,
-      .after = .data$Fawn2Comm
+      "TransDateUTC", "TransDateLocal",
+      .after = "Fawn2Comm"
     ) %>%
     dplyr::select(
       -c(
-        .data$FixNumber, .data$Birth, .data$Fawn0:.data$Fawn2,
-        .data$DataMode
+        "FixNumber", "Birth", "Fawn0":"Fawn2",
+        "DataMode"
       )
     )
 
@@ -374,7 +374,7 @@ ats_parse_pos <- function(resp, trans) {
         readr::read_csv(col_types = "ciiiiicdddiic_") %>%
         # issue parsing signed int in readr
         dplyr::mutate(Temperature = as.integer(.data$Temperature)) %>%
-        dplyr::rename(JulianDay = .data$Julianday) %>%
+        dplyr::rename(JulianDay = "Julianday") %>%
         ats_join_trans(trans)
 
     }
@@ -407,11 +407,11 @@ ats_parse_pos <- function(resp, trans) {
         # parse xml file
         pos_data %>%
           dplyr::select(
-            CollarSerialNumber = .data$AtsSerialNum, .data$Year,
-            .data$JulianDay, .data$Hour, .data$Minute, .data$Activity,
-            .data$Temperature, .data$Latitude, .data$Longitude,
-            HDOP = .data$Hdop, .data$NumSats, .data$FixTime,
-            `2D/3D` = .data$Dimension
+            CollarSerialNumber = "AtsSerialNum", "Year",
+            "JulianDay", "Hour", "Minute", "Activity",
+            "Temperature", "Latitude", "Longitude",
+            HDOP = "Hdop", "NumSats", "FixTime",
+            `2D/3D` = "Dimension"
           ) %>%
           dplyr::mutate(
             dplyr::across(c(2:7, 11:12), as.integer),
@@ -495,7 +495,7 @@ ats_parse_trans <- function(resp) {
         readLines() %>%
         {
           sub(
-            "^(([^,]*,){11})(.+)((,[^,]*){3})$",
+            "^(([^,]*,) {11})(.+)((,[^,]*) {3})$",
             "\\1\"\\3\"\\4",
             .
           )
@@ -503,7 +503,7 @@ ats_parse_trans <- function(resp) {
         I() %>%
         readr::read_csv(col_types = "ccidcciiidccddi") %>%
         tidyr::separate(
-          .data$Event,
+          "Event",
           into = c("Fawn0", "Fawn1", "Fawn2"),
           sep = ",",
           fill = "right"
@@ -529,7 +529,7 @@ ats_parse_trans <- function(resp) {
           Fawn1 = tidyr::replace_na(.data$Fawn1, "None"),
           Fawn2 = tidyr::replace_na(.data$Fawn2, "None")
         ) %>%
-        dplyr::relocate(.data$Birth, .before = .data$Fawn0) %>%
+        dplyr::relocate("Birth", .before = "Fawn0") %>%
         ats_trans_dates()
 
     }
@@ -549,13 +549,13 @@ ats_parse_trans <- function(resp) {
       # reformat events, rename columns, add dates
       tr_data %>%
         tidyr::separate(
-          .data$ev,
+          "ev",
           into = c("ev0", "ev1", "ev2"),
           sep = ",",
           fill = "right"
         ) %>%
         tidyr::separate(
-          .data$evc,
+          "evc",
           into = c("evc0", "evc1", "evc2"),
           sep = ",",
           fill = "right"
@@ -931,8 +931,8 @@ ats_trans_dates <- function(trans) {
       DateLocal = lubridate::with_tz(.data$DateCT, tz = Sys.timezone())
     ) %>%
     dplyr::relocate(
-      .data$DateUTC, .data$DateLocal,
-      .after = .data$DateCT
+      "DateUTC", "DateLocal",
+      .after = "DateCT"
     )
 
 }
@@ -996,7 +996,7 @@ fetch_ats_config <- function() {
         .data$CollarSerialNumber
       ),
       dplyr::across(
-        c(.data$Active, .data$RestEndPoint:.data$`SMS LowBatt`),
+        c("Active", "RestEndPoint":"SMS LowBatt"),
         function(x) dplyr::if_else(x == "yes", TRUE, FALSE)
       )
     )
@@ -1148,7 +1148,7 @@ fetch_ats_events <- function() {
     task = "download event data"
   ) %>%
     ats_parse_txt() %>%
-    dplyr::rename(DateCT = .data$DateSent) %>%
+    dplyr::rename(DateCT = "DateSent") %>%
     dplyr::mutate(
       DateCT = as.POSIXct(
         .data$DateCT,

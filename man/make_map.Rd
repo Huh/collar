@@ -7,7 +7,8 @@
 make_map(x, lon_col = lon, lat_col = lat, id_col, dt_col)
 }
 \arguments{
-\item{x}{A data frame containing collar data with latitude and longitude columns}
+\item{x}{A data frame containing collar data with latitude and longitude
+columns}
 
 \item{lon_col}{name of the longitude column}
 

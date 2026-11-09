@@ -16,21 +16,29 @@ morph_gps(
 )
 }
 \arguments{
-\item{x}{data.frame of GPS data with at least columns ID, Latitude, Longitude and Date-Time.}
+\item{x}{data.frame of GPS data with at least columns ID, Latitude, Longitude
+and Date-Time.}
 
-\item{id_col}{Unquoted name of the ID column that signals the unique identifier for this collar.}
+\item{id_col}{Unquoted name of the ID column that signals the unique
+identifier for this collar.}
 
-\item{dt_col}{Unquoted name of the date time column that represents the acquisition time.}
+\item{dt_col}{Unquoted name of the date time column that represents the
+acquisition time.}
 
-\item{dt_format}{character string giving a date-time format as used by strptime.}
+\item{dt_format}{character string giving a date-time format as used by
+strptime.}
 
-\item{lon_col}{Unquoted name of the column containing Longitude location information.  See Details.}
+\item{lon_col}{Unquoted name of the column containing Longitude location
+information.  See Details.}
 
-\item{lat_col}{Unquoted name of the column containing Latitude location information.  See Details.}
+\item{lat_col}{Unquoted name of the column containing Latitude location
+information.  See Details.}
 
-\item{meta}{Key-value pairs supplied as a named list specifying new columns and values to be added to data.  See Details.}
+\item{meta}{Key-value pairs supplied as a named list specifying new columns
+and values to be added to data.  See Details.}
 
-\item{extra}{Unquoted column names of those columns beyond id, datetime, lon and lat that you wish to retain in the data set.}
+\item{extra}{Unquoted column names of those columns beyond id, datetime, lon
+and lat that you wish to retain in the data set.}
 }
 \value{
 inherits from data.frame tbl_df

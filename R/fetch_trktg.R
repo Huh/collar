@@ -126,7 +126,7 @@ fetch_trktg_positions <- function(device_id = NULL,
 
     dev <- fetch_trktg_devices() %>%
       dplyr::filter(.data$user_id %in% device_id) %>%
-      dplyr::pull(.data$api_id)
+      dplyr::pull("api_id")
 
     dev <- dev %>%
       rep(2) %>%
@@ -198,9 +198,8 @@ fetch_trktg_positions <- function(device_id = NULL,
       dplyr::select(dplyr::all_of(names(trktg_empty_pos))) %>%
       dplyr::mutate(
         dplyr::across(
-          .data$Date:.data$Received,
-          lubridate::mdy_hms,
-          tz = time_zone
+          "Date":"Received",
+          function(x) lubridate::mdy_hms(x, tz = time_zone)
         )
       ) %>%
       purrr::map2(

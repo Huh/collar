@@ -42,7 +42,7 @@ test_that("Check save_map assertions", {
   expect_condition(
     save_map("a"),
     "x does not inherit from class leaflet",
-    fixed = T
+    fixed = TRUE
   )
 
 

@@ -63,12 +63,12 @@ fetch_lotek_alerts <- function() {
   if (nrow(tbl_out) > 0) {
     tbl_out <- tbl_out %>%
       dplyr::rename(
-        DeviceID = .data$nDeviceID,
-        AlertType = .data$strAlertType,
-        AlertDate = .data$dtTimestamp,
-        CancelDate = .data$dtTimestampCancel,
-        VirtualFenceType = .data$strVirtualFenceType,
-        ReleaseCodeOrTransmitterID = .data$strReleaseCodeOrTransmitterID
+        DeviceID = "nDeviceID",
+        AlertType = "strAlertType",
+        AlertDate = "dtTimestamp",
+        CancelDate = "dtTimestampCancel",
+        VirtualFenceType = "strVirtualFenceType",
+        ReleaseCodeOrTransmitterID = "strReleaseCodeOrTransmitterID"
       ) %>%
       dplyr::mutate(
         AlertDate = lubridate::as_datetime(.data$AlertDate),
@@ -137,10 +137,10 @@ fetch_lotek_devices <- function() {
     ~tibble::as_tibble(.x)
   ) %>%
     dplyr::rename(
-      DeviceID = .data$nDeviceID,
-      SpecialID = .data$strSpecialID,
-      Created = .data$dtCreated,
-      Satellite = .data$strSatellite
+      DeviceID = "nDeviceID",
+      SpecialID = "strSpecialID",
+      Created = "dtCreated",
+      Satellite = "strSatellite"
     ) %>%
     dplyr::mutate(Created = lubridate::as_datetime(.data$Created))
 
@@ -238,7 +238,7 @@ fetch_lotek_positions <- function(device_id = NULL,
         UploadTimeStamp = lubridate::as_datetime(.data$UploadTimeStamp)
       ) %>%
       dplyr::rename(
-        HasTempVoltage = .data$bHasTempVoltage
+        HasTempVoltage = "bHasTempVoltage"
       )
 
   } else {

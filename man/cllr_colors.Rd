@@ -7,9 +7,9 @@
 cllr_colors(...)
 }
 \arguments{
-\item{...}{Additional arguments which can be passed to ggplot2::disrete_scale()
-or ggplot2::scale_color_gradientn(), used when discrete is
-true or false, respectively}
+\item{...}{Additional arguments which can be passed to
+ggplot2::discrete_scale() or ggplot2::scale_color_gradientn(), used when
+discrete is true or false, respectively}
 }
 \description{
 Grab any combination of colors for our palettes
