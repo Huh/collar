@@ -9,7 +9,8 @@ get_paths(key_dir, ext = "keyx$", ...)
 \arguments{
 \item{key_dir}{Path to a directory}
 
-\item{ext}{Defaults to keyx, which should be correct for Vectronics key files, but could also be a regular expression used to match any file extension.}
+\item{ext}{Defaults to keyx, which should be correct for Vectronic key files,
+but could also be a regular expression used to match any file extension.}
 
 \item{...}{other arguments to pass to list.files, see ?list.files}
 }

@@ -13,7 +13,12 @@ get_keys(key_paths)
 A character vector of keys
 }
 \description{
-The key is needed to call the Vectronics API and given the length of the key copy and paste errors seems likely.  The functions here help users access the keys in a programmatic fashion. We don't anticipate much need for users to use this function as it was originally intended to be internal to the package, but if listing keys is needed for reporting purposes or otherwise the function is made available.
+The key is needed to call the Vectronic API and given the length of the key
+copy and paste errors seems likely.  The functions here help users access the
+keys in a programmatic fashion. We don't anticipate much need for users to
+use this function as it was originally intended to be internal to the
+package, but if listing keys is needed for reporting purposes or otherwise
+the function is made available.
 }
 \examples{
 

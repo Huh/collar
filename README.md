@@ -12,7 +12,7 @@ The package is a work in progress, feedback is always appreciated.
 
 We focus on companies that our collaborators use often and that provide some means of automating access to data (e.g. API).
 
-- Vectronics Aerospace
+- Vectronic Aerospace
 - Advanced Telemetry Solutions
 - Lotek
 - Track Tag
