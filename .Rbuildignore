@@ -4,3 +4,6 @@
 ^doc$
 ^Meta$
 ^LICENSE\.md$
+^malware-scan\.sh$
+^\.pre-commit-config\.yaml$
+^\.claude$
