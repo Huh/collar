@@ -1,4 +1,4 @@
-# collar (development version)
+# collar 0.1.0
 
 * Documentation now uses the manufacturer's correct name, Vectronic, rather than "Vectronics" (#63). Function names are unchanged.
 * Lotek and Track Tag functions now report the server's actual error message when a request fails, instead of `bad error message` (#80). Lotek's public demo account no longer accepts logins, so examples and the Lotek vignette now use placeholder credentials.
