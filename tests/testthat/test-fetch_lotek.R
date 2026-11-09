@@ -4,7 +4,7 @@ offline <- function() {
 
 check_api <- function() {
   if (offline()) {
-    skip("API not available - no internet")
+    testthat::skip("API not available - no internet")
   }
 }
 
@@ -22,7 +22,7 @@ dt_format <- function(dt_in) {
 }
 
 check_data <- function(x, data_type) {
-  expect_s3_class(x, "tbl_df")
+  testthat::expect_s3_class(x, "tbl_df")
   check_names <- switch(
     data_type,
     "alerts" = c(
@@ -45,7 +45,7 @@ check_data <- function(x, data_type) {
       "RecDateTime"
     )
   )
-  expect_true(
+  testthat::expect_true(
     all(
       rlang::has_name(x, check_names)
     )
@@ -69,69 +69,74 @@ test_that("Check lotek login function", {
   expect_error(fetch_lotek_devices())
   expect_error(fetch_lotek_positions())
 
-  # # test valid login
-  # lotek_login("demo", "PASSWORD09")
-  #
-  # # check object returned with valid inputs
-  # expect_is(lotek_token(), "character")
-  #
-  # # check that refresh function works as expected
-  # t <- ltk.env$ltk$access_token
-  # lotek_refresh_token(force_refresh = TRUE)
-  # expect_false(t == ltk.env$ltk$access_token)
-  #
-  # # check that token works for retrieving data
-  # dl <- fetch_lotek_devices()
-  #
-  # # check that logging out revokes access
-  # lotek_logout()
-  # expect_error(fetch_lotek_alerts())
-
 })
 
-# test_that("Check lotek data functions", {
+test_that("Check lotek authenticated functions (live, own credentials)", {
+  # Lotek's public demo account no longer accepts logins, so this runs only
+  # when credentials for a real account are set in the environment.
+  usr <- Sys.getenv("COLLAR_LOTEK_USR")
+  pwd <- Sys.getenv("COLLAR_LOTEK_PWD")
+  skip_if(
+    usr == "" || pwd == "",
+    "Set COLLAR_LOTEK_USR and COLLAR_LOTEK_PWD to run live Lotek tests"
+  )
+  check_api()
 
-  # check_api()
+  expect_true(lotek_login(usr, pwd))
+  expect_type(lotek_token(), "character")
 
-  # lotek_login("demo", "PASSWORD09")
-  #
-  # # check data retrieval functions
-  # alerts <- fetch_lotek_alerts()
-  # check_data(alerts, "alerts")
-  #
-  # dl <- fetch_lotek_devices()
-  # check_data(dl, "devices")
-  #
-  # # check position function
-  # dev <- as.character(dl[1,"DeviceID"])
-  # st <- lubridate::mdy("1/1/20")
-  # end <- lubridate::mdy("2/1/20")
-  #
-  # pos <- fetch_lotek_positions(
-  #   start_date = dt_format(st)
-  # )
-  # check_data(pos, "positions")
-  # expect_true(min(pos$RecDateTime) >= st)
-  #
-  # pos <- fetch_lotek_positions(
-  #   start_date = dt_format(st),
-  #   end_date = dt_format(end)
-  # )
-  # check_data(pos, "positions")
-  # expect_true(min(pos$RecDateTime) >= st)
-  # expect_true(max(pos$RecDateTime) <= end)
-  #
-  # pos <- fetch_lotek_positions(
-  #   device_id = dev
-  # )
-  # check_data(pos, "positions")
-  # expect_equal(as.integer(dev), as.integer(pos[[1, "DeviceID"]]))
-  # expect_equal(as.integer(dev), as.integer(pos[[nrow(pos), "DeviceID"]]))
-  #
-  # pos <- fetch_lotek_positions(
-  #   st <- lubridate::now(tzone = "GMT") + months(1)
-  # )
-  # check_data(pos, "positions")
-  # expect_equal(nrow(pos), 0)
+  tkn <- ltk_env$ltk$access_token
+  lotek_refresh_token(force_refresh = TRUE)
+  expect_false(tkn == ltk_env$ltk$access_token)
 
-# })
+  check_data(fetch_lotek_alerts(), "alerts")
+
+  dl <- fetch_lotek_devices()
+  check_data(dl, "devices")
+
+  dev <- as.character(dl[[1, "DeviceID"]])
+  pos <- fetch_lotek_positions(device_id = dev)
+  check_data(pos, "positions")
+  expect_true(all(as.integer(pos$DeviceID) == as.integer(dev)))
+  expect_identical(nrow(add_lotek_status(pos)), nrow(pos))
+
+  lotek_logout()
+  expect_error(fetch_lotek_alerts())
+})
+
+test_that("RxStatus decodes status code and satellite count (#87)", {
+  # 0b1010110 = 86: 10 satellites (bits 3-6), status 6 (bits 0-2)
+  rx <- c(86L, 0L, 7L, 127L, NA)
+  expect_identical(lotek_status_code(rx), c(6L, 0L, 7L, 7L, NA))
+  expect_identical(lotek_num_sats(rx), c(10L, 0L, 0L, 15L, NA))
+  expect_identical(lotek_status_code(integer(0)), integer(0))
+})
+
+test_that("add_lotek_status labels each position type (#87)", {
+  pos <- tibble::tibble(
+    DeviceID = 1L,
+    RxStatus = c(86L, 37L, NA),
+    FixType = c(1L, 2L, 0L)
+  )
+
+  std <- add_lotek_status(pos)
+  expect_identical(
+    std$FixStatus,
+    c("3-D least-squares", "2-D least-squares", NA)
+  )
+  expect_identical(std$NumSats, c(10L, 4L, NA))
+  expect_identical(nrow(std), nrow(pos))
+
+  swift <- add_lotek_status(pos, "Litetrack (Swift fix)")
+  expect_identical(
+    swift$FixTypeText,
+    c("Standard fix", "Swift fix", "Time out")
+  )
+  expect_identical(swift$FixStatus, c("3-D least-squares", NA, NA))
+
+  ird <- add_lotek_status(
+    tibble::tibble(RxStatus = c(3L, 20L, 99L)),
+    "Iridium Track"
+  )
+  expect_identical(ird$FixStatus, c("2D fix", "3D validated fix", NA))
+})

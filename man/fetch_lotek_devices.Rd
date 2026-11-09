@@ -15,7 +15,7 @@ Retrieves a list of devices (collars) associated
 }
 \examples{
 \dontrun{
-lotek_login("demo", "PASSWORD09")
+lotek_login("your_username", "your_password")
 
 # get list of collars for this account
 collars <- fetch_lotek_devices()

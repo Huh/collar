@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "r-lsp@skills": true,
+    "r-lib@posit-dev-skills": true
+  }
+}

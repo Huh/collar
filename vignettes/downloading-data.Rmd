@@ -9,7 +9,7 @@ vignette: >
 
 ## Purpose
 
-Data collected by tags attached to animals often relay data to users via satellite modems and email. Email is a cumbersome way to receive large amounts of data. For this reason manufacturers typically create a graphical user interface (GUI), which requires the user to visit a website, click on a series of buttons and download individual files. This workflow is better than email, but onerous if more than a few collars are deployed at a time. A more ideal workflow would be for a server to wake up in the middle of the night contact another server and download data in an automated fashion. Few companies, namely Vectronics, have developed application program interfaces (i.e. API) to solve this problem and facilitate the latter more desirable workflow. This package is a workaround for those using tags from companies that do not supply an API and in the case of Vectronics we offer a simple solution to interacting with the API via R. Writing this package in R (and using S3) is important because of the prevalance of R in wildlife science.  
+Data collected by tags attached to animals often relay data to users via satellite modems and email. Email is a cumbersome way to receive large amounts of data. For this reason manufacturers typically create a graphical user interface (GUI), which requires the user to visit a website, click on a series of buttons and download individual files. This workflow is better than email, but onerous if more than a few collars are deployed at a time. A more ideal workflow would be for a server to wake up in the middle of the night contact another server and download data in an automated fashion. Few companies, namely Vectronic, have developed application program interfaces (i.e. API) to solve this problem and facilitate the latter more desirable workflow. This package is a workaround for those using tags from companies that do not supply an API and in the case of Vectronic we offer a simple solution to interacting with the API via R. Writing this package in R (and using S3) is important because of the prevalance of R in wildlife science.  
 
 ### Roadmap
 
@@ -17,11 +17,11 @@ When creating this package we imagined a simple interface that made it easy for 
 
 ### Companies
 
-At the time of this writing we have tools to download data from Vectronics, ATS, Lotek and legacy csv files. 
+At the time of this writing we have tools to download data from Vectronic, ATS, Lotek and legacy csv files. 
 
-#### Vectronics
+#### Vectronic
 
-The Vectronics API is [documented here](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). A basic request to API is just a URL like www.google.com except that it also specifies some parameters, which tell the receiving server to do something.  Let's take a look
+The Vectronic API is [documented here](https://www.vectronic-aerospace.com/wildlife-monitoring/vectronic-aerospace-http-wildlife-api/). A basic request to API is just a URL like www.google.com except that it also specifies some parameters, which tell the receiving server to do something.  Let's take a look
 
 `https://api.vectronic-wildlife.com/collar/{collarid}/{datatype}?collarkey={key}`
 
@@ -36,7 +36,7 @@ Looking at the request we see that we are going to securely pass data via the en
 7) trap event data
 8) vaginal implant data
 
-The last piece of information we are required to pass is the collar key. A key is a bit of XML (eXtensible Markup Language) that allows Vectronics to identify each unique device and return the relevant data. Thankfully Vectronics provides a test key that we can all use to test the API. If you have your own keys that you want to use go for it, but for this example we provide an example test key in the package. The example key can be located at:
+The last piece of information we are required to pass is the collar key. A key is a bit of XML (eXtensible Markup Language) that allows Vectronic to identify each unique device and return the relevant data. Thankfully Vectronic provides a test key that we can all use to test the API. If you have your own keys that you want to use go for it, but for this example we provide an example test key in the package. The example key can be located at:
 ```{r eval = F}
 system.file("extdata", "Collar1000001_Registration.keyx", package = "collar")
 ```
@@ -51,13 +51,13 @@ library(collar)
 
 Call the API
 ```{r eval = F, warning = FALSE}
- key_paths <- get_paths(
-    system.file(
-      "extdata",
-      package = "collar"
-    )
+key_paths <- get_paths(
+  system.file(
+    "extdata",
+    package = "collar"
   )
- vec_dat <- fetch_vectronics(key_paths)
+)
+vec_dat <- fetch_vectronics(key_paths)
 ```
 
 Cool, but what just happened? Let's break down the function call into its pieces. First, I told you that the API required a collar id, a collar key and a data type, but in our call we only supplied paths to key files. The collar package read the key files, extracted the collar id from the collar key, then it extracted the long alphanumeric key and finally it guessed that you wanted GPS location data because no value was supplied. Using these pieces of information the fetch_* function builds a URL and calls the API. The function can handle many keys at once or a single key if desired. The function returns a [tibble](https://tibble.tidyverse.org/), which prints nicely to the screen and does not coerce or recycle values in an unreasonable way. It also provides a means of passing a function to make pretty column names. The default removed all non-ASCII characters, like the degree symbol, made all letters lower case and replaced `.` with `_`. If you don't like that convention you can write your own function or pass something like `make.names` or `tolower`.
@@ -141,8 +141,7 @@ library(collar)
 # ATS changed the demo password on us
 # This is just a workaround to make the vignette work
 ok <- try(ats_login(usr = "mary", pwd = ".")) == TRUE
-# Normally this would be fine:
-# ats_login(usr = "mary", pwd = ".")
+# Normally a plain ats_login() call with the same arguments would be fine.
 ```
 
 Your login information is stored in a cookie what will remain active for the duration of your R session. If you experience problems retrieving your data you can always run the same code again to log back in to your account.
@@ -268,7 +267,7 @@ lotek <- fetch_csv(lotek_fpath)
 
 The function fetch_csv allows us to read multiple csv's.
 ```{r eval = F}
-fpaths <- list.files(dirname(lotek_fpath), full.names = T, pattern = "csv$")
+fpaths <- list.files(dirname(lotek_fpath), full.names = TRUE, pattern = "csv$")
 
 my_dat <- fetch_csv(fpaths[1:2])
 ```

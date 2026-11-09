@@ -2,7 +2,7 @@
 % Please edit documentation in R/fetch_vectronics.R
 \name{call_vec_api}
 \alias{call_vec_api}
-\title{A basic call to the Vectronics API}
+\title{A basic call to the Vectronic API}
 \usage{
 call_vec_api(url, rename_fun = adj_col_nms)
 }
@@ -15,6 +15,6 @@ call_vec_api(url, rename_fun = adj_col_nms)
 tibble
 }
 \description{
-A basic call to the Vectronics API
+A basic call to the Vectronic API
 }
 \keyword{internal}

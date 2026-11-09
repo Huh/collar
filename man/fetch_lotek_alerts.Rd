@@ -15,7 +15,7 @@ Retrieves alerts for all devices associated with the account
 }
 \examples{
 \dontrun{
-lotek_login("demo", "PASSWORD09")
+lotek_login("your_username", "your_password")
 
 # get all alerts for this account
 alerts <- fetch_lotek_alerts()

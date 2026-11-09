@@ -2,7 +2,7 @@
 % Please edit documentation in R/fetch_vectronics.R
 \name{fetch_vectronics}
 \alias{fetch_vectronics}
-\title{Download data from Vectronics' web service}
+\title{Download data from the Vectronic web service}
 \usage{
 fetch_vectronics(
   key_paths,
@@ -46,14 +46,27 @@ for subsetting}
 Tibble
 }
 \description{
-A function to download data from the Vectronics' web service. The function relies on a directory containing collar keys \code{key_dir}. The function will then attempt to download the relevant data using the keys in the \code{key_dir} directory. The user may alter the data downloaded by, for example, downloading data after some arbitrary date, downloading different types of data or after a data id.
+A function to download data from the Vectronic web service. The function
+relies on a directory containing collar keys \code{key_dir}. The function
+will then attempt to download the relevant data using the keys in the
+\code{key_dir} directory. The user may alter the data downloaded by, for
+example, downloading data after some arbitrary date, downloading different
+types of data or after a data id.
 }
 \details{
-This function assumes that the user stores key files for each collar deployed in a single directory and that directory only contains key files. The function will extract all of the keys contained in this directory and attempt to download data for each collar.
+This function assumes that the user stores key files for each collar deployed
+in a single directory and that directory only contains key files. The
+function will extract all of the keys contained in this directory and attempt
+to download data for each collar.
 
- If desired, the user may limit the amount of data downloaded by supplying a data id or start date. In both cases only data after the data id or date will be downloaded. One value of data_id is required for each collar. For start_date, the user has the option of supplying a single value or one for each collar.
+If desired, the user may limit the amount of data downloaded by supplying a
+data id or start date. In both cases only data after the data id or date will
+be downloaded. One value of data_id is required for each collar. For
+start_date, the user has the option of supplying a single value or one for
+each collar.
 
- The type argument allows the user to download different types of information collected by Vectronics collars. The possible options are
+The type argument allows the user to download different types of information
+collected by Vectronic collars. The possible options are
 
 \itemize{
   \item "count" returns count of data records, used with values below
@@ -67,7 +80,10 @@ This function assumes that the user stores key files for each collar deployed in
   \item "vit" returns vaginal implant data
 }
 
-Column names are adjusted using a custom function, but the user can pass any function they want to manipulate column names (e.g. make.names). The default removes non-ASCII characters, coerces all characters to lower case and replaces "." with "_".
+Column names are adjusted using a custom function, but the user can pass any
+function they want to manipulate column names (e.g. make.names). The default
+removes non-ASCII characters, coerces all characters to lower case and
+replaces "." with "_".
 }
 \examples{
 \dontrun{

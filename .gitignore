@@ -6,3 +6,5 @@
 inst/doc
 doc
 Meta
+.claude/settings.local.json
+.Renviron
